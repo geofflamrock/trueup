@@ -1,8 +1,8 @@
-import { Form, Link, redirect, useLoaderData, useRevalidator, useNavigate } from "react-router";
+import { Form, Link, redirect, useLoaderData, useRevalidator, useNavigate, useSubmit, useActionData } from "react-router";
 import type { Route } from "./+types/group";
 import { getGroup, addPerson, addExpense, addTransfer, updateGroupName, updatePersonName, updateExpense, updateTransfer, deleteGroup, deletePerson, deleteExpense, deleteTransfer } from "../storage";
 import { calculateBalances } from "../balances";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Group, Person, Expense, Transfer } from "../types";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
@@ -127,8 +127,10 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
 
 export default function GroupPage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
+  const actionData = useActionData<typeof clientAction>();
   const revalidator = useRevalidator();
   const navigate = useNavigate();
+  const submit = useSubmit();
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddTransfer, setShowAddTransfer] = useState(false);
@@ -138,63 +140,46 @@ export default function GroupPage() {
   const [editingTransferId, setEditingTransferId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const handleDeleteGroup = async () => {
+  // Handle delete person error from action data
+  useEffect(() => {
+    if (actionData && 'error' in actionData && actionData.error) {
+      setDeleteError(actionData.error);
+      setTimeout(() => setDeleteError(null), 5000);
+    }
+  }, [actionData]);
+
+  const handleDeleteGroup = () => {
     if (window.confirm(`Are you sure you want to delete the group "${group.name}"? This action cannot be undone.`)) {
-      const form = new FormData();
-      form.append("actionType", "deleteGroup");
-      await fetch(window.location.pathname, {
-        method: "POST",
-        body: form,
-      });
-      navigate("/");
+      const formData = new FormData();
+      formData.append("actionType", "deleteGroup");
+      submit(formData, { method: "post" });
     }
   };
 
-  const handleDeletePerson = async (personId: number, personName: string) => {
+  const handleDeletePerson = (personId: number, personName: string) => {
     if (window.confirm(`Are you sure you want to delete ${personName}?`)) {
-      const form = new FormData();
-      form.append("actionType", "deletePerson");
-      form.append("personId", personId.toString());
-      const response = await fetch(window.location.pathname, {
-        method: "POST",
-        body: form,
-      });
-      
-      if (response.ok) {
-        const data = await response.json().catch(() => null);
-        if (data && data.error) {
-          setDeleteError(data.error);
-          setTimeout(() => setDeleteError(null), 5000);
-        } else {
-          revalidator.revalidate();
-        }
-      }
+      const formData = new FormData();
+      formData.append("actionType", "deletePerson");
+      formData.append("personId", personId.toString());
+      submit(formData, { method: "post" });
     }
   };
 
-  const handleDeleteExpense = async (expenseId: string, description: string) => {
+  const handleDeleteExpense = (expenseId: string, description: string) => {
     if (window.confirm(`Are you sure you want to delete the expense "${description}"? This action cannot be undone.`)) {
-      const form = new FormData();
-      form.append("actionType", "deleteExpense");
-      form.append("expenseId", expenseId);
-      await fetch(window.location.pathname, {
-        method: "POST",
-        body: form,
-      });
-      revalidator.revalidate();
+      const formData = new FormData();
+      formData.append("actionType", "deleteExpense");
+      formData.append("expenseId", expenseId);
+      submit(formData, { method: "post" });
     }
   };
 
-  const handleDeleteTransfer = async (transferId: string) => {
+  const handleDeleteTransfer = (transferId: string) => {
     if (window.confirm("Are you sure you want to delete this transfer? This action cannot be undone.")) {
-      const form = new FormData();
-      form.append("actionType", "deleteTransfer");
-      form.append("transferId", transferId);
-      await fetch(window.location.pathname, {
-        method: "POST",
-        body: form,
-      });
-      revalidator.revalidate();
+      const formData = new FormData();
+      formData.append("actionType", "deleteTransfer");
+      formData.append("transferId", transferId);
+      submit(formData, { method: "post" });
     }
   };
 
