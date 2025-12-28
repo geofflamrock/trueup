@@ -404,10 +404,19 @@ function AddTransferForm({
   onClose: () => void;
   revalidate: () => void;
 }) {
+  const [fromPersonId, setFromPersonId] = useState(group.people[0]?.id || 0);
+  const [toPersonId, setToPersonId] = useState(group.people[1]?.id || group.people[0]?.id || 0);
+
+  const isValid = fromPersonId !== toPersonId;
+
   return (
     <Form
       method="post"
-      onSubmit={() => {
+      onSubmit={(e) => {
+        if (!isValid) {
+          e.preventDefault();
+          return;
+        }
         onClose();
         setTimeout(() => revalidate(), 100);
       }}
@@ -433,6 +442,8 @@ function AddTransferForm({
         <select
           name="paidById"
           required
+          value={fromPersonId}
+          onChange={(e) => setFromPersonId(parseInt(e.target.value))}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         >
           {group.people.map((p: any) => (
@@ -449,6 +460,8 @@ function AddTransferForm({
         <select
           name="paidToId"
           required
+          value={toPersonId}
+          onChange={(e) => setToPersonId(parseInt(e.target.value))}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         >
           {group.people.map((p: any) => (
@@ -458,10 +471,16 @@ function AddTransferForm({
           ))}
         </select>
       </div>
+      {!isValid && (
+        <div className="text-sm text-red-600 dark:text-red-400">
+          Cannot transfer to the same person
+        </div>
+      )}
       <div className="flex gap-2">
         <button
           type="submit"
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+          disabled={!isValid}
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg"
         >
           Add Transfer
         </button>
