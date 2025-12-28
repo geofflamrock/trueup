@@ -141,6 +141,69 @@ export function updateTransfer(
   return true;
 }
 
+export function deleteGroup(groupId: string): boolean {
+  const groups = getAllGroups();
+  const filteredGroups = groups.filter((g) => g.id !== groupId);
+  
+  if (filteredGroups.length === groups.length) {
+    return false; // Group not found
+  }
+  
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredGroups));
+  return true;
+}
+
+export function deletePerson(groupId: string, personId: number): boolean {
+  const group = getGroup(groupId);
+  if (!group) return false;
+  
+  // Check if person is involved in any expenses or transfers
+  const hasExpenses = group.expenses.some(
+    (e) => e.paidById === personId || e.shares.some((s) => s.personId === personId)
+  );
+  const hasTransfers = group.transfers.some(
+    (t) => t.paidById === personId || t.paidToId === personId
+  );
+  
+  if (hasExpenses || hasTransfers) {
+    return false; // Cannot delete person with expenses/transfers
+  }
+  
+  group.people = group.people.filter((p) => p.id !== personId);
+  saveGroup(group);
+  return true;
+}
+
+export function deleteExpense(groupId: string, expenseId: string): boolean {
+  const group = getGroup(groupId);
+  if (!group) return false;
+  
+  const initialLength = group.expenses.length;
+  group.expenses = group.expenses.filter((e) => e.id !== expenseId);
+  
+  if (group.expenses.length === initialLength) {
+    return false; // Expense not found
+  }
+  
+  saveGroup(group);
+  return true;
+}
+
+export function deleteTransfer(groupId: string, transferId: string): boolean {
+  const group = getGroup(groupId);
+  if (!group) return false;
+  
+  const initialLength = group.transfers.length;
+  group.transfers = group.transfers.filter((t) => t.id !== transferId);
+  
+  if (group.transfers.length === initialLength) {
+    return false; // Transfer not found
+  }
+  
+  saveGroup(group);
+  return true;
+}
+
 function generateId(): string {
   return Array.from({ length: 8 }, () =>
     Math.floor(Math.random() * 16).toString(16)

@@ -1,6 +1,6 @@
-import { Form, Link, redirect, useLoaderData, useRevalidator } from "react-router";
+import { Form, Link, redirect, useLoaderData, useRevalidator, useNavigate } from "react-router";
 import type { Route } from "./+types/group";
-import { getGroup, addPerson, addExpense, addTransfer, updateGroupName, updatePersonName, updateExpense, updateTransfer } from "../storage";
+import { getGroup, addPerson, addExpense, addTransfer, updateGroupName, updatePersonName, updateExpense, updateTransfer, deleteGroup, deletePerson, deleteExpense, deleteTransfer } from "../storage";
 import { calculateBalances } from "../balances";
 import { useState } from "react";
 import type { Group, Person, Expense, Transfer } from "../types";
@@ -33,6 +33,26 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
     const name = formData.get("name") as string;
     if (personId && name) {
       updatePersonName(params.groupId, personId, name);
+    }
+  } else if (actionType === "deleteGroup") {
+    const success = deleteGroup(params.groupId);
+    if (success) {
+      return redirect("/");
+    }
+  } else if (actionType === "deletePerson") {
+    const personId = parseInt(formData.get("personId") as string);
+    if (personId) {
+      deletePerson(params.groupId, personId);
+    }
+  } else if (actionType === "deleteExpense") {
+    const expenseId = formData.get("expenseId") as string;
+    if (expenseId) {
+      deleteExpense(params.groupId, expenseId);
+    }
+  } else if (actionType === "deleteTransfer") {
+    const transferId = formData.get("transferId") as string;
+    if (transferId) {
+      deleteTransfer(params.groupId, transferId);
     }
   } else if (actionType === "addExpense") {
     const description = formData.get("description") as string;
@@ -104,6 +124,7 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
 export default function GroupPage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
   const revalidator = useRevalidator();
+  const navigate = useNavigate();
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddTransfer, setShowAddTransfer] = useState(false);
@@ -111,6 +132,72 @@ export default function GroupPage() {
   const [editingPersonId, setEditingPersonId] = useState<number | null>(null);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [editingTransferId, setEditingTransferId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const handleDeleteGroup = async () => {
+    if (window.confirm(`Are you sure you want to delete the group "${group.name}"? This action cannot be undone.`)) {
+      const form = new FormData();
+      form.append("actionType", "deleteGroup");
+      await fetch(window.location.pathname, {
+        method: "POST",
+        body: form,
+      });
+      navigate("/");
+    }
+  };
+
+  const handleDeletePerson = async (personId: number, personName: string) => {
+    // Check if person has expenses or transfers before showing confirmation
+    const hasExpenses = group.expenses.some(
+      (e) => e.paidById === personId || e.shares.some((s) => s.personId === personId)
+    );
+    const hasTransfers = group.transfers.some(
+      (t) => t.paidById === personId || t.paidToId === personId
+    );
+    
+    if (hasExpenses || hasTransfers) {
+      setDeleteError(`Cannot delete ${personName} because they have expenses or transfers.`);
+      setTimeout(() => setDeleteError(null), 5000);
+      return;
+    }
+    
+    if (window.confirm(`Are you sure you want to delete ${personName}?`)) {
+      const form = new FormData();
+      form.append("actionType", "deletePerson");
+      form.append("personId", personId.toString());
+      await fetch(window.location.pathname, {
+        method: "POST",
+        body: form,
+      });
+      revalidator.revalidate();
+    }
+  };
+
+  const handleDeleteExpense = async (expenseId: string, description: string) => {
+    if (window.confirm(`Are you sure you want to delete the expense "${description}"? This action cannot be undone.`)) {
+      const form = new FormData();
+      form.append("actionType", "deleteExpense");
+      form.append("expenseId", expenseId);
+      await fetch(window.location.pathname, {
+        method: "POST",
+        body: form,
+      });
+      revalidator.revalidate();
+    }
+  };
+
+  const handleDeleteTransfer = async (transferId: string) => {
+    if (window.confirm("Are you sure you want to delete this transfer? This action cannot be undone.")) {
+      const form = new FormData();
+      form.append("actionType", "deleteTransfer");
+      form.append("transferId", transferId);
+      await fetch(window.location.pathname, {
+        method: "POST",
+        body: form,
+      });
+      revalidator.revalidate();
+    }
+  };
 
   // Combine expenses and transfers into a timeline
   const timeline = [
@@ -164,15 +251,23 @@ export default function GroupPage() {
               </button>
             </Form>
           ) : (
-            <div className="flex gap-2 items-center">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-                {group.name}
-              </h1>
+            <div className="flex gap-2 items-center justify-between">
+              <div className="flex gap-2 items-center">
+                <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+                  {group.name}
+                </h1>
+                <button
+                  onClick={() => setEditingGroupName(true)}
+                  className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded"
+                >
+                  Edit
+                </button>
+              </div>
               <button
-                onClick={() => setEditingGroupName(true)}
-                className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded"
+                onClick={handleDeleteGroup}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
               >
-                Edit
+                Delete Group
               </button>
             </div>
           )}
@@ -219,6 +314,12 @@ export default function GroupPage() {
                     Add
                   </button>
                 </Form>
+              )}
+
+              {deleteError && (
+                <div className="mb-4 px-4 py-2 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-lg">
+                  {deleteError}
+                </div>
               )}
 
               {group.people.length === 0 ? (
@@ -268,12 +369,20 @@ export default function GroupPage() {
                       ) : (
                         <div className="flex justify-between items-center">
                           <span className="text-gray-900 dark:text-gray-100">{person.name}</span>
-                          <button
-                            onClick={() => setEditingPersonId(person.id)}
-                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
-                          >
-                            Edit
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setEditingPersonId(person.id)}
+                              className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeletePerson(person.id, person.name)}
+                              className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
                       )}
                     </li>
@@ -376,12 +485,20 @@ export default function GroupPage() {
                                   Split: {item.shares.map((s) => `${getPersonName(s.personId)} ($${s.amount.toFixed(2)})`).join(", ")}
                                 </div>
                               </div>
-                              <button
-                                onClick={() => setEditingExpenseId(item.id)}
-                                className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
-                              >
-                                Edit
-                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => setEditingExpenseId(item.id)}
+                                  className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteExpense(item.id, item.description)}
+                                  className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           </div>
                         )
@@ -407,12 +524,20 @@ export default function GroupPage() {
                                   {getPersonName(item.paidById)} paid {getPersonName(item.paidToId)}: ${item.amount.toFixed(2)}
                                 </div>
                               </div>
-                              <button
-                                onClick={() => setEditingTransferId(item.id)}
-                                className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
-                              >
-                                Edit
-                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => setEditingTransferId(item.id)}
+                                  className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTransfer(item.id)}
+                                  className="px-2 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           </div>
                         )
