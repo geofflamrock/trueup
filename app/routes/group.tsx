@@ -1,4 +1,4 @@
-import { Form, Link, redirect, useLoaderData, useRevalidator, useNavigate, useSubmit, useActionData } from "react-router";
+import { Form, Link, redirect, useLoaderData, useRevalidator, useSubmit, useActionData } from "react-router";
 import type { Route } from "./+types/group";
 import { getGroup, addPerson, addExpense, addTransfer, updateGroupName, updatePersonName, updateExpense, updateTransfer, deleteGroup, deletePerson, deleteExpense, deleteTransfer } from "../storage";
 import { calculateBalances } from "../balances";
@@ -129,7 +129,6 @@ export default function GroupPage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
   const actionData = useActionData<typeof clientAction>();
   const revalidator = useRevalidator();
-  const navigate = useNavigate();
   const submit = useSubmit();
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
