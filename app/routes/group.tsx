@@ -3,6 +3,7 @@ import type { Route } from "./+types/group";
 import { getGroup, addPerson, addExpense, addTransfer } from "../storage";
 import { calculateBalances } from "../balances";
 import { useState } from "react";
+import type { Group, Person } from "../types";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -259,12 +260,12 @@ function AddExpenseForm({
   onClose,
   revalidate,
 }: {
-  group: any;
+  group: Group;
   onClose: () => void;
   revalidate: () => void;
 }) {
   const [shares, setShares] = useState(
-    group.people.map((p: any) => ({ personId: p.id, amount: 0 }))
+    group.people.map((p) => ({ personId: p.id, amount: 0 }))
   );
   const [amount, setAmount] = useState(0);
 
@@ -273,7 +274,7 @@ function AddExpenseForm({
 
   const handleEqualSplit = () => {
     const perPerson = amount / group.people.length;
-    setShares(group.people.map((p: any) => ({ personId: p.id, amount: perPerson })));
+    setShares(group.people.map((p) => ({ personId: p.id, amount: perPerson })));
   };
 
   return (
@@ -324,7 +325,7 @@ function AddExpenseForm({
           required
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         >
-          {group.people.map((p: any) => (
+          {group.people.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
@@ -344,7 +345,7 @@ function AddExpenseForm({
             Split equally
           </button>
         </div>
-        {group.people.map((person: any, idx: number) => (
+        {group.people.map((person, idx) => (
           <div key={person.id} className="flex gap-2 items-center mb-2">
             <label className="flex-1 text-gray-900 dark:text-gray-100">
               {person.name}
@@ -400,7 +401,7 @@ function AddTransferForm({
   onClose,
   revalidate,
 }: {
-  group: any;
+  group: Group;
   onClose: () => void;
   revalidate: () => void;
 }) {
@@ -446,7 +447,7 @@ function AddTransferForm({
           onChange={(e) => setFromPersonId(parseInt(e.target.value))}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         >
-          {group.people.map((p: any) => (
+          {group.people.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
@@ -464,7 +465,7 @@ function AddTransferForm({
           onChange={(e) => setToPersonId(parseInt(e.target.value))}
           className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
         >
-          {group.people.map((p: any) => (
+          {group.people.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
