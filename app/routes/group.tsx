@@ -3,7 +3,7 @@ import type { Route } from "./+types/group";
 import { getGroup, addPerson, addExpense, addTransfer, updateGroupName, updatePersonName, updateExpense, updateTransfer } from "../storage";
 import { calculateBalances } from "../balances";
 import { useState } from "react";
-import type { Group, Person } from "../types";
+import type { Group, Person, Expense, Transfer } from "../types";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -678,14 +678,14 @@ function EditExpenseForm({
   revalidate,
 }: {
   group: Group;
-  expense: any;
+  expense: Expense;
   onClose: () => void;
   revalidate: () => void;
 }) {
   const [shares, setShares] = useState(expense.shares);
   const [amount, setAmount] = useState(expense.amount);
 
-  const totalShares = shares.reduce((sum: number, s: any) => sum + s.amount, 0);
+  const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
   const isValid = Math.abs(totalShares - amount) < 0.01 && amount > 0;
 
   const handleEqualSplit = () => {
@@ -766,7 +766,7 @@ function EditExpenseForm({
           </button>
         </div>
         {group.people.map((person, idx) => {
-          const shareIdx = shares.findIndex((s: any) => s.personId === person.id);
+          const shareIdx = shares.findIndex((s) => s.personId === person.id);
           const shareAmount = shareIdx >= 0 ? shares[shareIdx].amount : 0;
           
           return (
@@ -780,7 +780,7 @@ function EditExpenseForm({
                 value={shareAmount || 0}
                 onChange={(e) => {
                   const newShares = [...shares];
-                  const existingIdx = newShares.findIndex((s: any) => s.personId === person.id);
+                  const existingIdx = newShares.findIndex((s) => s.personId === person.id);
                   const newAmount = parseFloat(e.target.value) || 0;
                   
                   if (existingIdx >= 0) {
@@ -832,7 +832,7 @@ function EditTransferForm({
   revalidate,
 }: {
   group: Group;
-  transfer: any;
+  transfer: Transfer;
   onClose: () => void;
   revalidate: () => void;
 }) {
