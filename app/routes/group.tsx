@@ -1,6 +1,6 @@
 import { Form, Link, redirect, useLoaderData, useRevalidator } from "react-router";
 import type { Route } from "./+types/group";
-import { getGroup, addPerson, addExpense, addTransfer } from "../storage";
+import { getGroup, addPerson, addExpense, addTransfer, updateGroupName, updatePersonName, updateExpense, updateTransfer } from "../storage";
 import { calculateBalances } from "../balances";
 import { useState } from "react";
 import type { Group, Person } from "../types";
@@ -23,6 +23,17 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
     if (name) {
       addPerson(params.groupId, name);
     }
+  } else if (actionType === "updateGroupName") {
+    const name = formData.get("name") as string;
+    if (name) {
+      updateGroupName(params.groupId, name);
+    }
+  } else if (actionType === "updatePersonName") {
+    const personId = parseInt(formData.get("personId") as string);
+    const name = formData.get("name") as string;
+    if (personId && name) {
+      updatePersonName(params.groupId, personId, name);
+    }
   } else if (actionType === "addExpense") {
     const description = formData.get("description") as string;
     const amount = parseFloat(formData.get("amount") as string);
@@ -39,6 +50,24 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
         date: new Date().toISOString(),
       });
     }
+  } else if (actionType === "updateExpense") {
+    const expenseId = formData.get("expenseId") as string;
+    const description = formData.get("description") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+    const paidById = parseInt(formData.get("paidById") as string);
+    const sharesJson = formData.get("shares") as string;
+    const date = formData.get("date") as string;
+    
+    if (expenseId && description && amount && paidById && sharesJson && date) {
+      const shares = JSON.parse(sharesJson);
+      updateExpense(params.groupId, expenseId, {
+        description,
+        amount,
+        paidById,
+        shares,
+        date,
+      });
+    }
   } else if (actionType === "addTransfer") {
     const amount = parseFloat(formData.get("amount") as string);
     const paidById = parseInt(formData.get("paidById") as string);
@@ -52,6 +81,21 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
         date: new Date().toISOString(),
       });
     }
+  } else if (actionType === "updateTransfer") {
+    const transferId = formData.get("transferId") as string;
+    const amount = parseFloat(formData.get("amount") as string);
+    const paidById = parseInt(formData.get("paidById") as string);
+    const paidToId = parseInt(formData.get("paidToId") as string);
+    const date = formData.get("date") as string;
+    
+    if (transferId && amount && paidById && paidToId && date) {
+      updateTransfer(params.groupId, transferId, {
+        amount,
+        paidById,
+        paidToId,
+        date,
+      });
+    }
   }
 
   return null;
@@ -63,6 +107,10 @@ export default function GroupPage() {
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddTransfer, setShowAddTransfer] = useState(false);
+  const [editingGroupName, setEditingGroupName] = useState(false);
+  const [editingPersonId, setEditingPersonId] = useState<number | null>(null);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const [editingTransferId, setEditingTransferId] = useState<string | null>(null);
 
   // Combine expenses and transfers into a timeline
   const timeline = [
@@ -83,9 +131,51 @@ export default function GroupPage() {
           >
             ← Back to groups
           </Link>
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-            {group.name}
-          </h1>
+          {editingGroupName ? (
+            <Form
+              method="post"
+              onSubmit={() => {
+                setEditingGroupName(false);
+                setTimeout(() => revalidator.revalidate(), 100);
+              }}
+              className="flex gap-2 items-center"
+            >
+              <input type="hidden" name="actionType" value="updateGroupName" />
+              <input
+                type="text"
+                name="name"
+                defaultValue={group.name}
+                required
+                autoFocus
+                className="text-4xl font-bold px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingGroupName(false)}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+              >
+                Cancel
+              </button>
+            </Form>
+          ) : (
+            <div className="flex gap-2 items-center">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100">
+                {group.name}
+              </h1>
+              <button
+                onClick={() => setEditingGroupName(true)}
+                className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded"
+              >
+                Edit
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -140,9 +230,52 @@ export default function GroupPage() {
                   {group.people.map((person) => (
                     <li
                       key={person.id}
-                      className="px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-gray-100"
+                      className="px-4 py-2 bg-gray-50 dark:bg-gray-700 rounded-lg"
                     >
-                      {person.name}
+                      {editingPersonId === person.id ? (
+                        <Form
+                          method="post"
+                          onSubmit={() => {
+                            setEditingPersonId(null);
+                            setTimeout(() => revalidator.revalidate(), 100);
+                          }}
+                          className="flex gap-2 items-center"
+                        >
+                          <input type="hidden" name="actionType" value="updatePersonName" />
+                          <input type="hidden" name="personId" value={person.id} />
+                          <input
+                            type="text"
+                            name="name"
+                            defaultValue={person.name}
+                            required
+                            autoFocus
+                            className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                          />
+                          <button
+                            type="submit"
+                            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingPersonId(null)}
+                            className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded"
+                          >
+                            Cancel
+                          </button>
+                        </Form>
+                      ) : (
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-900 dark:text-gray-100">{person.name}</span>
+                          <button
+                            onClick={() => setEditingPersonId(person.id)}
+                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -218,30 +351,71 @@ export default function GroupPage() {
                       key={item.id}
                       className="border-l-4 border-blue-500 pl-4 py-2"
                     >
-                      <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                        {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString()}
-                      </div>
                       {item.type === "expense" ? (
-                        <div>
-                          <div className="font-semibold text-gray-900 dark:text-gray-100">
-                            {item.description}
+                        editingExpenseId === item.id ? (
+                          <EditExpenseForm
+                            group={group}
+                            expense={item}
+                            onClose={() => setEditingExpenseId(null)}
+                            revalidate={() => revalidator.revalidate()}
+                          />
+                        ) : (
+                          <div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                              {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString()}
+                            </div>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                  {item.description}
+                                </div>
+                                <div className="text-gray-700 dark:text-gray-300">
+                                  Paid by {getPersonName(item.paidById)}: ${item.amount.toFixed(2)}
+                                </div>
+                                <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                  Split: {item.shares.map((s) => `${getPersonName(s.personId)} ($${s.amount.toFixed(2)})`).join(", ")}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => setEditingExpenseId(item.id)}
+                                className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
+                              >
+                                Edit
+                              </button>
+                            </div>
                           </div>
-                          <div className="text-gray-700 dark:text-gray-300">
-                            Paid by {getPersonName(item.paidById)}: ${item.amount.toFixed(2)}
-                          </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            Split: {item.shares.map((s) => `${getPersonName(s.personId)} ($${s.amount.toFixed(2)})`).join(", ")}
-                          </div>
-                        </div>
+                        )
                       ) : (
-                        <div>
-                          <div className="font-semibold text-gray-900 dark:text-gray-100">
-                            Transfer
+                        editingTransferId === item.id ? (
+                          <EditTransferForm
+                            group={group}
+                            transfer={item}
+                            onClose={() => setEditingTransferId(null)}
+                            revalidate={() => revalidator.revalidate()}
+                          />
+                        ) : (
+                          <div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                              {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString()}
+                            </div>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                  Transfer
+                                </div>
+                                <div className="text-gray-700 dark:text-gray-300">
+                                  {getPersonName(item.paidById)} paid {getPersonName(item.paidToId)}: ${item.amount.toFixed(2)}
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => setEditingTransferId(item.id)}
+                                className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded"
+                              >
+                                Edit
+                              </button>
+                            </div>
                           </div>
-                          <div className="text-gray-700 dark:text-gray-300">
-                            {getPersonName(item.paidById)} paid {getPersonName(item.paidToId)}: ${item.amount.toFixed(2)}
-                          </div>
-                        </div>
+                        )
                       )}
                     </div>
                   ))}
@@ -484,6 +658,266 @@ function AddTransferForm({
           className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg"
         >
           Add Transfer
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+        >
+          Cancel
+        </button>
+      </div>
+    </Form>
+  );
+}
+
+function EditExpenseForm({
+  group,
+  expense,
+  onClose,
+  revalidate,
+}: {
+  group: Group;
+  expense: any;
+  onClose: () => void;
+  revalidate: () => void;
+}) {
+  const [shares, setShares] = useState(expense.shares);
+  const [amount, setAmount] = useState(expense.amount);
+
+  const totalShares = shares.reduce((sum: number, s: any) => sum + s.amount, 0);
+  const isValid = Math.abs(totalShares - amount) < 0.01 && amount > 0;
+
+  const handleEqualSplit = () => {
+    const perPerson = amount / group.people.length;
+    setShares(group.people.map((p) => ({ personId: p.id, amount: perPerson })));
+  };
+
+  return (
+    <Form
+      method="post"
+      onSubmit={(e) => {
+        if (!isValid) {
+          e.preventDefault();
+          return;
+        }
+        onClose();
+        setTimeout(() => revalidate(), 100);
+      }}
+      className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg space-y-4"
+    >
+      <input type="hidden" name="actionType" value="updateExpense" />
+      <input type="hidden" name="expenseId" value={expense.id} />
+      <input type="hidden" name="date" value={expense.date} />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Description
+        </label>
+        <input
+          type="text"
+          name="description"
+          defaultValue={expense.description}
+          required
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Amount
+        </label>
+        <input
+          type="number"
+          name="amount"
+          step="0.01"
+          required
+          value={amount || ""}
+          onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Paid By
+        </label>
+        <select
+          name="paidById"
+          required
+          defaultValue={expense.paidById}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        >
+          {group.people.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Share per person
+          </label>
+          <button
+            type="button"
+            onClick={handleEqualSplit}
+            className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          >
+            Split equally
+          </button>
+        </div>
+        {group.people.map((person, idx) => {
+          const shareIdx = shares.findIndex((s: any) => s.personId === person.id);
+          const shareAmount = shareIdx >= 0 ? shares[shareIdx].amount : 0;
+          
+          return (
+            <div key={person.id} className="flex gap-2 items-center mb-2">
+              <label className="flex-1 text-gray-900 dark:text-gray-100">
+                {person.name}
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={shareAmount || 0}
+                onChange={(e) => {
+                  const newShares = [...shares];
+                  const existingIdx = newShares.findIndex((s: any) => s.personId === person.id);
+                  const newAmount = parseFloat(e.target.value) || 0;
+                  
+                  if (existingIdx >= 0) {
+                    newShares[existingIdx] = { personId: person.id, amount: newAmount };
+                  } else {
+                    newShares.push({ personId: person.id, amount: newAmount });
+                  }
+                  setShares(newShares);
+                }}
+                className="w-32 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              />
+            </div>
+          );
+        })}
+        <input type="hidden" name="shares" value={JSON.stringify(shares)} />
+        <div className="mt-2 text-sm">
+          <span className="text-gray-700 dark:text-gray-300">Total shares: ${totalShares.toFixed(2)}</span>
+          {!isValid && amount > 0 && (
+            <span className="ml-2 text-red-600 dark:text-red-400">
+              Must equal ${amount.toFixed(2)}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={!isValid}
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg"
+        >
+          Save Changes
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+        >
+          Cancel
+        </button>
+      </div>
+    </Form>
+  );
+}
+
+function EditTransferForm({
+  group,
+  transfer,
+  onClose,
+  revalidate,
+}: {
+  group: Group;
+  transfer: any;
+  onClose: () => void;
+  revalidate: () => void;
+}) {
+  const [fromPersonId, setFromPersonId] = useState(transfer.paidById);
+  const [toPersonId, setToPersonId] = useState(transfer.paidToId);
+
+  const isValid = fromPersonId !== toPersonId;
+
+  return (
+    <Form
+      method="post"
+      onSubmit={(e) => {
+        if (!isValid) {
+          e.preventDefault();
+          return;
+        }
+        onClose();
+        setTimeout(() => revalidate(), 100);
+      }}
+      className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg space-y-4"
+    >
+      <input type="hidden" name="actionType" value="updateTransfer" />
+      <input type="hidden" name="transferId" value={transfer.id} />
+      <input type="hidden" name="date" value={transfer.date} />
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Amount
+        </label>
+        <input
+          type="number"
+          name="amount"
+          step="0.01"
+          required
+          defaultValue={transfer.amount}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          From
+        </label>
+        <select
+          name="paidById"
+          required
+          value={fromPersonId}
+          onChange={(e) => setFromPersonId(parseInt(e.target.value))}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        >
+          {group.people.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          To
+        </label>
+        <select
+          name="paidToId"
+          required
+          value={toPersonId}
+          onChange={(e) => setToPersonId(parseInt(e.target.value))}
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+        >
+          {group.people.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {!isValid && (
+        <div className="text-sm text-red-600 dark:text-red-400">
+          Cannot transfer to the same person
+        </div>
+      )}
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={!isValid}
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg"
+        >
+          Save Changes
         </button>
         <button
           type="button"

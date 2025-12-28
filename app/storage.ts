@@ -82,6 +82,65 @@ export function addTransfer(
   return newTransfer;
 }
 
+export function updateGroupName(groupId: string, name: string): boolean {
+  const group = getGroup(groupId);
+  if (!group) return false;
+  
+  group.name = name;
+  saveGroup(group);
+  return true;
+}
+
+export function updatePersonName(groupId: string, personId: number, name: string): boolean {
+  const group = getGroup(groupId);
+  if (!group) return false;
+  
+  const person = group.people.find((p) => p.id === personId);
+  if (!person) return false;
+  
+  person.name = name;
+  saveGroup(group);
+  return true;
+}
+
+export function updateExpense(
+  groupId: string,
+  expenseId: string,
+  updatedExpense: Omit<Expense, "id">
+): boolean {
+  const group = getGroup(groupId);
+  if (!group) return false;
+  
+  const expenseIndex = group.expenses.findIndex((e) => e.id === expenseId);
+  if (expenseIndex === -1) return false;
+  
+  group.expenses[expenseIndex] = {
+    ...updatedExpense,
+    id: expenseId,
+  };
+  saveGroup(group);
+  return true;
+}
+
+export function updateTransfer(
+  groupId: string,
+  transferId: string,
+  updatedTransfer: Omit<Transfer, "id">
+): boolean {
+  const group = getGroup(groupId);
+  if (!group) return false;
+  
+  const transferIndex = group.transfers.findIndex((t) => t.id === transferId);
+  if (transferIndex === -1) return false;
+  
+  group.transfers[transferIndex] = {
+    ...updatedTransfer,
+    id: transferId,
+  };
+  saveGroup(group);
+  return true;
+}
+
 function generateId(): string {
   return Array.from({ length: 8 }, () =>
     Math.floor(Math.random() * 16).toString(16)
