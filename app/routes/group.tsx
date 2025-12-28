@@ -42,7 +42,11 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
   } else if (actionType === "deletePerson") {
     const personId = parseInt(formData.get("personId") as string);
     if (personId) {
-      deletePerson(params.groupId, personId);
+      const success = deletePerson(params.groupId, personId);
+      if (!success) {
+        // Return error for failed deletion
+        return { error: "Cannot delete person with expenses or transfers" };
+      }
     }
   } else if (actionType === "deleteExpense") {
     const expenseId = formData.get("expenseId") as string;
@@ -147,29 +151,24 @@ export default function GroupPage() {
   };
 
   const handleDeletePerson = async (personId: number, personName: string) => {
-    // Check if person has expenses or transfers before showing confirmation
-    const hasExpenses = group.expenses.some(
-      (e) => e.paidById === personId || e.shares.some((s) => s.personId === personId)
-    );
-    const hasTransfers = group.transfers.some(
-      (t) => t.paidById === personId || t.paidToId === personId
-    );
-    
-    if (hasExpenses || hasTransfers) {
-      setDeleteError(`Cannot delete ${personName} because they have expenses or transfers.`);
-      setTimeout(() => setDeleteError(null), 5000);
-      return;
-    }
-    
     if (window.confirm(`Are you sure you want to delete ${personName}?`)) {
       const form = new FormData();
       form.append("actionType", "deletePerson");
       form.append("personId", personId.toString());
-      await fetch(window.location.pathname, {
+      const response = await fetch(window.location.pathname, {
         method: "POST",
         body: form,
       });
-      revalidator.revalidate();
+      
+      if (response.ok) {
+        const data = await response.json().catch(() => null);
+        if (data && data.error) {
+          setDeleteError(data.error);
+          setTimeout(() => setDeleteError(null), 5000);
+        } else {
+          revalidator.revalidate();
+        }
+      }
     }
   };
 
