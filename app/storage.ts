@@ -37,13 +37,17 @@ export function createGroup(name: string): Group {
   return group;
 }
 
+function getNextPersonId(group: Group): number {
+  return group.people.length > 0 
+    ? Math.max(...group.people.map((p) => p.id)) + 1 
+    : 1;
+}
+
 export function addPerson(groupId: string, name: string): Person | null {
   const group = getGroup(groupId);
   if (!group) return null;
 
-  const id = group.people.length > 0 
-    ? Math.max(...group.people.map((p) => p.id)) + 1 
-    : 1;
+  const id = getNextPersonId(group);
   const person: Person = { id, name };
   group.people.push(person);
   saveGroup(group);
@@ -141,9 +145,7 @@ export function updateGroupPeople(
   
   // Update people list
   const newPeople: Person[] = [];
-  let nextId = group.people.length > 0 
-    ? Math.max(...group.people.map((p) => p.id)) + 1 
-    : 1;
+  let nextId = getNextPersonId(group);
   
   for (const person of people) {
     if (!person.name.trim()) continue;
