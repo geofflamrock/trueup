@@ -1,6 +1,6 @@
-import { Form, Link, redirect, useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
-import { getAllGroups, createGroup } from "../storage";
+import { getAllGroups } from "../storage";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -11,18 +11,6 @@ export function meta({}: Route.MetaArgs) {
 
 export async function clientLoader() {
   return { groups: getAllGroups() };
-}
-
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  const formData = await request.formData();
-  const name = formData.get("name") as string;
-  
-  if (name) {
-    const group = createGroup(name);
-    return redirect(`/${group.id}`);
-  }
-  
-  return null;
 }
 
 export default function Home() {
@@ -39,21 +27,12 @@ export default function Home() {
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Create New Group
           </h2>
-          <Form method="post" className="flex gap-2">
-            <input
-              type="text"
-              name="name"
-              placeholder="Group name"
-              required
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-            >
-              Create
-            </button>
-          </Form>
+          <Link
+            to="/groups/new"
+            className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+          >
+            + New Group
+          </Link>
         </div>
 
         <div>

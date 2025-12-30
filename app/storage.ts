@@ -204,6 +204,18 @@ export function deleteTransfer(groupId: string, transferId: string): boolean {
   return true;
 }
 
+export function getExpense(groupId: string, expenseId: string): Expense | null {
+  const group = getGroup(groupId);
+  if (!group) return null;
+  return group.expenses.find((e) => e.id === expenseId) || null;
+}
+
+export function getTransfer(groupId: string, transferId: string): Transfer | null {
+  const group = getGroup(groupId);
+  if (!group) return null;
+  return group.transfers.find((t) => t.id === transferId) || null;
+}
+
 function generateId(): string {
   return Array.from({ length: 8 }, () =>
     Math.floor(Math.random() * 16).toString(16)
