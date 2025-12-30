@@ -1,4 +1,4 @@
-import { redirect, useLoaderData } from "react-router";
+import { redirect, useLoaderData, Link } from "react-router";
 import type { Route } from "./+types/transfers.delete";
 import { getGroup, getTransfer, deleteTransfer } from "../storage";
 
@@ -43,12 +43,12 @@ export default function DeleteTransfer() {
           >
             Delete Transfer
           </button>
-          <a
-            href={`/${group.id}`}
+          <Link
+            to={`/${group.id}`}
             className="flex-1 px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors text-center"
           >
             Cancel
-          </a>
+          </Link>
         </form>
       </div>
     </main>

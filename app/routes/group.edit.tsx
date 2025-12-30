@@ -1,4 +1,4 @@
-import { Form, Link, redirect, useLoaderData, useActionData } from "react-router";
+import { Form, Link, redirect, useLoaderData, useActionData, useSubmit } from "react-router";
 import type { Route } from "./+types/group.edit";
 import { getGroup, updateGroupName, addPerson, updatePersonName, deletePerson } from "../storage";
 import { useState, useEffect } from "react";
@@ -57,6 +57,7 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
 export default function EditGroup() {
   const { group } = useLoaderData<typeof clientLoader>();
   const actionData = useActionData<typeof clientAction>();
+  const submit = useSubmit();
   const [groupName, setGroupName] = useState(group.name);
   const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
     group.people.map((p) => ({ id: p.id, name: p.name }))
@@ -92,22 +93,10 @@ export default function EditGroup() {
     }
 
     if (window.confirm("Are you sure you want to delete this person?")) {
-      const form = document.createElement("form");
-      form.method = "post";
-      form.style.display = "none";
-      
-      const actionTypeInput = document.createElement("input");
-      actionTypeInput.name = "actionType";
-      actionTypeInput.value = "deletePerson";
-      form.appendChild(actionTypeInput);
-      
-      const personIdInput = document.createElement("input");
-      personIdInput.name = "personId";
-      personIdInput.value = personId.toString();
-      form.appendChild(personIdInput);
-      
-      document.body.appendChild(form);
-      form.submit();
+      const formData = new FormData();
+      formData.append("actionType", "deletePerson");
+      formData.append("personId", personId.toString());
+      submit(formData, { method: "post" });
     }
   };
 

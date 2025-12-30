@@ -71,7 +71,7 @@ export default function NewExpense() {
   };
 
   const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
-  const isValid = amount && totalShares === parseFloat(amount);
+  const isValid = amount && Math.abs(totalShares - parseFloat(amount)) < 0.01;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const form = e.currentTarget;
