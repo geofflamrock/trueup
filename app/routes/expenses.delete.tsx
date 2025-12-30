@@ -1,4 +1,4 @@
-import { redirect, useLoaderData, Link } from "react-router";
+import { redirect, useLoaderData, Link, Form } from "react-router";
 import type { Route } from "./+types/expenses.delete";
 import { getGroup, getExpense, deleteExpense } from "../storage";
 
@@ -33,7 +33,7 @@ export default function DeleteExpense() {
         <p className="text-gray-700 dark:text-gray-300 mb-6">
           Are you sure you want to delete the expense <strong>{expense.description}</strong> (${expense.amount.toFixed(2)})? This action cannot be undone.
         </p>
-        <form method="post" className="flex gap-3">
+        <Form method="post" className="flex gap-3">
           <button
             type="submit"
             className="flex-1 px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
@@ -46,7 +46,7 @@ export default function DeleteExpense() {
           >
             Cancel
           </Link>
-        </form>
+        </Form>
       </div>
     </main>
   );
