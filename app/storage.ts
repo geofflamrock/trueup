@@ -103,6 +103,68 @@ export function updatePersonName(groupId: string, personId: number, name: string
   return true;
 }
 
+export function updateGroupPeople(
+  groupId: string,
+  people: Array<{ id?: number; name: string }>
+): { success: boolean; error?: string } {
+  const group = getGroup(groupId);
+  if (!group) return { success: false, error: "Group not found" };
+  
+  const originalPeopleIds = new Set(group.people.map((p) => p.id));
+  const updatedPeopleIds = new Set(
+    people.filter((p) => p.id !== undefined).map((p) => p.id as number)
+  );
+  
+  // Find deleted people
+  const deletedIds = Array.from(originalPeopleIds).filter(
+    (id) => !updatedPeopleIds.has(id)
+  );
+  
+  // Validate deletions
+  for (const personId of deletedIds) {
+    const hasExpenses = group.expenses.some(
+      (e) => e.paidById === personId || e.shares.some((s) => s.personId === personId)
+    );
+    const hasTransfers = group.transfers.some(
+      (t) => t.paidById === personId || t.paidToId === personId
+    );
+    
+    if (hasExpenses || hasTransfers) {
+      const person = group.people.find((p) => p.id === personId);
+      const personName = person ? person.name : "Person";
+      return {
+        success: false,
+        error: `Cannot remove ${personName} because they have associated expenses or transfers`,
+      };
+    }
+  }
+  
+  // Update people list
+  const newPeople: Person[] = [];
+  let nextId = group.people.length > 0 
+    ? Math.max(...group.people.map((p) => p.id)) + 1 
+    : 1;
+  
+  for (const person of people) {
+    if (!person.name.trim()) continue;
+    
+    if (person.id !== undefined) {
+      // Existing person - update name
+      const existingPerson = group.people.find((p) => p.id === person.id);
+      if (existingPerson) {
+        newPeople.push({ id: person.id, name: person.name.trim() });
+      }
+    } else {
+      // New person
+      newPeople.push({ id: nextId++, name: person.name.trim() });
+    }
+  }
+  
+  group.people = newPeople;
+  saveGroup(group);
+  return { success: true };
+}
+
 export function updateExpense(
   groupId: string,
   expenseId: string,

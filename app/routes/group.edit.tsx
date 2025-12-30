@@ -1,8 +1,7 @@
-import { Form, Link, redirect, useLoaderData, useActionData, useSubmit } from "react-router";
+import { Form, Link, redirect, useLoaderData, useActionData } from "react-router";
 import type { Route } from "./+types/group.edit";
-import { getGroup, updateGroupName, addPerson, updatePersonName, deletePerson } from "../storage";
+import { getGroup, updateGroupName, updateGroupPeople } from "../storage";
 import { useState, useEffect } from "react";
-import type { Person } from "../types";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -14,50 +13,28 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export async function clientAction({ request, params }: Route.ClientActionArgs) {
   const formData = await request.formData();
-  const actionType = formData.get("actionType") as string;
+  const groupName = formData.get("groupName") as string;
+  const peopleJson = formData.get("people") as string;
   
-  if (actionType === "updateGroup") {
-    const groupName = formData.get("groupName") as string;
-    const peopleJson = formData.get("people") as string;
-    
-    if (groupName) {
-      updateGroupName(params.groupId, groupName);
-    }
-    
-    if (peopleJson) {
-      const people = JSON.parse(peopleJson) as Array<{ id?: number; name: string }>;
-      const group = getGroup(params.groupId);
-      
-      if (group) {
-        people.forEach((person) => {
-          if (person.id) {
-            // Update existing person
-            updatePersonName(params.groupId, person.id, person.name);
-          } else if (person.name.trim()) {
-            // Add new person
-            addPerson(params.groupId, person.name.trim());
-          }
-        });
-      }
-    }
-    
-    return redirect(`/${params.groupId}`);
-  } else if (actionType === "deletePerson") {
-    const personId = parseInt(formData.get("personId") as string);
-    const success = deletePerson(params.groupId, personId);
-    if (!success) {
-      return { error: "Cannot delete person with expenses or transfers" };
-    }
-    return { success: true };
+  if (groupName) {
+    updateGroupName(params.groupId, groupName);
   }
   
-  return null;
+  if (peopleJson) {
+    const people = JSON.parse(peopleJson) as Array<{ id?: number; name: string }>;
+    const result = updateGroupPeople(params.groupId, people);
+    
+    if (!result.success) {
+      return { error: result.error };
+    }
+  }
+  
+  return redirect(`/${params.groupId}`);
 }
 
 export default function EditGroup() {
   const { group } = useLoaderData<typeof clientLoader>();
   const actionData = useActionData<typeof clientAction>();
-  const submit = useSubmit();
   const [groupName, setGroupName] = useState(group.name);
   const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
     group.people.map((p) => ({ id: p.id, name: p.name }))
@@ -83,21 +60,6 @@ export default function EditGroup() {
     const newPeople = [...people];
     newPeople[index] = { ...newPeople[index], name };
     setPeople(newPeople);
-  };
-
-  const handleDeletePerson = (index: number, personId?: number) => {
-    if (!personId) {
-      // Just remove from state if not saved yet
-      removePersonField(index);
-      return;
-    }
-
-    if (window.confirm("Are you sure you want to delete this person?")) {
-      const formData = new FormData();
-      formData.append("actionType", "deletePerson");
-      formData.append("personId", personId.toString());
-      submit(formData, { method: "post" });
-    }
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -129,8 +91,6 @@ export default function EditGroup() {
         )}
 
         <Form method="post" onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <input type="hidden" name="actionType" value="updateGroup" />
-          
           <div className="mb-6">
             <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Group Name *
@@ -172,7 +132,7 @@ export default function EditGroup() {
                   />
                   <button
                     type="button"
-                    onClick={() => handleDeletePerson(index, person.id)}
+                    onClick={() => removePersonField(index)}
                     className="px-3 py-2 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                   >
                     Remove
