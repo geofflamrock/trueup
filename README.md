@@ -1,12 +1,12 @@
 # TrueUp
 
-A client-side expense tracking app for groups to manage shared expenses and settle balances.
+An expense tracking app for groups to manage shared expenses and settle balances.
 
 ## About
 
 When a group of people are traveling together or doing shared activities, different people often pay for expenses at different times. TrueUp helps groups track who paid what, how expenses should be split, and automatically calculates who owes money to whom to "true up" the balances.
 
-All data is stored locally in your browser using LocalStorage - there's no server or backend required.
+Your data is stored securely on your device - no account or internet connection required.
 
 ## Features
 
@@ -16,35 +16,7 @@ All data is stored locally in your browser using LocalStorage - there's no serve
 - 👥 **Group Management** - Create multiple groups with different people
 - ✏️ **Full Editing** - Edit any group, person, expense, or transfer
 - 🗑️ **Safe Deletion** - Delete operations with validation and confirmation
-- 💾 **Local Storage** - All data persists in your browser
-
-## Getting Started
-
-### Installation
-
-Install the dependencies:
-
-```bash
-npm install
-```
-
-### Development
-
-Start the development server:
-
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-### Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
+- 💾 **Your Data Stays Private** - Everything is saved on your device
 
 ## How to Use
 
@@ -100,16 +72,45 @@ For example:
   - People can only be deleted if they have no associated expenses or transfers
   - Deleting a group removes all data for that group
 
-## Technical Details
+---
 
-- **Framework**: React Router 7 (SPA mode)
+## For Developers
+
+### Getting Started
+
+Install the dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Your application will be available at `http://localhost:5173`.
+
+### Building for Production
+
+Create a production build:
+
+```bash
+npm run build
+```
+
+### Technical Implementation
+
+- **Framework**: React Router 7 (SPA mode, client-side only)
 - **Language**: TypeScript
 - **Styling**: TailwindCSS
-- **Storage**: Browser LocalStorage
+- **Storage**: Browser LocalStorage (no server/backend required)
 - **ID Format**: 
   - Groups: 8-character hexadecimal
   - People: Sequential integers
   - Expenses/Transfers: GUIDs with ISO 8601 timestamps
+- **Balance Algorithm**: Greedy algorithm matches debtors to creditors, minimizing transaction count
 
 ---
 
