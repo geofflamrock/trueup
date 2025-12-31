@@ -6,17 +6,7 @@ An expense tracking app for groups to manage shared expenses and settle balances
 
 When a group of people are traveling together or doing shared activities, different people often pay for expenses at different times. TrueUp helps groups track who paid what, how expenses should be split, and automatically calculates who owes money to whom to "true up" the balances.
 
-Your data is stored securely on your device - no account or internet connection required.
-
-## Features
-
-- 💰 **Track Shared Expenses** - Record expenses with custom split amounts per person
-- 🔄 **Record Transfers** - Log money transfers between group members
-- 📊 **Balance Calculation** - Automatically calculates who owes what to whom
-- 👥 **Group Management** - Create multiple groups with different people
-- ✏️ **Full Editing** - Edit any group, person, expense, or transfer
-- 🗑️ **Safe Deletion** - Delete operations with validation and confirmation
-- 💾 **Your Data Stays Private** - Everything is saved on your device
+All data is stored securely on your device - nothing is stored on the internet and no account is required.
 
 ## How to Use
 
