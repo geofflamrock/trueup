@@ -1,18 +1,22 @@
-# Welcome to React Router!
+# TrueUp
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A client-side expense tracking app for groups to manage shared expenses and settle balances.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## About
+
+When a group of people are traveling together or doing shared activities, different people often pay for expenses at different times. TrueUp helps groups track who paid what, how expenses should be split, and automatically calculates who owes money to whom to "true up" the balances.
+
+All data is stored locally in your browser using LocalStorage - there's no server or backend required.
 
 ## Features
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- 💰 **Track Shared Expenses** - Record expenses with custom split amounts per person
+- 🔄 **Record Transfers** - Log money transfers between group members
+- 📊 **Balance Calculation** - Automatically calculates who owes what to whom
+- 👥 **Group Management** - Create multiple groups with different people
+- ✏️ **Full Editing** - Edit any group, person, expense, or transfer
+- 🗑️ **Safe Deletion** - Delete operations with validation and confirmation
+- 💾 **Local Storage** - All data persists in your browser
 
 ## Getting Started
 
@@ -26,7 +30,7 @@ npm install
 
 ### Development
 
-Start the development server with HMR:
+Start the development server:
 
 ```bash
 npm run dev
@@ -34,7 +38,7 @@ npm run dev
 
 Your application will be available at `http://localhost:5173`.
 
-## Building for Production
+### Building for Production
 
 Create a production build:
 
@@ -42,46 +46,71 @@ Create a production build:
 npm run build
 ```
 
-## Deployment
+## How to Use
 
-### Docker Deployment
+### Creating a Group
 
-To build and run using Docker:
+1. From the home page, click the "Create New Group" link
+2. Enter a group name (e.g., "Trip to Paris")
+3. Add people to the group with their names
+4. Click "Create Group"
 
-```bash
-docker build -t my-app .
+### Managing People
 
-# Run the container
-docker run -p 3000:3000 my-app
-```
+- **Add people**: Click the "Edit" button next to the group name, then add new people
+- **Edit names**: Edit person names from the group edit page
+- **Remove people**: Remove people from the edit page (validation prevents removing people with expenses/transfers)
 
-The containerized application can be deployed to any platform that supports Docker, including:
+### Recording Expenses
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
+1. From a group page, click "+ Add Expense"
+2. Enter the expense details:
+   - Description (e.g., "Hotel booking")
+   - Amount (e.g., 300.00)
+   - Who paid for it
+   - How to split it:
+     - **Split Equally**: Divides amount evenly among selected people
+     - **Custom Split**: Set individual amounts for each person (must total the expense amount)
+3. Click "Add Expense"
 
-### DIY Deployment
+### Recording Transfers
 
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
+1. From a group page, click "+ Add Transfer"
+2. Enter the transfer details:
+   - From person (who paid)
+   - To person (who received payment)
+   - Amount
+3. Click "Add Transfer"
 
-Make sure to deploy the output of `npm run build`
+### Viewing Balances
 
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
+The group page shows "Who Owes What" - a summary of all outstanding balances. The app automatically calculates the optimal way to settle all debts with the minimum number of transfers.
 
-## Styling
+For example:
+- Alice paid $300 for a hotel
+- Split equally: Alice $100, Bob $100, Charlie $100
+- Bob transferred $100 to Alice
+- **Result**: Charlie owes Alice $100
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+### Editing and Deleting
+
+- **Edit**: Click the "Edit" button next to any group, expense, or transfer
+- **Delete**: Click "Delete" buttons to remove items (with confirmation)
+  - Expenses and transfers can always be deleted
+  - People can only be deleted if they have no associated expenses or transfers
+  - Deleting a group removes all data for that group
+
+## Technical Details
+
+- **Framework**: React Router 7 (SPA mode)
+- **Language**: TypeScript
+- **Styling**: TailwindCSS
+- **Storage**: Browser LocalStorage
+- **ID Format**: 
+  - Groups: 8-character hexadecimal
+  - People: Sequential integers
+  - Expenses/Transfers: GUIDs with ISO 8601 timestamps
 
 ---
 
-Built with ❤️ using React Router.
+Built with React Router and TypeScript.
