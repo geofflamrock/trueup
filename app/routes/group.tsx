@@ -30,37 +30,20 @@ export default function GroupPage() {
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8">
-          <Button
-            asChild
-            variant="ghost"
-            className="mb-4"
-          >
-            <Link to="/">
-              ← Back to groups
-            </Link>
+          <Button asChild variant="ghost" className="mb-4">
+            <Link to="/">← Back to groups</Link>
           </Button>
           <div className="flex justify-between items-center">
             <div className="flex gap-3 items-center">
               <h1 className="text-4xl font-bold text-foreground">
                 {group.name}
               </h1>
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-              >
-                <Link to={`/${group.id}/edit`}>
-                  Edit
-                </Link>
+              <Button asChild variant="outline" size="sm">
+                <Link to={`/${group.id}/edit`}>Edit</Link>
               </Button>
             </div>
-            <Button
-              asChild
-              variant="destructive"
-            >
-              <Link to={`/${group.id}/delete`}>
-                Delete Group
-              </Link>
+            <Button asChild variant="destructive">
+              <Link to={`/${group.id}/delete`}>Delete Group</Link>
             </Button>
           </div>
         </div>
@@ -110,10 +93,13 @@ export default function GroupPage() {
                       key={idx}
                       className="px-4 py-3 bg-primary/10 rounded-lg text-foreground"
                     >
-                      <span className="font-medium">{getPersonName(balance.fromPersonId)}</span>
+                      <span className="font-medium">
+                        {getPersonName(balance.fromPersonId)}
+                      </span>
                       {" owes "}
-                      <span className="font-medium">{getPersonName(balance.toPersonId)}</span>
-                      {" "}
+                      <span className="font-medium">
+                        {getPersonName(balance.toPersonId)}
+                      </span>{" "}
                       <span className="font-bold text-primary">
                         ${balance.amount.toFixed(2)}
                       </span>
@@ -182,7 +168,8 @@ export default function GroupPage() {
                       {item.type === "expense" ? (
                         <div>
                           <div className="text-sm text-muted-foreground mb-1">
-                            {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString()}
+                            {new Date(item.date).toLocaleDateString()}{" "}
+                            {new Date(item.date).toLocaleTimeString()}
                           </div>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
@@ -190,28 +177,31 @@ export default function GroupPage() {
                                 {item.description}
                               </div>
                               <div className="text-foreground">
-                                Paid by {getPersonName(item.paidById)}: ${item.amount.toFixed(2)}
+                                Paid by {getPersonName(item.paidById)}: $
+                                {item.amount.toFixed(2)}
                               </div>
                               <div className="text-sm text-muted-foreground mt-1">
-                                Split: {item.shares.map((s) => `${getPersonName(s.personId)} ($${s.amount.toFixed(2)})`).join(", ")}
+                                Split:{" "}
+                                {item.shares
+                                  .map(
+                                    (s) =>
+                                      `${getPersonName(s.personId)} ($${s.amount.toFixed(2)})`
+                                  )
+                                  .join(", ")}
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button
-                                asChild
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Link to={`/${group.id}/expenses/${item.id}/edit`}>
+                              <Button asChild variant="outline" size="sm">
+                                <Link
+                                  to={`/${group.id}/expenses/${item.id}/edit`}
+                                >
                                   Edit
                                 </Link>
                               </Button>
-                              <Button
-                                asChild
-                                variant="destructive"
-                                size="sm"
-                              >
-                                <Link to={`/${group.id}/expenses/${item.id}/delete`}>
+                              <Button asChild variant="destructive" size="sm">
+                                <Link
+                                  to={`/${group.id}/expenses/${item.id}/delete`}
+                                >
                                   Delete
                                 </Link>
                               </Button>
@@ -221,7 +211,8 @@ export default function GroupPage() {
                       ) : (
                         <div>
                           <div className="text-sm text-muted-foreground mb-1">
-                            {new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString()}
+                            {new Date(item.date).toLocaleDateString()}{" "}
+                            {new Date(item.date).toLocaleTimeString()}
                           </div>
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
@@ -229,25 +220,23 @@ export default function GroupPage() {
                                 Transfer
                               </div>
                               <div className="text-foreground">
-                                {getPersonName(item.paidById)} paid {getPersonName(item.paidToId)}: ${item.amount.toFixed(2)}
+                                {getPersonName(item.paidById)} paid{" "}
+                                {getPersonName(item.paidToId)}: $
+                                {item.amount.toFixed(2)}
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button
-                                asChild
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Link to={`/${group.id}/transfers/${item.id}/edit`}>
+                              <Button asChild variant="outline" size="sm">
+                                <Link
+                                  to={`/${group.id}/transfers/${item.id}/edit`}
+                                >
                                   Edit
                                 </Link>
                               </Button>
-                              <Button
-                                asChild
-                                variant="destructive"
-                                size="sm"
-                              >
-                                <Link to={`/${group.id}/transfers/${item.id}/delete`}>
+                              <Button asChild variant="destructive" size="sm">
+                                <Link
+                                  to={`/${group.id}/transfers/${item.id}/delete`}
+                                >
                                   Delete
                                 </Link>
                               </Button>

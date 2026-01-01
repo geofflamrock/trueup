@@ -13,23 +13,26 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   if (!group) {
     throw new Response("Group not found", { status: 404 });
   }
-  
+
   const expense = getExpense(params.groupId, params.expenseId);
   if (!expense) {
     throw new Response("Expense not found", { status: 404 });
   }
-  
+
   return { group, expense };
 }
 
-export async function clientAction({ request, params }: Route.ClientActionArgs) {
+export async function clientAction({
+  request,
+  params,
+}: Route.ClientActionArgs) {
   const formData = await request.formData();
   const description = formData.get("description") as string;
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
   const sharesJson = formData.get("shares") as string;
   const date = formData.get("date") as string;
-  
+
   if (description && amount && paidById && sharesJson && date) {
     const shares = JSON.parse(sharesJson);
     updateExpense(params.groupId, params.expenseId, {
@@ -40,7 +43,7 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
       date,
     });
   }
-  
+
   return redirect(`/${params.groupId}`);
 }
 
@@ -58,7 +61,9 @@ export default function EditExpense() {
       const amountNum = parseFloat(value);
       if (!isNaN(amountNum)) {
         const equalShare = amountNum / group.people.length;
-        setShares(group.people.map((p) => ({ personId: p.id, amount: equalShare })));
+        setShares(
+          group.people.map((p) => ({ personId: p.id, amount: equalShare }))
+        );
       }
     }
   };
@@ -69,14 +74,20 @@ export default function EditExpense() {
       const amountNum = parseFloat(amount);
       if (!isNaN(amountNum)) {
         const equalShare = amountNum / group.people.length;
-        setShares(group.people.map((p) => ({ personId: p.id, amount: equalShare })));
+        setShares(
+          group.people.map((p) => ({ personId: p.id, amount: equalShare }))
+        );
       }
     }
   };
 
   const updateShare = (personId: number, value: string) => {
     const shareAmount = parseFloat(value) || 0;
-    setShares(shares.map((s) => (s.personId === personId ? { ...s, amount: shareAmount } : s)));
+    setShares(
+      shares.map((s) =>
+        s.personId === personId ? { ...s, amount: shareAmount } : s
+      )
+    );
   };
 
   const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
@@ -84,7 +95,9 @@ export default function EditExpense() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const form = e.currentTarget;
-    const sharesInput = form.querySelector('input[name="shares"]') as HTMLInputElement;
+    const sharesInput = form.querySelector(
+      'input[name="shares"]'
+    ) as HTMLInputElement;
     if (sharesInput) {
       sharesInput.value = JSON.stringify(shares);
     }
@@ -93,14 +106,8 @@ export default function EditExpense() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Button
-          asChild
-          variant="ghost"
-          className="mb-4"
-        >
-          <Link to={`/${group.id}`}>
-            ← Back to group
-          </Link>
+        <Button asChild variant="ghost" className="mb-4">
+          <Link to={`/${group.id}`}>← Back to group</Link>
         </Button>
 
         <h1 className="text-4xl font-bold text-foreground mb-8">
@@ -110,11 +117,9 @@ export default function EditExpense() {
         <Card className="p-6">
           <Form method="post" onSubmit={handleSubmit}>
             <input type="hidden" name="date" value={expense.date} />
-            
+
             <div className="mb-6">
-              <Label htmlFor="description">
-                Description *
-              </Label>
+              <Label htmlFor="description">Description *</Label>
               <Input
                 type="text"
                 id="description"
@@ -127,9 +132,7 @@ export default function EditExpense() {
             </div>
 
             <div className="mb-6">
-              <Label htmlFor="amount">
-                Amount *
-              </Label>
+              <Label htmlFor="amount">Amount *</Label>
               <Input
                 type="number"
                 id="amount"
@@ -144,9 +147,7 @@ export default function EditExpense() {
             </div>
 
             <div className="mb-6">
-              <Label htmlFor="paidById">
-                Paid By *
-              </Label>
+              <Label htmlFor="paidById">Paid By *</Label>
               <select
                 id="paidById"
                 name="paidById"
@@ -165,9 +166,7 @@ export default function EditExpense() {
 
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
-                <Label>
-                  Share per person *
-                </Label>
+                <Label>Share per person *</Label>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -218,21 +217,11 @@ export default function EditExpense() {
             </div>
 
             <div className="flex gap-3">
-              <Button
-                type="submit"
-                disabled={!isValid}
-                className="flex-1"
-              >
+              <Button type="submit" disabled={!isValid} className="flex-1">
                 Save Changes
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="flex-1"
-              >
-                <Link to={`/${group.id}`}>
-                  Cancel
-                </Link>
+              <Button asChild variant="outline" className="flex-1">
+                <Link to={`/${group.id}`}>Cancel</Link>
               </Button>
             </div>
           </Form>

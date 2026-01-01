@@ -16,13 +16,16 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   return { group };
 }
 
-export async function clientAction({ request, params }: Route.ClientActionArgs) {
+export async function clientAction({
+  request,
+  params,
+}: Route.ClientActionArgs) {
   const formData = await request.formData();
   const description = formData.get("description") as string;
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
   const sharesJson = formData.get("shares") as string;
-  
+
   if (description && amount && paidById && sharesJson) {
     const shares = JSON.parse(sharesJson);
     addExpense(params.groupId, {
@@ -33,7 +36,7 @@ export async function clientAction({ request, params }: Route.ClientActionArgs) 
       date: new Date().toISOString(),
     });
   }
-  
+
   return redirect(`/${params.groupId}`);
 }
 
@@ -41,7 +44,9 @@ export default function NewExpense() {
   const { group } = useLoaderData<typeof clientLoader>();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [paidById, setPaidById] = useState(group.people[0]?.id.toString() || "");
+  const [paidById, setPaidById] = useState(
+    group.people[0]?.id.toString() || ""
+  );
   const [splitType, setSplitType] = useState<"equal" | "custom">("equal");
   const [shares, setShares] = useState<ExpenseShare[]>(
     group.people.map((p) => ({ personId: p.id, amount: 0 }))
@@ -53,7 +58,9 @@ export default function NewExpense() {
       const amountNum = parseFloat(value);
       if (!isNaN(amountNum)) {
         const equalShare = amountNum / group.people.length;
-        setShares(group.people.map((p) => ({ personId: p.id, amount: equalShare })));
+        setShares(
+          group.people.map((p) => ({ personId: p.id, amount: equalShare }))
+        );
       }
     }
   };
@@ -64,14 +71,20 @@ export default function NewExpense() {
       const amountNum = parseFloat(amount);
       if (!isNaN(amountNum)) {
         const equalShare = amountNum / group.people.length;
-        setShares(group.people.map((p) => ({ personId: p.id, amount: equalShare })));
+        setShares(
+          group.people.map((p) => ({ personId: p.id, amount: equalShare }))
+        );
       }
     }
   };
 
   const updateShare = (personId: number, value: string) => {
     const shareAmount = parseFloat(value) || 0;
-    setShares(shares.map((s) => (s.personId === personId ? { ...s, amount: shareAmount } : s)));
+    setShares(
+      shares.map((s) =>
+        s.personId === personId ? { ...s, amount: shareAmount } : s
+      )
+    );
   };
 
   const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
@@ -79,7 +92,9 @@ export default function NewExpense() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const form = e.currentTarget;
-    const sharesInput = form.querySelector('input[name="shares"]') as HTMLInputElement;
+    const sharesInput = form.querySelector(
+      'input[name="shares"]'
+    ) as HTMLInputElement;
     if (sharesInput) {
       sharesInput.value = JSON.stringify(shares);
     }
@@ -89,26 +104,15 @@ export default function NewExpense() {
     return (
       <main className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <Button
-            asChild
-            variant="ghost"
-            className="mb-4"
-          >
-            <Link to={`/${group.id}`}>
-              ← Back to group
-            </Link>
+          <Button asChild variant="ghost" className="mb-4">
+            <Link to={`/${group.id}`}>← Back to group</Link>
           </Button>
           <Card className="p-6">
             <p className="text-foreground">
               You need to add people to the group before creating expenses.
             </p>
-            <Button
-              asChild
-              className="mt-4"
-            >
-              <Link to={`/${group.id}/edit`}>
-                Add People
-              </Link>
+            <Button asChild className="mt-4">
+              <Link to={`/${group.id}/edit`}>Add People</Link>
             </Button>
           </Card>
         </div>
@@ -119,26 +123,16 @@ export default function NewExpense() {
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Button
-          asChild
-          variant="ghost"
-          className="mb-4"
-        >
-          <Link to={`/${group.id}`}>
-            ← Back to group
-          </Link>
+        <Button asChild variant="ghost" className="mb-4">
+          <Link to={`/${group.id}`}>← Back to group</Link>
         </Button>
 
-        <h1 className="text-4xl font-bold text-foreground mb-8">
-          Add Expense
-        </h1>
+        <h1 className="text-4xl font-bold text-foreground mb-8">Add Expense</h1>
 
         <Card className="p-6">
           <Form method="post" onSubmit={handleSubmit}>
             <div className="mb-6">
-              <Label htmlFor="description">
-                Description *
-              </Label>
+              <Label htmlFor="description">Description *</Label>
               <Input
                 type="text"
                 id="description"
@@ -152,9 +146,7 @@ export default function NewExpense() {
             </div>
 
             <div className="mb-6">
-              <Label htmlFor="amount">
-                Amount *
-              </Label>
+              <Label htmlFor="amount">Amount *</Label>
               <Input
                 type="number"
                 id="amount"
@@ -169,9 +161,7 @@ export default function NewExpense() {
             </div>
 
             <div className="mb-6">
-              <Label htmlFor="paidById">
-                Paid By *
-              </Label>
+              <Label htmlFor="paidById">Paid By *</Label>
               <select
                 id="paidById"
                 name="paidById"
@@ -190,9 +180,7 @@ export default function NewExpense() {
 
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
-                <Label>
-                  Share per person *
-                </Label>
+                <Label>Share per person *</Label>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -243,21 +231,11 @@ export default function NewExpense() {
             </div>
 
             <div className="flex gap-3">
-              <Button
-                type="submit"
-                disabled={!isValid}
-                className="flex-1"
-              >
+              <Button type="submit" disabled={!isValid} className="flex-1">
                 Add Expense
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="flex-1"
-              >
-                <Link to={`/${group.id}`}>
-                  Cancel
-                </Link>
+              <Button asChild variant="outline" className="flex-1">
+                <Link to={`/${group.id}`}>Cancel</Link>
               </Button>
             </div>
           </Form>

@@ -30,24 +30,16 @@ export default function DeleteGroup() {
           Delete Group?
         </h1>
         <p className="text-foreground mb-6">
-          Are you sure you want to delete <strong>{group.name}</strong>? This action cannot be undone and will delete all expenses, transfers, and people in this group.
+          Are you sure you want to delete <strong>{group.name}</strong>? This
+          action cannot be undone and will delete all expenses, transfers, and
+          people in this group.
         </p>
         <Form method="post" className="flex gap-3">
-          <Button
-            type="submit"
-            variant="destructive"
-            className="flex-1"
-          >
+          <Button type="submit" variant="destructive" className="flex-1">
             Delete Group
           </Button>
-          <Button
-            asChild
-            variant="outline"
-            className="flex-1"
-          >
-            <Link to={`/${group.id}`}>
-              Cancel
-            </Link>
+          <Button asChild variant="outline" className="flex-1">
+            <Link to={`/${group.id}`}>Cancel</Link>
           </Button>
         </Form>
       </Card>
