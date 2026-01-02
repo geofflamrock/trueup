@@ -1,11 +1,18 @@
 import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import { getAllGroups } from "../storage";
+import { Button } from "~/components/ui/button";
+import { SaveMoneyDollarIcon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Card } from "~/components/ui/card";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "TrueUp - Expense Tracker" },
-    { name: "description", content: "Track shared expenses with groups" },
+    { title: "True Up" },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
   ];
 }
 
@@ -17,49 +24,58 @@ export default function Home() {
   const { groups } = useLoaderData<typeof clientLoader>();
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-8">
-          TrueUp
-        </h1>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Create New Group
-          </h2>
-          <Link
-            to="/groups/new"
-            className="inline-block px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-          >
-            + New Group
-          </Link>
+    <main className="min-h-screen bg-background">
+      <div className="bg-primary border-b-2 border-foreground/25">
+        <div className="container mx-auto p-8 max-w-4xl">
+          <div className="flex gap-4 justify-center items-center mb-8">
+            <HugeiconsIcon
+              icon={SaveMoneyDollarIcon}
+              className="text-background"
+              size={48}
+            />
+            <h1 className="text-4xl font-bold text-background font-title">
+              True Up
+            </h1>
+          </div>
+          <div className="flex flex-col gap-4">
+            <p className="text-center text-background text-xl">
+              Track expenses for your groups trip to Europe. Work out who owes
+              what.
+            </p>
+            <p className="text-center text-background text-xl">
+              All data stays on your phone. No accounts. Free.
+            </p>
+          </div>
         </div>
+      </div>
+      <div className="container mx-auto p-4 max-w-4xl">
+        {groups.length === 0 && (
+          <div className="flex justify-center p-4">
+            <Link to="/groups/new" className="text-2xl">
+              <Button variant="hero" size="hero" className="cursor-pointer">
+                <span>Create Group</span>
+              </Button>
+            </Link>
+          </div>
+        )}
 
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Your Groups
-          </h2>
-          {groups.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">
-              No groups yet. Create one to get started!
-            </p>
-          ) : (
-            <div className="grid gap-4">
+          {groups.length > 0 && (
+            <Card className="flex flex-col gap-4">
               {groups.map((group) => (
-                <Link
-                  key={group.id}
-                  to={`/${group.id}`}
-                  className="block bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow p-6"
-                >
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                    {group.name}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {group.people.length} {group.people.length === 1 ? "person" : "people"}
-                  </p>
+                <Link key={group.id} to={`/${group.id}`}>
+                  <div className="py-4 px-8 flex flex-col gap-4">
+                    <h3 className="text-xl font-semibold text-foreground">
+                      {group.name}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {group.people.length}{" "}
+                      {group.people.length === 1 ? "person" : "people"}
+                    </p>
+                  </div>
                 </Link>
               ))}
-            </div>
+            </Card>
           )}
         </div>
       </div>
