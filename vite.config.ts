@@ -11,6 +11,6 @@ export default defineConfig({
     reactRouter(),
     tsconfigPaths(),
     netlifyReactRouter(),
-    netlify(),
+    // netlify(),
   ],
 });
