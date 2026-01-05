@@ -5,6 +5,17 @@ import { Button } from "~/components/ui/button";
 import { SaveMoneyDollarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Card } from "~/components/ui/card";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "~/components/ui/drawer";
+import { useState } from "react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -22,6 +33,7 @@ export async function clientLoader() {
 
 export default function Home() {
   const { groups } = useLoaderData<typeof clientLoader>();
+  const [open, setOpen] = useState(false);
 
   return (
     <main className="h-dvh bg-primary flex flex-col justify-between xl:justify-normal">
@@ -67,13 +79,30 @@ export default function Home() {
           </Card>
         )}
         {groups.length === 0 && (
-          <div>
-            <Link to="/groups/new" className="text-2xl">
+          // <div>
+          //   <Link to="/groups/new" className="text-2xl">
+          //     <Button variant="hero" size="hero" className="cursor-pointer">
+          //       <span>Create Group</span>
+          //     </Button>
+          //   </Link>
+          // </div>
+          <Drawer open={open} onOpenChange={setOpen}>
+            <DrawerTrigger asChild>
               <Button variant="hero" size="hero" className="cursor-pointer">
-                <span>Create Group</span>
+                Create Group
               </Button>
-            </Link>
-          </div>
+            </DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader className="text-left">
+                <DrawerTitle>Create Group</DrawerTitle>
+              </DrawerHeader>
+              <DrawerFooter className="pt-2">
+                <DrawerClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
         )}
       </div>
     </main>
