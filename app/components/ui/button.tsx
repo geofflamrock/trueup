@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-        hero: "border-primary bg-background hover:bg-primary hover:text-background dark:bg-input/30 dark:border-primary/30 dark:hover:bg-primary aria-expanded:bg-muted aria-expanded:text-primary text-primary",
+        hero: "border-background bg-primary text-background hover:bg-background hover:text-primary hover:border-primary",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
@@ -28,7 +28,7 @@ const buttonVariants = cva(
         sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
         xl: "h-10 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-3.5 has-data-[icon=inline-start]:pl-3.5",
-        hero: "h-16 gap-2 px-16 has-data-[icon=inline-end]:pr-6 has-data-[icon=inline-start]:pl-6 text-xl",
+        hero: "h-16 gap-2 px-16 has-data-[icon=inline-end]:pr-6 has-data-[icon=inline-start]:pl-6 text-xl w-full",
         icon: "size-8",
         "icon-xs":
           "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",

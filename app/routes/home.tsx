@@ -24,33 +24,50 @@ export default function Home() {
   const { groups } = useLoaderData<typeof clientLoader>();
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="bg-primary border-b-2 border-foreground/25">
-        <div className="container mx-auto p-8 max-w-4xl">
-          <div className="flex gap-4 justify-center items-center mb-8">
-            <HugeiconsIcon
-              icon={SaveMoneyDollarIcon}
-              className="text-background"
-              size={48}
-            />
-            <h1 className="text-4xl font-bold text-background font-title">
-              True Up
-            </h1>
-          </div>
-          <div className="flex flex-col gap-4">
-            <p className="text-center text-background text-xl">
-              Track expenses for your groups trip to Europe. Work out who owes
-              what.
-            </p>
-            <p className="text-center text-background text-xl">
-              All data stays on your phone. No accounts. Free.
-            </p>
-          </div>
+    <main className="min-h-screen bg-primary flex flex-col justify-between xl:justify-normal">
+      <div className="container mx-auto p-8 max-w-4xl">
+        <div className="flex gap-4 justify-center items-center mb-8">
+          <HugeiconsIcon
+            icon={SaveMoneyDollarIcon}
+            className="text-background"
+            size={48}
+          />
+          <h1 className="text-4xl font-bold text-background font-title">
+            True Up
+          </h1>
+        </div>
+        <div className="flex flex-col gap-4">
+          <p className="text-center text-background text-xl">
+            Track expenses for your groups trip to Europe.
+          </p>
+          <p className="text-center text-background text-xl">
+            Work out who owes what.
+          </p>
+          <p className="text-center text-background text-xl">
+            All data stays on your phone. No accounts. Free.
+          </p>
         </div>
       </div>
       <div className="container mx-auto p-4 max-w-4xl">
+        {groups.length > 0 && (
+          <Card className="flex flex-col gap-4">
+            {groups.map((group) => (
+              <Link key={group.id} to={`/${group.id}`}>
+                <div className="py-4 px-8 flex flex-col gap-4">
+                  <h3 className="text-xl font-semibold text-foreground">
+                    {group.name}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {group.people.length}{" "}
+                    {group.people.length === 1 ? "person" : "people"}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </Card>
+        )}
         {groups.length === 0 && (
-          <div className="flex justify-center p-4">
+          <div>
             <Link to="/groups/new" className="text-2xl">
               <Button variant="hero" size="hero" className="cursor-pointer">
                 <span>Create Group</span>
@@ -58,26 +75,6 @@ export default function Home() {
             </Link>
           </div>
         )}
-
-        <div>
-          {groups.length > 0 && (
-            <Card className="flex flex-col gap-4">
-              {groups.map((group) => (
-                <Link key={group.id} to={`/${group.id}`}>
-                  <div className="py-4 px-8 flex flex-col gap-4">
-                    <h3 className="text-xl font-semibold text-foreground">
-                      {group.name}
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      {group.people.length}{" "}
-                      {group.people.length === 1 ? "person" : "people"}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </Card>
-          )}
-        </div>
       </div>
     </main>
   );
