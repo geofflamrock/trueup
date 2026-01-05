@@ -24,7 +24,7 @@ export default function Home() {
   const { groups } = useLoaderData<typeof clientLoader>();
 
   return (
-    <main className="min-h-screen bg-primary flex flex-col justify-between xl:justify-normal">
+    <main className="h-screen bg-primary flex flex-col justify-between xl:justify-normal">
       <div className="container mx-auto p-8 max-w-4xl">
         <div className="flex gap-4 justify-center items-center mb-8">
           <HugeiconsIcon
