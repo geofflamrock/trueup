@@ -1,6 +1,6 @@
-import { Link, useLoaderData } from "react-router";
+import { Form, Link, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
-import { getAllGroups } from "../storage";
+import { addPerson, createGroup, getAllGroups } from "../storage";
 import { Button } from "~/components/ui/button";
 import { SaveMoneyDollarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -16,6 +16,8 @@ import {
   DrawerTrigger,
 } from "~/components/ui/drawer";
 import { useState } from "react";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -27,6 +29,30 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+export async function clientAction({ request }: Route.ClientActionArgs) {
+  const formData = await request.formData();
+  const groupName = formData.get("groupName") as string;
+  const peopleJson = formData.get("people") as string;
+
+  if (groupName) {
+    const group = createGroup(groupName);
+
+    // Add people if provided
+    if (peopleJson) {
+      const people = JSON.parse(peopleJson) as string[];
+      people.forEach((personName) => {
+        if (personName.trim()) {
+          addPerson(group.id, personName.trim());
+        }
+      });
+    }
+
+    return redirect(`/${group.id}`);
+  }
+
+  return null;
+}
+
 export async function clientLoader() {
   return { groups: getAllGroups() };
 }
@@ -34,6 +60,32 @@ export async function clientLoader() {
 export default function Home() {
   const { groups } = useLoaderData<typeof clientLoader>();
   const [open, setOpen] = useState(false);
+  const [people, setPeople] = useState<string[]>([""]);
+
+  const addPersonField = () => {
+    setPeople([...people, ""]);
+  };
+
+  const removePersonField = (index: number) => {
+    setPeople(people.filter((_, i) => i !== index));
+  };
+
+  const updatePersonName = (index: number, name: string) => {
+    const newPeople = [...people];
+    newPeople[index] = name;
+    setPeople(newPeople);
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const validPeople = people.filter((p) => p.trim());
+    const form = e.currentTarget;
+    const peopleInput = form.querySelector(
+      'input[name="people"]'
+    ) as HTMLInputElement;
+    if (peopleInput) {
+      peopleInput.value = JSON.stringify(validPeople);
+    }
+  };
 
   return (
     <main className="h-dvh bg-primary flex flex-col justify-between xl:justify-normal">
@@ -96,11 +148,67 @@ export default function Home() {
               <DrawerHeader className="text-left">
                 <DrawerTitle>Create Group</DrawerTitle>
               </DrawerHeader>
-              <DrawerFooter className="pt-2">
-                <DrawerClose asChild>
-                  <Button variant="outline">Cancel</Button>
-                </DrawerClose>
-              </DrawerFooter>
+              <Form method="post" onSubmit={handleSubmit}>
+                <div className="px-4">
+                  <div className="mb-6">
+                    <Label htmlFor="groupName">Group Name *</Label>
+                    <Input
+                      type="text"
+                      id="groupName"
+                      name="groupName"
+                      required
+                      placeholder="e.g., Trip to Paris"
+                      className="mt-2"
+                    />
+                  </div>
+
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <Label>People *</Label>
+                      <Button
+                        type="button"
+                        onClick={addPersonField}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        + Add Person
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {people.map((person, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            type="text"
+                            value={person}
+                            onChange={(e) =>
+                              updatePersonName(index, e.target.value)
+                            }
+                            placeholder="Person name"
+                            className="flex-1"
+                          />
+                          {people.length > 1 && (
+                            <Button
+                              type="button"
+                              onClick={() => removePersonField(index)}
+                              variant="destructive"
+                              size="sm"
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <input type="hidden" name="people" />
+                  </div>
+                </div>
+                <DrawerFooter className="pt-2">
+                  <Button type="submit">Save</Button>
+                  <DrawerClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </Form>
             </DrawerContent>
           </Drawer>
         )}
