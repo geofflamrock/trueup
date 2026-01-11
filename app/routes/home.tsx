@@ -2,7 +2,11 @@ import { Form, Link, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import { addPerson, createGroup, getAllGroups } from "../storage";
 import { Button } from "~/components/ui/button";
-import { SaveMoneyDollarIcon } from "@hugeicons/core-free-icons";
+import {
+  MinusSignIcon,
+  SaveMoneyDollarIcon,
+  Trash,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Card } from "~/components/ui/card";
 import {
@@ -18,6 +22,30 @@ import {
 import { useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { cn } from "~/lib/utils";
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemHeader,
+  ItemMedia,
+  ItemTitle,
+} from "~/components/ui/item";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+
+function getInitials(name: string) {
+  if (!name) return "";
+  // Remove special characters except letters, numbers and spaces
+  const cleaned = name.replace(/[^a-zA-Z0-9\s]/g, "").trim();
+  if (!cleaned) return "";
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    return parts[0].slice(0, 1).toUpperCase();
+  }
+  const first = parts[0].slice(0, 1);
+  const second = parts[1].slice(0, 1);
+  return (first + second).toUpperCase();
+}
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -88,102 +116,118 @@ export default function Home() {
   };
 
   return (
-    <main className="h-dvh bg-primary flex flex-col justify-between xl:justify-normal">
-      <div className="container mx-auto p-8 max-w-4xl">
-        <div className="flex gap-4 justify-center items-center mb-8">
+    <main className="h-dvh bg-background flex flex-col justify-between gap-4">
+      <div className="container mx-auto p-6 pb-0 max-w-4xl">
+        <div className="bg-transparent/95 backdrop-blur-xs flex gap-4 items-center">
           <HugeiconsIcon
             icon={SaveMoneyDollarIcon}
-            className="text-background"
-            size={48}
+            className="text-primary"
+            size={24}
           />
-          <h1 className="text-4xl font-bold text-background font-title">
-            True Up
-          </h1>
+          <h1 className="text-2xl text-primary font-title">True Up</h1>
         </div>
-        <div className="flex flex-col gap-4">
-          <p className="text-center text-background text-xl">
-            Track expenses for your groups trip to Europe.
-          </p>
-          <p className="text-center text-background text-xl">
-            Work out who owes what.
-          </p>
-          <p className="text-center text-background text-xl">
-            All data stays on your phone. No accounts. Free.
-          </p>
-        </div>
-      </div>
-      <div className="container mx-auto p-4 max-w-4xl">
-        {groups.length > 0 && (
-          <Card className="flex flex-col gap-4">
-            {groups.map((group) => (
-              <Link key={group.id} to={`/${group.id}`}>
-                <div className="py-4 px-8 flex flex-col gap-4">
-                  <h3 className="text-xl font-semibold text-foreground">
-                    {group.name}
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {group.people.length}{" "}
-                    {group.people.length === 1 ? "person" : "people"}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </Card>
-        )}
         {groups.length === 0 && (
-          // <div>
-          //   <Link to="/groups/new" className="text-2xl">
-          //     <Button variant="hero" size="hero" className="cursor-pointer">
-          //       <span>Create Group</span>
-          //     </Button>
-          //   </Link>
-          // </div>
-          <Drawer open={open} onOpenChange={setOpen}>
-            <DrawerTrigger asChild>
-              <Button variant="hero" size="hero" className="cursor-pointer">
-                Create Group
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
+          <div className="flex flex-col gap-8 mt-8">
+            <p className="text-center text-foreground text-3xl font-title">
+              Track who paid for what on your{" "}
+              <span className="text-primary">family holiday to Europe.</span>
+            </p>
+            {/* <Item variant="muted" className="p-8"> */}
+            {/* <ItemContent className="text-center text-3xl font-title"> */}
+            <p className="text-center text-foreground text-3xl font-title">
+              Work out who owes what and{" "}
+              <span className="text-primary">true up.</span>
+            </p>
+            {/* </ItemContent> */}
+            {/* </Item> */}
+            {/* <Item variant="muted" className="p-8"> */}
+            {/* <ItemContent className="text-center text-3xl font-title"> */}
+            <p className="text-center text-foreground text-3xl font-title">
+              All data stays on your device. No account required. Free.
+            </p>
+            {/* </ItemContent> */}
+            {/* </Item> */}
+          </div>
+        )}
+      </div>
+      {groups.length > 0 && (
+        <div className="container mx-auto p-4 max-w-4xl flex flex-col gap-4 flex-auto rounded-t-2xl">
+          {groups.map((group) => (
+            <Link key={group.id} to={`/${group.id}`}>
+              <Item variant="muted">
+                <ItemMedia>
+                  <div className="*:data-[slot=avatar]:ring-background flex -space-x-4 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale *:data-[slot=avatar]:size-10">
+                    {(() => {
+                      const show = group.people.slice(0, 2);
+                      const remaining = group.people.length - show.length;
+                      return (
+                        <>
+                          {show.map((person) => (
+                            <Avatar key={person.id}>
+                              <AvatarFallback>
+                                {getInitials(person.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {remaining > 0 && (
+                            <Avatar key="more">
+                              <AvatarFallback>{`+${remaining}`}</AvatarFallback>
+                            </Avatar>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </ItemMedia>
+                <ItemContent>
+                  <ItemTitle>{group.name}</ItemTitle>
+                  <ItemDescription>All expenses balanced 😀</ItemDescription>
+                </ItemContent>
+              </Item>
+            </Link>
+          ))}
+        </div>
+      )}
+      <div className={cn("container mx-auto p-4 max-w-4xl")}>
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerTrigger asChild>
+            <Button
+              variant="hero"
+              size="hero"
+              className={cn("cursor-pointer rounded-full")}
+            >
+              {groups.length === 0 ? "Get Started" : "Create Group"}
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <div className="container mx-auto">
               <DrawerHeader className="text-left">
                 <DrawerTitle>Create Group</DrawerTitle>
               </DrawerHeader>
               <Form method="post" onSubmit={handleSubmit}>
-                <div className="px-4">
-                  <div className="mb-6">
-                    <Label htmlFor="groupName">Group Name *</Label>
+                <div className="grid gap-4 p-4">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="groupName">Group Name</Label>
                     <Input
                       type="text"
                       id="groupName"
                       name="groupName"
                       required
-                      placeholder="e.g., Trip to Paris"
-                      className="mt-2"
+                      placeholder="e.g. Trip to Paris"
                     />
                   </div>
-
-                  <div className="mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                      <Label>People *</Label>
-                      <Button
-                        type="button"
-                        onClick={addPersonField}
-                        variant="ghost"
-                        size="sm"
-                      >
-                        + Add Person
-                      </Button>
-                    </div>
-                    <div className="space-y-2">
+                  <div className="flex flex-col gap-2">
+                    <Label>People</Label>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
                       {people.map((person, index) => (
-                        <div key={index} className="flex gap-2">
+                        <div key={index} className="flex gap-2 items-center">
                           <Input
                             type="text"
                             value={person}
                             onChange={(e) =>
                               updatePersonName(index, e.target.value)
                             }
-                            placeholder="Person name"
+                            placeholder="Name"
                             className="flex-1"
                           />
                           {people.length > 1 && (
@@ -191,13 +235,24 @@ export default function Home() {
                               type="button"
                               onClick={() => removePersonField(index)}
                               variant="destructive"
-                              size="sm"
+                              size="icon-sm"
                             >
-                              Remove
+                              <HugeiconsIcon icon={Trash} />
                             </Button>
                           )}
                         </div>
                       ))}
+                    </div>
+                    <div className="flex">
+                      <Button
+                        type="button"
+                        onClick={addPersonField}
+                        variant="ghost"
+                        size="sm"
+                        className="text-left"
+                      >
+                        + Add Person
+                      </Button>
                     </div>
                     <input type="hidden" name="people" />
                   </div>
@@ -209,9 +264,9 @@ export default function Home() {
                   </DrawerClose>
                 </DrawerFooter>
               </Form>
-            </DrawerContent>
-          </Drawer>
-        )}
+            </div>
+          </DrawerContent>
+        </Drawer>
       </div>
     </main>
   );

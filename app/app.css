@@ -3,13 +3,14 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/noto-sans";
 @import "@fontsource-variable/comfortaa";
+@import "@fontsource-variable/manrope";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-title: "Comfortaa Variable", "sans-serif";
+  --font-title: "Manrope Variable", "Comfortaa Variable", "sans-serif";
 }
 
 html,
