@@ -32,6 +32,7 @@ import {
   ItemTitle,
 } from "~/components/ui/item";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { TextLoop } from "~/components/ui/text-loop";
 
 function getInitials(name: string) {
   if (!name) return "";
@@ -116,8 +117,8 @@ export default function Home() {
   };
 
   return (
-    <main className="h-dvh bg-background flex flex-col justify-between gap-4">
-      <div className="container mx-auto p-6 pb-0 max-w-4xl">
+    <main className="h-dvh bg-background flex flex-col justify-between gap-2">
+      <div className="container mx-auto p-4 max-w-4xl">
         <div className="bg-transparent/95 backdrop-blur-xs flex gap-4 items-center">
           <HugeiconsIcon
             icon={SaveMoneyDollarIcon}
@@ -126,30 +127,28 @@ export default function Home() {
           />
           <h1 className="text-2xl text-primary font-title">True Up</h1>
         </div>
-        {groups.length === 0 && (
-          <div className="flex flex-col gap-8 mt-8">
-            <p className="text-center text-foreground text-3xl font-title">
-              Track who paid for what on your{" "}
-              <span className="text-primary">family holiday to Europe.</span>
-            </p>
-            {/* <Item variant="muted" className="p-8"> */}
-            {/* <ItemContent className="text-center text-3xl font-title"> */}
-            <p className="text-center text-foreground text-3xl font-title">
-              Work out who owes what and{" "}
-              <span className="text-primary">true up.</span>
-            </p>
-            {/* </ItemContent> */}
-            {/* </Item> */}
-            {/* <Item variant="muted" className="p-8"> */}
-            {/* <ItemContent className="text-center text-3xl font-title"> */}
-            <p className="text-center text-foreground text-3xl font-title">
-              All data stays on your device. No account required. Free.
-            </p>
-            {/* </ItemContent> */}
-            {/* </Item> */}
-          </div>
-        )}
       </div>
+      {groups.length === 0 && (
+        <div className="container mx-auto max-w-4xl p-4 flex flex-col gap-8 flex-auto">
+          <p className="text-center text-foreground text-3xl font-title">
+            Track who paid for what on your{" "}
+            <TextLoop interval={5}>
+              <span className="text-primary">family holiday to Europe.</span>
+              <span className="text-primary">road trip with friends.</span>
+              <span className="text-primary">weekend away with the girls.</span>
+              <span className="text-primary">weekend away with the boys.</span>
+              <span className="text-primary">holiday with the in-laws.</span>
+            </TextLoop>
+          </p>
+          <p className="text-center text-foreground text-3xl font-title">
+            Work out who owes what and{" "}
+            <span className="text-primary">true up.</span>
+          </p>
+          <p className="text-center text-foreground text-3xl font-title">
+            All data stays on your device. No account required. Free.
+          </p>
+        </div>
+      )}
       {groups.length > 0 && (
         <div className="container mx-auto p-4 max-w-4xl flex flex-col gap-4 flex-auto rounded-t-2xl">
           {groups.map((group) => (
@@ -188,7 +187,11 @@ export default function Home() {
           ))}
         </div>
       )}
-      <div className={cn("container mx-auto p-4 max-w-4xl")}>
+      <div
+        className={cn(
+          "container mx-auto p-4 max-w-4xl bg-transparent/95 backdrop-blur-xs "
+        )}
+      >
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerTrigger asChild>
             <Button
@@ -214,6 +217,7 @@ export default function Home() {
                       name="groupName"
                       required
                       placeholder="e.g. Trip to Paris"
+                      autoFocus
                     />
                   </div>
                   <div className="flex flex-col gap-2">
