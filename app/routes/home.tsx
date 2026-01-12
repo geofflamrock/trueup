@@ -1,37 +1,13 @@
-import { Form, Link, redirect, useLoaderData } from "react-router";
+import { Link, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import { addPerson, createGroup, getAllGroups } from "../storage";
 import { Button } from "~/components/ui/button";
-import {
-  MinusSignIcon,
-  SaveMoneyDollarIcon,
-  Trash,
-} from "@hugeicons/core-free-icons";
+import { SaveMoneyDollarIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Card } from "~/components/ui/card";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "~/components/ui/drawer";
 import { useState } from "react";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
 import { cn } from "~/lib/utils";
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemHeader,
-  ItemMedia,
-  ItemTitle,
-} from "~/components/ui/item";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Item, ItemContent, ItemMedia, ItemTitle } from "~/components/ui/item";
+import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { TextLoop } from "~/components/ui/text-loop";
 
 function getInitials(name: string) {
@@ -180,97 +156,22 @@ export default function Home() {
                 </ItemMedia>
                 <ItemContent>
                   <ItemTitle>{group.name}</ItemTitle>
-                  <ItemDescription>All expenses balanced 😀</ItemDescription>
                 </ItemContent>
               </Item>
             </Link>
           ))}
         </div>
       )}
-      <div
-        className={cn(
-          "container mx-auto p-4 max-w-4xl bg-transparent/95 backdrop-blur-xs "
-        )}
-      >
-        <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerTrigger asChild>
-            <Button
-              variant="hero"
-              size="hero"
-              className={cn("cursor-pointer rounded-full")}
-            >
-              {groups.length === 0 ? "Get Started" : "Create Group"}
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent>
-            <div className="container mx-auto">
-              <DrawerHeader className="text-left">
-                <DrawerTitle>Create Group</DrawerTitle>
-              </DrawerHeader>
-              <Form method="post" onSubmit={handleSubmit}>
-                <div className="grid gap-4 p-4">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="groupName">Group Name</Label>
-                    <Input
-                      type="text"
-                      id="groupName"
-                      name="groupName"
-                      required
-                      placeholder="e.g. Trip to Paris"
-                      autoFocus
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Label>People</Label>
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {people.map((person, index) => (
-                        <div key={index} className="flex gap-2 items-center">
-                          <Input
-                            type="text"
-                            value={person}
-                            onChange={(e) =>
-                              updatePersonName(index, e.target.value)
-                            }
-                            placeholder="Name"
-                            className="flex-1"
-                          />
-                          {people.length > 1 && (
-                            <Button
-                              type="button"
-                              onClick={() => removePersonField(index)}
-                              variant="destructive"
-                              size="icon-sm"
-                            >
-                              <HugeiconsIcon icon={Trash} />
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex">
-                      <Button
-                        type="button"
-                        onClick={addPersonField}
-                        variant="ghost"
-                        size="sm"
-                        className="text-left"
-                      >
-                        + Add Person
-                      </Button>
-                    </div>
-                    <input type="hidden" name="people" />
-                  </div>
-                </div>
-                <DrawerFooter className="pt-2">
-                  <Button type="submit">Save</Button>
-                  <DrawerClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DrawerClose>
-                </DrawerFooter>
-              </Form>
-            </div>
-          </DrawerContent>
-        </Drawer>
+      <div className="container mx-auto p-4 max-w-4xl">
+        <Link to="/groups/new">
+          <Button
+            variant="hero"
+            size="hero"
+            className={cn("cursor-pointer rounded-full")}
+          >
+            {groups.length === 0 ? "Get Started" : "Create Group"}
+          </Button>
+        </Link>
       </div>
     </main>
   );
