@@ -1,14 +1,25 @@
-import { Link, redirect, useLoaderData } from "react-router";
+import { Link } from "react-router";
 import type { Route } from "./+types/home";
-import { addPerson, createGroup, getAllGroups } from "../storage";
+import { getAllGroups } from "../storage";
 import { Button } from "~/components/ui/button";
-import { SaveMoneyDollarIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 import { cn } from "~/lib/utils";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "~/components/ui/item";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
-import { TextLoop } from "~/components/ui/text-loop";
+import { useMediaQuery } from "usehooks-ts";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "~/components/ui/drawer";
+import { CreateGroupForm } from "~/components/app/CreateGroupForm";
 
 function getInitials(name: string) {
   if (!name) return "";
@@ -34,99 +45,38 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function clientAction({ request }: Route.ClientActionArgs) {
-  const formData = await request.formData();
-  const groupName = formData.get("groupName") as string;
-  const peopleJson = formData.get("people") as string;
-
-  if (groupName) {
-    const group = createGroup(groupName);
-
-    // Add people if provided
-    if (peopleJson) {
-      const people = JSON.parse(peopleJson) as string[];
-      people.forEach((personName) => {
-        if (personName.trim()) {
-          addPerson(group.id, personName.trim());
-        }
-      });
-    }
-
-    return redirect(`/${group.id}`);
-  }
-
-  return null;
-}
-
 export async function clientLoader() {
   return { groups: getAllGroups() };
 }
 
-export default function Home() {
-  const { groups } = useLoaderData<typeof clientLoader>();
-  const [open, setOpen] = useState(false);
-  const [people, setPeople] = useState<string[]>([""]);
-
-  const addPersonField = () => {
-    setPeople([...people, ""]);
-  };
-
-  const removePersonField = (index: number) => {
-    setPeople(people.filter((_, i) => i !== index));
-  };
-
-  const updatePersonName = (index: number, name: string) => {
-    const newPeople = [...people];
-    newPeople[index] = name;
-    setPeople(newPeople);
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const validPeople = people.filter((p) => p.trim());
-    const form = e.currentTarget;
-    const peopleInput = form.querySelector(
-      'input[name="people"]'
-    ) as HTMLInputElement;
-    if (peopleInput) {
-      peopleInput.value = JSON.stringify(validPeople);
-    }
-  };
+export default function Home({ loaderData }: Route.ComponentProps) {
+  const [newGroupOpen, setNewGroupOpen] = useState(false);
+  const { groups } = loaderData;
 
   return (
-    <main className="h-dvh bg-background flex flex-col justify-between gap-2">
-      <div className="container mx-auto p-4 max-w-4xl">
-        <div className="bg-transparent/95 backdrop-blur-xs flex gap-4 items-center">
-          <HugeiconsIcon
-            icon={SaveMoneyDollarIcon}
-            className="text-primary"
-            size={24}
-          />
-          <h1 className="text-2xl text-primary font-title">True Up</h1>
-        </div>
-      </div>
+    <div className="flex flex-col gap-8">
       {groups.length === 0 && (
-        <div className="container mx-auto max-w-4xl p-4 flex flex-col gap-8 flex-auto">
-          <p className="text-center text-foreground text-3xl font-title">
+        <div className="flex flex-col gap-8 text-foreground text-3xl font-title">
+          <p>
             Track who paid for what on your{" "}
-            <TextLoop interval={5}>
+            <span className="text-primary">family holiday to Europe.</span>
+            {/* <TextLoop interval={5}>
               <span className="text-primary">family holiday to Europe.</span>
               <span className="text-primary">road trip with friends.</span>
               <span className="text-primary">weekend away with the girls.</span>
               <span className="text-primary">weekend away with the boys.</span>
               <span className="text-primary">holiday with the in-laws.</span>
-            </TextLoop>
+            </TextLoop> */}
           </p>
-          <p className="text-center text-foreground text-3xl font-title">
+          <p>
             Work out who owes what and{" "}
             <span className="text-primary">true up.</span>
           </p>
-          <p className="text-center text-foreground text-3xl font-title">
-            All data stays on your device. No account required. Free.
-          </p>
+          <p>All data stays on your device. No account required. Free.</p>
         </div>
       )}
       {groups.length > 0 && (
-        <div className="container mx-auto p-4 max-w-4xl flex flex-col gap-4 flex-auto rounded-t-2xl">
+        <div className="flex flex-col gap-4">
           {groups.map((group) => (
             <Link key={group.id} to={`/${group.id}`}>
               <Item variant="muted">
@@ -162,17 +112,62 @@ export default function Home() {
           ))}
         </div>
       )}
-      <div className="container mx-auto p-4 max-w-4xl">
-        <Link to="/groups/new">
-          <Button
-            variant="hero"
-            size="hero"
-            className={cn("cursor-pointer rounded-full")}
-          >
-            {groups.length === 0 ? "Get Started" : "Create Group"}
-          </Button>
-        </Link>
+      <div>
+        <Button
+          variant="hero"
+          size="hero"
+          className={cn("cursor-pointer rounded-full")}
+          onClick={() => setNewGroupOpen(true)}
+        >
+          {groups.length === 0 ? "Get Started" : "Create Group"}
+        </Button>
       </div>
-    </main>
+      <DialogOrDrawer
+        title="Create New Group"
+        open={newGroupOpen}
+        onClose={() => setNewGroupOpen(false)}
+      >
+        <CreateGroupForm onClose={() => setNewGroupOpen(false)} />
+      </DialogOrDrawer>
+    </div>
+  );
+}
+
+type DialogOrDrawerProps = React.PropsWithChildren<{
+  title: string;
+  open: boolean;
+  onClose: () => void;
+}>;
+
+export function DialogOrDrawer({
+  title,
+  open,
+  onClose,
+  children,
+}: DialogOrDrawerProps) {
+  const isDesktop = useMediaQuery("(min-width: 40rem)");
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+          {children}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={open} onClose={onClose}>
+      <DrawerContent className="p-4">
+        <DrawerHeader>
+          <DrawerTitle>{title}</DrawerTitle>
+        </DrawerHeader>
+        {children}
+      </DrawerContent>
+    </Drawer>
   );
 }
