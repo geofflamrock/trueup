@@ -5,9 +5,9 @@ import { calculateBalances } from "../balances";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { useState } from "react";
-import { DialogOrDrawer } from "./home";
 import { EditGroupForm } from "~/components/app/EditGroupForm";
 import type { Group } from "~/types";
+import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [

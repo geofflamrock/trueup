@@ -1,6 +1,8 @@
 import { data, redirect, useNavigate } from "react-router";
 import type { Route } from "./+types/groups.new";
 import { createGroup, addPerson } from "../storage";
+import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+import { CreateGroupForm } from "~/components/app/CreateGroupForm";
 
 export type NewGroupRequest = {
   name: string;
@@ -26,4 +28,18 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   });
 
   return redirect(`/${group.id}`);
+}
+
+export default function NewGroup() {
+  const navigate = useNavigate();
+
+  return (
+    <DialogOrDrawer
+      title="Create New Group"
+      open={true}
+      onClose={() => navigate("/")}
+    >
+      <CreateGroupForm onClose={() => navigate("/")} />
+    </DialogOrDrawer>
+  );
 }
