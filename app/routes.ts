@@ -10,8 +10,9 @@ export default [
     index("routes/home.tsx"),
     route("groups/new", "routes/groups.new.tsx"),
   ]),
-  route(":groupId", "routes/group.tsx"),
-  route(":groupId/edit", "routes/group.edit.tsx"),
+  route(":groupId", "routes/group.tsx", [
+    route("edit", "routes/group.edit.tsx"),
+  ]),
   route(":groupId/delete", "routes/group.delete.tsx"),
   route(":groupId/expenses/new", "routes/expenses.new.tsx"),
   route(":groupId/expenses/:expenseId/edit", "routes/expenses.edit.tsx"),

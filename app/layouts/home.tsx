@@ -6,20 +6,6 @@ import { useState } from "react";
 import { cn } from "~/lib/utils";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "~/components/ui/item";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
-import { useMediaQuery } from "usehooks-ts";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "~/components/ui/drawer";
-import { CreateGroupForm } from "~/components/app/CreateGroupForm";
 
 function getInitials(name: string) {
   if (!name) return "";

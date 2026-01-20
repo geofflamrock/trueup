@@ -1,4 +1,4 @@
-import { Link, useLoaderData } from "react-router";
+import { Link, Outlet, useLoaderData } from "react-router";
 import type { Route } from "./+types/group";
 import { getGroup, saveGroup } from "../storage";
 import { calculateBalances } from "../balances";
@@ -30,17 +30,12 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export default function GroupPage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
-  const [editGroupOpen, setEditGroupOpen] = useState(false);
 
   // Combine expenses and transfers into a timeline
   const timeline = [
     ...group.expenses.map((e) => ({ type: "expense" as const, ...e })),
     ...group.transfers.map((t) => ({ type: "transfer" as const, ...t })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-  const onEditGroupClose = () => {
-    setEditGroupOpen(false);
-  };
 
   const getPersonName = (id: number) =>
     group.people.find((p) => p.id === id)?.name || "Unknown";
@@ -52,12 +47,8 @@ export default function GroupPage() {
           <h1 className="text-3xl font-title text-foreground">{group.name}</h1>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setEditGroupOpen(true)}
-          >
-            Edit
+          <Button variant="outline" size="sm" asChild>
+            <Link to={`/${group.id}/edit`}>Edit</Link>
           </Button>
           <Button asChild variant="destructive">
             <Link to={`/${group.id}/delete`}>Delete Group</Link>
@@ -266,13 +257,7 @@ export default function GroupPage() {
           </Card>
         </div>
       </div>
-      <DialogOrDrawer
-        title="Edit Group"
-        open={editGroupOpen}
-        onClose={onEditGroupClose}
-      >
-        <EditGroupForm onClose={onEditGroupClose} group={group} />
-      </DialogOrDrawer>
+      <Outlet />
     </div>
   );
 }
