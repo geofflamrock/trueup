@@ -48,7 +48,7 @@ export function DialogOrDrawer({
 
   return (
     <Drawer open={open} onClose={onClose}>
-      <DrawerContent className="p-4">
+      <DrawerContent className="p-4 pb-8">
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
           {description && <DrawerDescription>{description}</DrawerDescription>}

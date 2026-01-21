@@ -6,10 +6,7 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-  layout("layouts/home.tsx", [
-    index("routes/home.tsx"),
-    route("groups/new", "routes/groups.new.tsx"),
-  ]),
+  route("", "routes/home.tsx", [route("groups/new", "routes/groups.new.tsx")]),
   route(":groupId", "routes/group.tsx", [
     route("edit", "routes/group.edit.tsx"),
     route("delete", "routes/group.delete.tsx"),
