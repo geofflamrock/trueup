@@ -44,10 +44,14 @@ export default function GroupPage() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
-            <Link to={`/${group.id}/edit`}>Edit</Link>
+            <Link to={`/${group.id}/edit`} prefetch="viewport">
+              Edit
+            </Link>
           </Button>
           <Button asChild variant="destructive">
-            <Link to={`/${group.id}/delete`}>Delete Group</Link>
+            <Link to={`/${group.id}/delete`} prefetch="viewport">
+              Delete Group
+            </Link>
           </Button>
         </div>
       </div>
@@ -122,10 +126,14 @@ export default function GroupPage() {
 
             <div className="flex gap-2 mb-6">
               <Button asChild className="flex-1">
-                <Link to={`/${group.id}/expenses/new`}>+ Add Expense</Link>
+                <Link to={`/${group.id}/expenses/new`} prefetch="viewport">
+                  + Add Expense
+                </Link>
               </Button>
               <Button asChild variant="secondary" className="flex-1">
-                <Link to={`/${group.id}/transfers/new`}>+ Add Transfer</Link>
+                <Link to={`/${group.id}/transfers/new`} prefetch="viewport">
+                  + Add Transfer
+                </Link>
               </Button>
             </div>
 
@@ -169,6 +177,7 @@ export default function GroupPage() {
                             <Button asChild variant="outline" size="sm">
                               <Link
                                 to={`/${group.id}/expenses/${item.id}/edit`}
+                                prefetch="viewport"
                               >
                                 Edit
                               </Link>
@@ -176,6 +185,7 @@ export default function GroupPage() {
                             <Button asChild variant="destructive" size="sm">
                               <Link
                                 to={`/${group.id}/expenses/${item.id}/delete`}
+                                prefetch="viewport"
                               >
                                 Delete
                               </Link>
@@ -204,6 +214,7 @@ export default function GroupPage() {
                             <Button asChild variant="outline" size="sm">
                               <Link
                                 to={`/${group.id}/transfers/${item.id}/edit`}
+                                prefetch="viewport"
                               >
                                 Edit
                               </Link>
@@ -211,6 +222,7 @@ export default function GroupPage() {
                             <Button asChild variant="destructive" size="sm">
                               <Link
                                 to={`/${group.id}/transfers/${item.id}/delete`}
+                                prefetch="viewport"
                               >
                                 Delete
                               </Link>

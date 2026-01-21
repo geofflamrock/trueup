@@ -62,7 +62,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       {groups.length > 0 && (
         <div className="flex flex-col gap-4">
           {groups.map((group) => (
-            <Link key={group.id} to={`/${group.id}`}>
+            <Link key={group.id} to={`/${group.id}`} prefetch="viewport">
               <Item variant="muted">
                 <ItemMedia>
                   <div className="*:data-[slot=avatar]:ring-background flex -space-x-4 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale *:data-[slot=avatar]:size-10">
@@ -103,7 +103,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           className={cn("cursor-pointer rounded-full")}
           asChild
         >
-          <Link to="/groups/new">
+          <Link to="/groups/new" prefetch="viewport">
             {groups.length === 0 ? "Get Started" : "Create Group"}
           </Link>
         </Button>
