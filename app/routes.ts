@@ -12,8 +12,8 @@ export default [
   ]),
   route(":groupId", "routes/group.tsx", [
     route("edit", "routes/group.edit.tsx"),
+    route("delete", "routes/group.delete.tsx"),
   ]),
-  route(":groupId/delete", "routes/group.delete.tsx"),
   route(":groupId/expenses/new", "routes/expenses.new.tsx"),
   route(":groupId/expenses/:expenseId/edit", "routes/expenses.edit.tsx"),
   route(":groupId/expenses/:expenseId/delete", "routes/expenses.delete.tsx"),

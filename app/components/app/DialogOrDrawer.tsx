@@ -1,15 +1,29 @@
 import { useMediaQuery } from "usehooks-ts";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "../ui/drawer";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "../ui/drawer";
 
 type DialogOrDrawerProps = React.PropsWithChildren<{
   title: string;
+  description?: string | React.ReactNode;
   open: boolean;
   onClose: () => void;
 }>;
 
 export function DialogOrDrawer({
   title,
+  description,
   open,
   onClose,
   children,
@@ -22,6 +36,9 @@ export function DialogOrDrawer({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
+            {description && (
+              <DialogDescription>{description}</DialogDescription>
+            )}
           </DialogHeader>
           {children}
         </DialogContent>
@@ -34,6 +51,7 @@ export function DialogOrDrawer({
       <DrawerContent className="p-4">
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
+          {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
         {children}
       </DrawerContent>
