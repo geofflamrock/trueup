@@ -119,7 +119,7 @@ export default function EditTransfer() {
           </div>
         )}
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           <Button
             type="submit"
             size="xl"

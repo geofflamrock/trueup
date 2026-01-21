@@ -41,7 +41,7 @@ export default function DeleteExpense() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post" className="flex flex-col gap-4 sm:flex-row sm:gap-2">
+      <Form method="post" className="flex flex-col gap-2 sm:flex-row">
         <Button
           type="submit"
           size="xl"
