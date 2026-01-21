@@ -62,7 +62,9 @@ export default function NewTransfer() {
             You need at least 2 people in the group before creating transfers.
           </p>
           <Button asChild className="w-full">
-            <Link to={`/${group.id}/edit`}>Add People</Link>
+            <Link to={`/${group.id}/edit`} prefetch="viewport">
+              Add People
+            </Link>
           </Button>
         </div>
       </DialogOrDrawer>
