@@ -1,4 +1,3 @@
-import { useMediaQuery } from "usehooks-ts";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +12,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "../ui/drawer";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 type DialogOrDrawerProps = React.PropsWithChildren<{
   title: string;
@@ -28,7 +28,7 @@ export function DialogOrDrawer({
   onClose,
   children,
 }: DialogOrDrawerProps) {
-  const isDesktop = useMediaQuery("(min-width: 40rem)");
+  const isDesktop = useIsDesktop();
 
   if (isDesktop) {
     return (

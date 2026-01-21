@@ -55,7 +55,7 @@ export function CreateGroupForm({ onClose }: CreateGroupFormProps) {
   };
 
   return (
-    <fetcher.Form action="/groups/new" method="post">
+    <fetcher.Form method="post">
       <div className="mb-6">
         <Label htmlFor="name">Group Name</Label>
         <Input
@@ -102,10 +102,10 @@ export function CreateGroupForm({ onClose }: CreateGroupFormProps) {
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Button
           type="submit"
-          className="flex-1"
+          className="sm:flex-1"
           disabled={fetcher.state !== "idle"}
         >
           {fetcher.state !== "idle" ? "Creating..." : "Create Group"}
@@ -113,7 +113,7 @@ export function CreateGroupForm({ onClose }: CreateGroupFormProps) {
         <Button
           type="button"
           variant="outline"
-          className="flex-1"
+          className="sm:flex-1"
           onClick={onClose}
         >
           Cancel

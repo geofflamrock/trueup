@@ -150,10 +150,10 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
         <input type="hidden" name="people" />
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <Button
           type="submit"
-          className="flex-1"
+          className="sm:flex-1"
           disabled={fetcher.state !== "idle"}
         >
           {fetcher.state !== "idle" ? "Saving..." : "Save Changes"}
@@ -161,7 +161,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
         <Button
           type="button"
           variant="outline"
-          className="flex-1"
+          className="sm:flex-1"
           onClick={onClose}
         >
           Cancel

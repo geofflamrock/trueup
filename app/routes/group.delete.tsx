@@ -4,6 +4,8 @@ import { deleteGroup, getGroup } from "../storage";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
+import { cn } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -37,11 +39,16 @@ export default function DeleteGroup({ loaderData }: Route.ComponentProps) {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post" className="flex flex-col gap-2">
-        <Button type="submit" variant="destructive">
+      <Form method="post" className="flex flex-col gap-2 sm:flex-row">
+        <Button type="submit" variant="destructive" className="sm:flex-1">
           Delete
         </Button>
-        <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate(-1)}
+          className="sm:flex-1"
+        >
           Cancel
         </Button>
       </Form>
