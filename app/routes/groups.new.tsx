@@ -3,9 +3,22 @@ import type { Route } from "./+types/groups.new";
 import { createGroup, addPerson } from "../storage";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { useState } from "react";
-import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "~/components/ui/input-group";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Trash2,
+  UserAdd01FreeIcons,
+  UserAdd01Icon,
+} from "@hugeicons/core-free-icons";
 
 export type NewGroupRequest = {
   name: string;
@@ -38,6 +51,7 @@ export default function NewGroup() {
   const navigate = useNavigate();
   const [people, setPeople] = useState<string[]>([""]);
   const fetcher = useFetcher();
+  const isDesktop = useIsDesktop();
 
   const addPerson = () => {
     setPeople((prev) => [...prev, ""]);
@@ -57,78 +71,82 @@ export default function NewGroup() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <fetcher.Form method="post" className="flex flex-col gap-8">
-        <div className="flex flex-col gap-4">
-          <div>
-            <Label htmlFor="name">Group Name</Label>
-            <Input
-              type="text"
-              id="name"
-              name="name"
-              required
-              placeholder="e.g., Trip to Paris"
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <Label>People</Label>
+      <fetcher.Form method="post">
+        <FieldSet>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="name">Group Name</FieldLabel>
+              <Input
+                type="text"
+                id="name"
+                name="name"
+                required
+                placeholder="e.g., Trip to Paris"
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="people">People</FieldLabel>
+              <div className="flex flex-col gap-2">
+                {people.map((person, index) => (
+                  <InputGroup>
+                    <InputGroupInput
+                      type="text"
+                      placeholder="Person name"
+                      className="flex-1"
+                      value={person}
+                      onChange={(e) => updatePersonName(index, e.target.value)}
+                      required
+                      name="people"
+                    />
+                    {people.length > 1 && (
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupButton
+                          type="button"
+                          onClick={() => removePerson(index)}
+                          variant="ghost"
+                          size="icon-xs"
+                          className="cursor-pointer"
+                        >
+                          <HugeiconsIcon icon={Trash2} />
+                        </InputGroupButton>
+                      </InputGroupAddon>
+                    )}
+                  </InputGroup>
+                ))}
+              </div>
+              <div>
+                <Button
+                  type="button"
+                  onClick={addPerson}
+                  variant="muted"
+                  size="xs"
+                  className="cursor-pointer"
+                >
+                  <HugeiconsIcon icon={UserAdd01Icon} /> Add Person
+                </Button>
+              </div>
+            </Field>
+            <Field orientation={isDesktop ? "horizontal" : "vertical"}>
+              <Button
+                type="submit"
+                size="xl"
+                className="sm:flex-1 cursor-pointer"
+                disabled={fetcher.state !== "idle"}
+              >
+                {fetcher.state !== "idle" ? "Creating..." : "Create Group"}
+              </Button>
               <Button
                 type="button"
-                onClick={addPerson}
-                variant="ghost"
-                size="sm"
+                size="xl"
+                variant="muted"
+                className="sm:flex-1 cursor-pointer"
+                onClick={() => navigate(-1)}
               >
-                + Add Person
+                Cancel
               </Button>
-            </div>
-            <div className="space-y-2">
-              {people.map((person, index) => (
-                <div key={index} className="flex gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Person name"
-                    className="flex-1"
-                    value={person}
-                    onChange={(e) => updatePersonName(index, e.target.value)}
-                    required
-                    name="people"
-                  />
-                  {people.length > 1 && (
-                    <Button
-                      type="button"
-                      onClick={() => removePerson(index)}
-                      variant="destructive"
-                      size="sm"
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            type="submit"
-            size="xl"
-            className="sm:flex-1 cursor-pointer"
-            disabled={fetcher.state !== "idle"}
-          >
-            {fetcher.state !== "idle" ? "Creating..." : "Create Group"}
-          </Button>
-          <Button
-            type="button"
-            size="xl"
-            variant="muted"
-            className="sm:flex-1 cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            Cancel
-          </Button>
-        </div>
+            </Field>
+          </FieldGroup>
+        </FieldSet>
       </fetcher.Form>
     </DialogOrDrawer>
   );
