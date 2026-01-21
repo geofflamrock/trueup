@@ -13,11 +13,11 @@ export default [
   route(":groupId", "routes/group.tsx", [
     route("edit", "routes/group.edit.tsx"),
     route("delete", "routes/group.delete.tsx"),
+    route("expenses/new", "routes/expenses.new.tsx"),
+    route("expenses/:expenseId/edit", "routes/expenses.edit.tsx"),
+    route("expenses/:expenseId/delete", "routes/expenses.delete.tsx"),
+    route("transfers/new", "routes/transfers.new.tsx"),
+    route("transfers/:transferId/edit", "routes/transfers.edit.tsx"),
+    route("transfers/:transferId/delete", "routes/transfers.delete.tsx"),
   ]),
-  route(":groupId/expenses/new", "routes/expenses.new.tsx"),
-  route(":groupId/expenses/:expenseId/edit", "routes/expenses.edit.tsx"),
-  route(":groupId/expenses/:expenseId/delete", "routes/expenses.delete.tsx"),
-  route(":groupId/transfers/new", "routes/transfers.new.tsx"),
-  route(":groupId/transfers/:transferId/edit", "routes/transfers.edit.tsx"),
-  route(":groupId/transfers/:transferId/delete", "routes/transfers.delete.tsx"),
 ] satisfies RouteConfig;

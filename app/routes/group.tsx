@@ -121,38 +121,11 @@ export default function GroupPage() {
             </h2>
 
             <div className="flex gap-2 mb-6">
-              <Button
-                asChild
-                disabled={group.people.length === 0}
-                className="flex-1"
-              >
-                <Link
-                  to={`/${group.id}/expenses/new`}
-                  onClick={(e) => {
-                    if (group.people.length === 0) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  + Add Expense
-                </Link>
+              <Button asChild className="flex-1">
+                <Link to={`/${group.id}/expenses/new`}>+ Add Expense</Link>
               </Button>
-              <Button
-                asChild
-                variant="secondary"
-                disabled={group.people.length < 2}
-                className="flex-1"
-              >
-                <Link
-                  to={`/${group.id}/transfers/new`}
-                  onClick={(e) => {
-                    if (group.people.length < 2) {
-                      e.preventDefault();
-                    }
-                  }}
-                >
-                  + Add Transfer
-                </Link>
+              <Button asChild variant="secondary" className="flex-1">
+                <Link to={`/${group.id}/transfers/new`}>+ Add Transfer</Link>
               </Button>
             </div>
 
