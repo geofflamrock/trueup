@@ -133,13 +133,19 @@ export default function NewTransfer() {
           </div>
         )}
 
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button type="submit" disabled={!isValid} className="sm:flex-1">
+        <div className="flex flex-col gap-4 sm:flex-row sm:gap-2">
+          <Button
+            type="submit"
+            size="xl"
+            disabled={!isValid}
+            className="sm:flex-1"
+          >
             Add Transfer
           </Button>
           <Button
             type="button"
-            variant="outline"
+            size="xl"
+            variant="muted"
             className="sm:flex-1"
             onClick={() => navigate(-1)}
           >

@@ -34,11 +34,8 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   return redirect(`/${group.id}`);
 }
 
-type CreateGroupFormProps = {
-  onClose: () => void;
-};
-
-export function CreateGroupForm({ onClose }: CreateGroupFormProps) {
+export default function NewGroup() {
+  const navigate = useNavigate();
   const [people, setPeople] = useState<string[]>([""]);
   const fetcher = useFetcher();
 
@@ -55,84 +52,84 @@ export function CreateGroupForm({ onClose }: CreateGroupFormProps) {
   };
 
   return (
-    <fetcher.Form method="post">
-      <div className="mb-6">
-        <Label htmlFor="name">Group Name</Label>
-        <Input
-          type="text"
-          id="name"
-          name="name"
-          required
-          placeholder="e.g., Trip to Paris"
-          className="mt-2"
-        />
-      </div>
-
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <Label>People</Label>
-          <Button type="button" onClick={addPerson} variant="ghost" size="sm">
-            + Add Person
-          </Button>
-        </div>
-        <div className="space-y-2">
-          {people.map((person, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="Person name"
-                className="flex-1"
-                value={person}
-                onChange={(e) => updatePersonName(index, e.target.value)}
-                required
-                name="people"
-              />
-              {people.length > 1 && (
-                <Button
-                  type="button"
-                  onClick={() => removePerson(index)}
-                  variant="destructive"
-                  size="sm"
-                >
-                  Remove
-                </Button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Button
-          type="submit"
-          className="sm:flex-1"
-          disabled={fetcher.state !== "idle"}
-        >
-          {fetcher.state !== "idle" ? "Creating..." : "Create Group"}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="sm:flex-1"
-          onClick={onClose}
-        >
-          Cancel
-        </Button>
-      </div>
-    </fetcher.Form>
-  );
-}
-
-export default function NewGroup() {
-  const navigate = useNavigate();
-
-  return (
     <DialogOrDrawer
       title="Create New Group"
       open={true}
       onClose={() => navigate(-1)}
     >
-      <CreateGroupForm onClose={() => navigate(-1)} />
+      <fetcher.Form method="post" className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4">
+          <div>
+            <Label htmlFor="name">Group Name</Label>
+            <Input
+              type="text"
+              id="name"
+              name="name"
+              required
+              placeholder="e.g., Trip to Paris"
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <Label>People</Label>
+              <Button
+                type="button"
+                onClick={addPerson}
+                variant="ghost"
+                size="sm"
+              >
+                + Add Person
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {people.map((person, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Person name"
+                    className="flex-1"
+                    value={person}
+                    onChange={(e) => updatePersonName(index, e.target.value)}
+                    required
+                    name="people"
+                  />
+                  {people.length > 1 && (
+                    <Button
+                      type="button"
+                      onClick={() => removePerson(index)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 sm:flex-row sm:gap-2">
+          <Button
+            type="submit"
+            size="xl"
+            className="sm:flex-1 cursor-pointer"
+            disabled={fetcher.state !== "idle"}
+          >
+            {fetcher.state !== "idle" ? "Creating..." : "Create Group"}
+          </Button>
+          <Button
+            type="button"
+            size="xl"
+            variant="muted"
+            className="sm:flex-1 cursor-pointer"
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </Button>
+        </div>
+      </fetcher.Form>
     </DialogOrDrawer>
   );
 }

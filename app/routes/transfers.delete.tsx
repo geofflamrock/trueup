@@ -46,13 +46,19 @@ export default function DeleteTransfer() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post" className="flex flex-col gap-2 sm:flex-row">
-        <Button type="submit" variant="destructive" className="sm:flex-1">
+      <Form method="post" className="flex flex-col gap-4 sm:flex-row sm:gap-2">
+        <Button
+          type="submit"
+          variant="destructive"
+          size="xl"
+          className="sm:flex-1"
+        >
           Delete
         </Button>
         <Button
           type="button"
-          variant="outline"
+          size="xl"
+          variant="muted"
           onClick={() => navigate(-1)}
           className="sm:flex-1"
         >
