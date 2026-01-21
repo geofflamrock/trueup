@@ -129,7 +129,7 @@ export default function NewGroup() {
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size="xl"
+                size={isDesktop ? "lg" : "xl"}
                 className="sm:flex-1 cursor-pointer"
                 disabled={fetcher.state !== "idle"}
               >
@@ -137,7 +137,7 @@ export default function NewGroup() {
               </Button>
               <Button
                 type="button"
-                size="xl"
+                size={isDesktop ? "lg" : "xl"}
                 variant="muted"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
