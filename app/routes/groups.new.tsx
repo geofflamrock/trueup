@@ -119,7 +119,7 @@ export default function NewGroup() {
                   type="button"
                   onClick={addPerson}
                   variant="muted"
-                  size="xs"
+                  size={isDesktop ? "sm" : "default"}
                   className="cursor-pointer"
                 >
                   <HugeiconsIcon icon={UserAdd01Icon} /> Add Person
