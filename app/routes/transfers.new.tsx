@@ -138,7 +138,7 @@ export default function NewTransfer() {
             type="submit"
             size="xl"
             disabled={!isValid}
-            className="sm:flex-1"
+            className="sm:flex-1 cursor-pointer"
           >
             Add Transfer
           </Button>
@@ -146,7 +146,7 @@ export default function NewTransfer() {
             type="button"
             size="xl"
             variant="muted"
-            className="sm:flex-1"
+            className="sm:flex-1 cursor-pointer"
             onClick={() => navigate(-1)}
           >
             Cancel

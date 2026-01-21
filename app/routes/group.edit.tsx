@@ -154,7 +154,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
         <Button
           type="submit"
           size="xl"
-          className="sm:flex-1"
+          className="sm:flex-1 cursor-pointer"
           disabled={fetcher.state !== "idle"}
         >
           {fetcher.state !== "idle" ? "Saving..." : "Save Changes"}
@@ -163,7 +163,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
           type="button"
           size="xl"
           variant="muted"
-          className="sm:flex-1"
+          className="sm:flex-1 cursor-pointer"
           onClick={onClose}
         >
           Cancel

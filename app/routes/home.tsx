@@ -2,7 +2,6 @@ import { Link, Outlet } from "react-router";
 import type { Route } from "./+types/home";
 import { getAllGroups } from "../storage";
 import { Button } from "~/components/ui/button";
-import { useState } from "react";
 import { cn } from "~/lib/utils";
 import { Item, ItemContent, ItemMedia, ItemTitle } from "~/components/ui/item";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
@@ -36,7 +35,6 @@ export async function clientLoader() {
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const [newGroupOpen, setNewGroupOpen] = useState(false);
   const { groups } = loaderData;
 
   return (
@@ -104,7 +102,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           size="hero"
           className={cn("cursor-pointer rounded-full")}
           asChild
-          // onClick={() => setNewGroupOpen(true)}
         >
           <Link to="/groups/new">
             {groups.length === 0 ? "Get Started" : "Create Group"}

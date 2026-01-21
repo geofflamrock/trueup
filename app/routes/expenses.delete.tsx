@@ -46,7 +46,7 @@ export default function DeleteExpense() {
           type="submit"
           size="xl"
           variant="destructive"
-          className="sm:flex-1"
+          className="sm:flex-1 cursor-pointer"
         >
           Delete
         </Button>
@@ -55,7 +55,7 @@ export default function DeleteExpense() {
           size="xl"
           variant="muted"
           onClick={() => navigate(-1)}
-          className="sm:flex-1"
+          className="sm:flex-1 cursor-pointer"
         >
           Cancel
         </Button>

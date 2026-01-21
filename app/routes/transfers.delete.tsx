@@ -51,7 +51,7 @@ export default function DeleteTransfer() {
           type="submit"
           variant="destructive"
           size="xl"
-          className="sm:flex-1"
+          className="sm:flex-1 cursor-pointer"
         >
           Delete
         </Button>
@@ -60,7 +60,7 @@ export default function DeleteTransfer() {
           size="xl"
           variant="muted"
           onClick={() => navigate(-1)}
-          className="sm:flex-1"
+          className="sm:flex-1 cursor-pointer"
         >
           Cancel
         </Button>
