@@ -1,8 +1,9 @@
-import { redirect, useLoaderData, Link, Form } from "react-router";
+import { redirect, useLoaderData, Link, Form, useNavigate } from "react-router";
 import type { Route } from "./+types/expenses.delete";
 import { getGroup, getExpense, deleteExpense } from "../storage";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
+import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -25,27 +26,40 @@ export async function clientAction({ params }: Route.ClientActionArgs) {
 
 export default function DeleteExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
+  const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center">
-      <Card className="p-8 max-w-md w-full mx-4">
-        <h1 className="text-2xl font-bold text-foreground mb-4">
-          Delete Expense?
-        </h1>
-        <p className="text-foreground mb-6">
+    <DialogOrDrawer
+      title="Delete Expense"
+      description={
+        <span>
           Are you sure you want to delete the expense{" "}
           <strong>{expense.description}</strong> (${expense.amount.toFixed(2)})?
           This action cannot be undone.
-        </p>
-        <Form method="post" className="flex gap-3">
-          <Button type="submit" variant="destructive" className="flex-1">
-            Delete Expense
-          </Button>
-          <Button asChild variant="outline" className="flex-1">
-            <Link to={`/${group.id}`}>Cancel</Link>
-          </Button>
-        </Form>
-      </Card>
-    </main>
+        </span>
+      }
+      open={true}
+      onClose={() => navigate(-1)}
+    >
+      <Form method="post" className="flex flex-col gap-2 sm:flex-row">
+        <Button
+          type="submit"
+          size="xl"
+          variant="destructive"
+          className="sm:flex-1 cursor-pointer"
+        >
+          Delete
+        </Button>
+        <Button
+          type="button"
+          size="xl"
+          variant="muted"
+          onClick={() => navigate(-1)}
+          className="sm:flex-1 cursor-pointer"
+        >
+          Cancel
+        </Button>
+      </Form>
+    </DialogOrDrawer>
   );
 }

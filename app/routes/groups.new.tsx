@@ -1,138 +1,135 @@
-import { Form, Link, redirect } from "react-router";
+import { data, redirect, useFetcher, useNavigate } from "react-router";
 import type { Route } from "./+types/groups.new";
 import { createGroup, addPerson } from "../storage";
+import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { Card } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+
+export type NewGroupRequest = {
+  name: string;
+  people: string[];
+};
 
 export async function clientAction({ request }: Route.ClientActionArgs) {
   const formData = await request.formData();
-  const groupName = formData.get("groupName") as string;
-  const peopleJson = formData.get("people") as string;
+  const name = formData.get("name") as string;
+  const people = formData.getAll("people");
 
-  if (groupName) {
-    const group = createGroup(groupName);
+  if (!name) throw data("Group name is required", { status: 400 });
 
-    // Add people if provided
-    if (peopleJson) {
-      const people = JSON.parse(peopleJson) as string[];
-      people.forEach((personName) => {
-        if (personName.trim()) {
-          addPerson(group.id, personName.trim());
-        }
-      });
-    }
-
-    return redirect(`/${group.id}`);
+  if (people.length === 0) {
+    throw data("At least one person is required", { status: 400 });
   }
 
-  return null;
+  const group = createGroup(name);
+
+  people.forEach((name) => {
+    if (name.toString().trim()) {
+      addPerson(group.id, name.toString().trim());
+    }
+  });
+
+  return redirect(`/${group.id}`);
 }
 
 export default function NewGroup() {
+  const navigate = useNavigate();
   const [people, setPeople] = useState<string[]>([""]);
+  const fetcher = useFetcher();
 
-  const addPersonField = () => {
-    setPeople([...people, ""]);
+  const addPerson = () => {
+    setPeople((prev) => [...prev, ""]);
   };
 
-  const removePersonField = (index: number) => {
-    setPeople(people.filter((_, i) => i !== index));
+  const removePerson = (index: number) => {
+    setPeople((prev) => prev.filter((_, i) => i !== index));
   };
 
   const updatePersonName = (index: number, name: string) => {
-    const newPeople = [...people];
-    newPeople[index] = name;
-    setPeople(newPeople);
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const validPeople = people.filter((p) => p.trim());
-    const form = e.currentTarget;
-    const peopleInput = form.querySelector(
-      'input[name="people"]'
-    ) as HTMLInputElement;
-    if (peopleInput) {
-      peopleInput.value = JSON.stringify(validPeople);
-    }
+    setPeople((prev) => prev.map((person, i) => (i === index ? name : person)));
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Button asChild variant="ghost" className="mb-4">
-          <Link to="/">← Back to home</Link>
-        </Button>
-
-        <h1 className="text-4xl font-bold text-foreground mb-8">
-          Create New Group
-        </h1>
-
-        <Card className="p-6">
-          <Form method="post" onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <Label htmlFor="groupName">Group Name *</Label>
-              <Input
-                type="text"
-                id="groupName"
-                name="groupName"
-                required
-                placeholder="e.g., Trip to Paris"
-                className="mt-2"
-              />
-            </div>
-
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <Label>People (Optional)</Label>
-                <Button
-                  type="button"
-                  onClick={addPersonField}
-                  variant="ghost"
-                  size="sm"
-                >
-                  + Add Person
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {people.map((person, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      type="text"
-                      value={person}
-                      onChange={(e) => updatePersonName(index, e.target.value)}
-                      placeholder="Person name"
-                      className="flex-1"
-                    />
-                    {people.length > 1 && (
-                      <Button
-                        type="button"
-                        onClick={() => removePersonField(index)}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <input type="hidden" name="people" />
-            </div>
-
-            <div className="flex gap-3">
-              <Button type="submit" className="flex-1">
-                Create Group
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <Link to="/">Cancel</Link>
+    <DialogOrDrawer
+      title="Create New Group"
+      open={true}
+      onClose={() => navigate(-1)}
+    >
+      <fetcher.Form method="post" className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4">
+          <div>
+            <Label htmlFor="name">Group Name</Label>
+            <Input
+              type="text"
+              id="name"
+              name="name"
+              required
+              placeholder="e.g., Trip to Paris"
+              className="mt-2"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <Label>People</Label>
+              <Button
+                type="button"
+                onClick={addPerson}
+                variant="ghost"
+                size="sm"
+              >
+                + Add Person
               </Button>
             </div>
-          </Form>
-        </Card>
-      </div>
-    </main>
+            <div className="space-y-2">
+              {people.map((person, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Person name"
+                    className="flex-1"
+                    value={person}
+                    onChange={(e) => updatePersonName(index, e.target.value)}
+                    required
+                    name="people"
+                  />
+                  {people.length > 1 && (
+                    <Button
+                      type="button"
+                      onClick={() => removePerson(index)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="submit"
+            size="xl"
+            className="sm:flex-1 cursor-pointer"
+            disabled={fetcher.state !== "idle"}
+          >
+            {fetcher.state !== "idle" ? "Creating..." : "Create Group"}
+          </Button>
+          <Button
+            type="button"
+            size="xl"
+            variant="muted"
+            className="sm:flex-1 cursor-pointer"
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </Button>
+        </div>
+      </fetcher.Form>
+    </DialogOrDrawer>
   );
 }

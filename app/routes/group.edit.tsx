@@ -1,23 +1,31 @@
-import {
-  Form,
-  Link,
-  redirect,
-  useLoaderData,
-  useActionData,
-} from "react-router";
+import { redirect, data, useFetcher, useNavigate } from "react-router";
 import type { Route } from "./+types/group.edit";
 import { getGroup, updateGroupName, updateGroupPeople } from "../storage";
-import { useState, useEffect } from "react";
-import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
+import { useState } from "react";
+import type { Group } from "~/types";
 import { Label } from "~/components/ui/label";
-import { Card } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+
+export type EditGroupRequest = {
+  name: string;
+  people: EditGroupPeople;
+};
+
+type EditGroupPeople = Array<EditGroupPerson>;
+
+type EditGroupPerson = {
+  id?: number;
+  name: string;
+};
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
   if (!group) {
-    throw new Response("Group not found", { status: 404 });
+    throw data("Group not found", { status: 404 });
   }
+
   return { group };
 }
 
@@ -26,49 +34,53 @@ export async function clientAction({
   params,
 }: Route.ClientActionArgs) {
   const formData = await request.formData();
-  const groupName = formData.get("groupName") as string;
+  const name = formData.get("name") as string;
   const peopleJson = formData.get("people") as string;
+  const people: EditGroupPeople = peopleJson ? JSON.parse(peopleJson) : [];
 
-  if (groupName) {
-    updateGroupName(params.groupId, groupName);
+  if (!name) throw data("Group name is required", { status: 400 });
+
+  if (people.length === 0) {
+    throw data("At least one person is required", { status: 400 });
   }
 
-  if (peopleJson) {
-    const people = JSON.parse(peopleJson) as Array<{
-      id?: number;
-      name: string;
-    }>;
-    const result = updateGroupPeople(params.groupId, people);
+  updateGroupName(params.groupId, name);
+  const peopleUpdateResult = updateGroupPeople(params.groupId, people);
 
-    if (!result.success) {
-      return { error: result.error };
-    }
+  if (!peopleUpdateResult.success) {
+    throw data(peopleUpdateResult.error, { status: 400 });
   }
 
   return redirect(`/${params.groupId}`);
 }
 
-export default function EditGroup() {
-  const { group } = useLoaderData<typeof clientLoader>();
-  const actionData = useActionData<typeof clientAction>();
-  const [groupName, setGroupName] = useState(group.name);
-  const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
-    group.people.map((p) => ({ id: p.id, name: p.name }))
+export default function EditGroup({ loaderData }: Route.ComponentProps) {
+  const navigate = useNavigate();
+
+  return (
+    <DialogOrDrawer title="Edit Group" open={true} onClose={() => navigate(-1)}>
+      <EditGroupForm onClose={() => navigate(-1)} group={loaderData.group} />
+    </DialogOrDrawer>
   );
-  const [error, setError] = useState<string | null>(null);
+}
 
-  useEffect(() => {
-    if (actionData && "error" in actionData && actionData.error) {
-      setError(actionData.error);
-      setTimeout(() => setError(null), 5000);
-    }
-  }, [actionData]);
+type EditGroupFormProps = {
+  group: Group;
+  onClose: () => void;
+};
 
-  const addPersonField = () => {
+function EditGroupForm({ group, onClose }: EditGroupFormProps) {
+  const [name, setName] = useState<string>(group.name);
+  const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
+    group.people,
+  );
+  const fetcher = useFetcher();
+
+  const addPerson = () => {
     setPeople([...people, { name: "" }]);
   };
 
-  const removePersonField = (index: number) => {
+  const removePerson = (index: number) => {
     setPeople(people.filter((_, i) => i !== index));
   };
 
@@ -78,10 +90,10 @@ export default function EditGroup() {
     setPeople(newPeople);
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const form = e.currentTarget;
     const peopleInput = form.querySelector(
-      'input[name="people"]'
+      'input[name="people"]',
     ) as HTMLInputElement;
     if (peopleInput) {
       peopleInput.value = JSON.stringify(people);
@@ -89,83 +101,74 @@ export default function EditGroup() {
   };
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <Button asChild variant="ghost" className="mb-4">
-          <Link to={`/${group.id}`}>← Back to group</Link>
-        </Button>
+    <fetcher.Form onSubmit={onSubmit} method="post">
+      <div className="mb-6">
+        <Label htmlFor="name">Group Name</Label>
+        <Input
+          type="text"
+          id="name"
+          name="name"
+          required
+          placeholder="e.g., Trip to Paris"
+          className="mt-2"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
 
-        <h1 className="text-4xl font-bold text-foreground mb-8">Edit Group</h1>
-
-        {error && (
-          <div className="mb-4 px-4 py-2 bg-destructive/10 text-destructive rounded-lg">
-            {error}
-          </div>
-        )}
-
-        <Card className="p-6">
-          <Form method="post" onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <Label htmlFor="groupName">Group Name *</Label>
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <Label>People</Label>
+          <Button type="button" onClick={addPerson} variant="ghost" size="sm">
+            + Add Person
+          </Button>
+        </div>
+        <div className="space-y-2">
+          {people.map((person, index) => (
+            <div key={index} className="flex gap-2">
               <Input
                 type="text"
-                id="groupName"
-                name="groupName"
-                value={groupName}
-                onChange={(e) => setGroupName(e.target.value)}
+                value={person.name}
+                onChange={(e) => updatePersonName(index, e.target.value)}
+                placeholder="Person name"
+                className="flex-1"
                 required
-                className="mt-2"
               />
-            </div>
-
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <Label>People</Label>
+              {people.length > 1 && (
                 <Button
                   type="button"
-                  onClick={addPersonField}
-                  variant="ghost"
+                  onClick={() => removePerson(index)}
+                  variant="destructive"
                   size="sm"
                 >
-                  + Add Person
+                  Remove
                 </Button>
-              </div>
-              <div className="space-y-2">
-                {people.map((person, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      type="text"
-                      value={person.name}
-                      onChange={(e) => updatePersonName(index, e.target.value)}
-                      placeholder="Person name"
-                      required
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => removePersonField(index)}
-                      variant="destructive"
-                      size="sm"
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              <input type="hidden" name="people" />
+              )}
             </div>
-
-            <div className="flex gap-3">
-              <Button type="submit" className="flex-1">
-                Save Changes
-              </Button>
-              <Button asChild variant="outline" className="flex-1">
-                <Link to={`/${group.id}`}>Cancel</Link>
-              </Button>
-            </div>
-          </Form>
-        </Card>
+          ))}
+        </div>
+        <input type="hidden" name="people" />
       </div>
-    </main>
+
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button
+          type="submit"
+          size="xl"
+          className="sm:flex-1 cursor-pointer"
+          disabled={fetcher.state !== "idle"}
+        >
+          {fetcher.state !== "idle" ? "Saving..." : "Save Changes"}
+        </Button>
+        <Button
+          type="button"
+          size="xl"
+          variant="muted"
+          className="sm:flex-1 cursor-pointer"
+          onClick={onClose}
+        >
+          Cancel
+        </Button>
+      </div>
+    </fetcher.Form>
   );
 }

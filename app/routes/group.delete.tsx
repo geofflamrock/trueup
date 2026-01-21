@@ -1,8 +1,11 @@
-import { redirect, useLoaderData, Link, Form } from "react-router";
+import { redirect, useLoaderData, Link, Form, useNavigate } from "react-router";
 import type { Route } from "./+types/group.delete";
 import { deleteGroup, getGroup } from "../storage";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
+import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
+import { cn } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -20,29 +23,41 @@ export async function clientAction({ params }: Route.ClientActionArgs) {
   return redirect(`/${params.groupId}`);
 }
 
-export default function DeleteGroup() {
-  const { group } = useLoaderData<typeof clientLoader>();
+export default function DeleteGroup({ loaderData }: Route.ComponentProps) {
+  const { group } = loaderData;
+  const navigate = useNavigate();
 
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center">
-      <Card className="p-8 max-w-md w-full mx-4">
-        <h1 className="text-2xl font-bold text-foreground mb-4">
-          Delete Group?
-        </h1>
-        <p className="text-foreground mb-6">
+    <DialogOrDrawer
+      title="Delete Group"
+      description={
+        <span>
           Are you sure you want to delete <strong>{group.name}</strong>? This
-          action cannot be undone and will delete all expenses, transfers, and
-          people in this group.
-        </p>
-        <Form method="post" className="flex gap-3">
-          <Button type="submit" variant="destructive" className="flex-1">
-            Delete Group
-          </Button>
-          <Button asChild variant="outline" className="flex-1">
-            <Link to={`/${group.id}`}>Cancel</Link>
-          </Button>
-        </Form>
-      </Card>
-    </main>
+          action cannot be undone.
+        </span>
+      }
+      open={true}
+      onClose={() => navigate(-1)}
+    >
+      <Form method="post" className="flex flex-col gap-2 sm:flex-row">
+        <Button
+          type="submit"
+          variant="destructive"
+          size="xl"
+          className="sm:flex-1 cursor-pointer"
+        >
+          Delete
+        </Button>
+        <Button
+          type="button"
+          size="xl"
+          variant="muted"
+          onClick={() => navigate(-1)}
+          className="sm:flex-1 cursor-pointer"
+        >
+          Cancel
+        </Button>
+      </Form>
+    </DialogOrDrawer>
   );
 }
