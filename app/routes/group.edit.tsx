@@ -7,6 +7,16 @@ import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "~/components/ui/input-group";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Trash2, UserAdd01Icon } from "@hugeicons/core-free-icons";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export type EditGroupRequest = {
   name: string;
@@ -75,6 +85,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
     group.people,
   );
   const fetcher = useFetcher();
+  const isDesktop = useIsDesktop();
 
   const addPerson = () => {
     setPeople([...people, { name: "" }]);
@@ -102,73 +113,86 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
 
   return (
     <fetcher.Form onSubmit={onSubmit} method="post">
-      <div className="mb-6">
-        <Label htmlFor="name">Group Name</Label>
-        <Input
-          type="text"
-          id="name"
-          name="name"
-          required
-          placeholder="e.g., Trip to Paris"
-          className="mt-2"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
+      <FieldSet>
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="name">Group Name</FieldLabel>
+            <Input
+              type="text"
+              id="name"
+              name="name"
+              required
+              placeholder="e.g., Trip to Paris"
+              className="mt-2"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </Field>
 
-      <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <Label>People</Label>
-          <Button type="button" onClick={addPerson} variant="ghost" size="sm">
-            + Add Person
-          </Button>
-        </div>
-        <div className="space-y-2">
-          {people.map((person, index) => (
-            <div key={index} className="flex gap-2">
-              <Input
-                type="text"
-                value={person.name}
-                onChange={(e) => updatePersonName(index, e.target.value)}
-                placeholder="Person name"
-                className="flex-1"
-                required
-              />
-              {people.length > 1 && (
-                <Button
-                  type="button"
-                  onClick={() => removePerson(index)}
-                  variant="destructive"
-                  size="sm"
-                >
-                  Remove
-                </Button>
-              )}
+          <Field>
+            <FieldLabel htmlFor="people">People</FieldLabel>
+            <div className="flex flex-col gap-2">
+              {people.map((person, index) => (
+                <InputGroup>
+                  <InputGroupInput
+                    type="text"
+                    value={person.name}
+                    onChange={(e) => updatePersonName(index, e.target.value)}
+                    placeholder="Person name"
+                    className="flex-1"
+                    required
+                  />
+                  {people.length > 1 && (
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        type="button"
+                        onClick={() => removePerson(index)}
+                        variant="ghost"
+                        size="icon-xs"
+                        className="cursor-pointer"
+                      >
+                        <HugeiconsIcon icon={Trash2} />
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  )}
+                </InputGroup>
+              ))}
             </div>
-          ))}
-        </div>
-        <input type="hidden" name="people" />
-      </div>
+            <input type="hidden" name="people" />
+            <div>
+              <Button
+                type="button"
+                onClick={addPerson}
+                variant="muted"
+                size={isDesktop ? "sm" : "default"}
+                className="cursor-pointer"
+              >
+                <HugeiconsIcon icon={UserAdd01Icon} /> Add Person
+              </Button>
+            </div>
+          </Field>
 
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Button
-          type="submit"
-          size="xl"
-          className="sm:flex-1 cursor-pointer"
-          disabled={fetcher.state !== "idle"}
-        >
-          {fetcher.state !== "idle" ? "Saving..." : "Save Changes"}
-        </Button>
-        <Button
-          type="button"
-          size="xl"
-          variant="muted"
-          className="sm:flex-1 cursor-pointer"
-          onClick={onClose}
-        >
-          Cancel
-        </Button>
-      </div>
+          <Field orientation={isDesktop ? "horizontal" : "vertical"}>
+            <Button
+              type="submit"
+              size={isDesktop ? "lg" : "xl"}
+              className="sm:flex-1 cursor-pointer"
+              disabled={fetcher.state !== "idle"}
+            >
+              {fetcher.state !== "idle" ? "Saving..." : "Save Changes"}
+            </Button>
+            <Button
+              type="button"
+              size={isDesktop ? "lg" : "xl"}
+              variant="muted"
+              className="sm:flex-1 cursor-pointer"
+              onClick={onClose}
+            >
+              Cancel
+            </Button>
+          </Field>
+        </FieldGroup>
+      </FieldSet>
     </fetcher.Form>
   );
 }

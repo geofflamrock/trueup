@@ -26,6 +26,7 @@ export async function clientAction({ params }: Route.ClientActionArgs) {
 export default function DeleteGroup({ loaderData }: Route.ComponentProps) {
   const { group } = loaderData;
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
 
   return (
     <DialogOrDrawer
@@ -43,14 +44,14 @@ export default function DeleteGroup({ loaderData }: Route.ComponentProps) {
         <Button
           type="submit"
           variant="destructive"
-          size="xl"
+          size={isDesktop ? "lg" : "xl"}
           className="sm:flex-1 cursor-pointer"
         >
           Delete
         </Button>
         <Button
           type="button"
-          size="xl"
+          size={isDesktop ? "lg" : "xl"}
           variant="muted"
           onClick={() => navigate(-1)}
           className="sm:flex-1 cursor-pointer"

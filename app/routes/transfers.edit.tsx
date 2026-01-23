@@ -7,6 +7,15 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -47,6 +56,7 @@ export async function clientAction({
 export default function EditTransfer() {
   const { group, transfer } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const [amount, setAmount] = useState(transfer.amount.toString());
   const [paidById, setPaidById] = useState(transfer.paidById.toString());
   const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
@@ -61,83 +71,91 @@ export default function EditTransfer() {
     >
       <Form method="post">
         <input type="hidden" name="date" value={transfer.date} />
+        <FieldSet>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="amount">Amount</FieldLabel>
+              <Input
+                type="number"
+                id="amount"
+                name="amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                step="0.01"
+                min="0"
+                required
+              />
+            </Field>
 
-        <div className="mb-6">
-          <Label htmlFor="amount">Amount *</Label>
-          <Input
-            type="number"
-            id="amount"
-            name="amount"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            step="0.01"
-            min="0"
-            required
-            className="mt-2"
-          />
-        </div>
+            <Field>
+              <FieldLabel htmlFor="paidById">From</FieldLabel>
+              <Select
+                name="paidById"
+                value={paidById}
+                onValueChange={(value) => setPaidById(value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select person" />
+                </SelectTrigger>
+                <SelectContent>
+                  {group.people.map((person) => (
+                    <SelectItem key={person.id} value={person.id.toString()}>
+                      {person.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
-        <div className="mb-6">
-          <Label htmlFor="paidById">From *</Label>
-          <select
-            id="paidById"
-            name="paidById"
-            value={paidById}
-            onChange={(e) => setPaidById(e.target.value)}
-            required
-            className="mt-2 w-full h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors focus-visible:ring-[3px] focus-visible:border-ring focus-visible:ring-ring/50 outline-none"
-          >
-            {group.people.map((person) => (
-              <option key={person.id} value={person.id}>
-                {person.name}
-              </option>
-            ))}
-          </select>
-        </div>
+            <Field>
+              <FieldLabel htmlFor="paidToId">To</FieldLabel>
+              <Select
+                name="paidToId"
+                value={paidToId}
+                onValueChange={(value) => setPaidToId(value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select person" />
+                </SelectTrigger>
+                <SelectContent>
+                  {group.people.map((person) => (
+                    <SelectItem key={person.id} value={person.id.toString()}>
+                      {person.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
 
-        <div className="mb-6">
-          <Label htmlFor="paidToId">To *</Label>
-          <select
-            id="paidToId"
-            name="paidToId"
-            value={paidToId}
-            onChange={(e) => setPaidToId(e.target.value)}
-            required
-            className="mt-2 w-full h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors focus-visible:ring-[3px] focus-visible:border-ring focus-visible:ring-ring/50 outline-none"
-          >
-            {group.people.map((person) => (
-              <option key={person.id} value={person.id}>
-                {person.name}
-              </option>
-            ))}
-          </select>
-        </div>
+            {paidById === paidToId && (
+              <div className="px-4 py-2 bg-destructive/10 text-destructive rounded-lg">
+                Cannot transfer to the same person
+              </div>
+            )}
 
-        {paidById === paidToId && (
-          <div className="mb-6 px-4 py-2 bg-destructive/10 text-destructive rounded-lg">
-            Cannot transfer to the same person
-          </div>
-        )}
-
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            type="submit"
-            size="xl"
-            disabled={!isValid}
-            className="sm:flex-1 cursor-pointer"
-          >
-            Save Changes
-          </Button>
-          <Button
-            type="button"
-            size="xl"
-            variant="muted"
-            className="sm:flex-1 cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            Cancel
-          </Button>
-        </div>
+            <Field orientation={isDesktop ? "horizontal" : "vertical"}>
+              <Button
+                type="submit"
+                size={isDesktop ? "lg" : "xl"}
+                disabled={!isValid}
+                className="sm:flex-1 cursor-pointer"
+              >
+                Save Changes
+              </Button>
+              <Button
+                type="button"
+                size={isDesktop ? "lg" : "xl"}
+                variant="muted"
+                className="sm:flex-1 cursor-pointer"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </Button>
+            </Field>
+          </FieldGroup>
+        </FieldSet>
       </Form>
     </DialogOrDrawer>
   );

@@ -4,6 +4,7 @@ import { getGroup, getExpense, deleteExpense } from "../storage";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -27,6 +28,7 @@ export async function clientAction({ params }: Route.ClientActionArgs) {
 export default function DeleteExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
 
   return (
     <DialogOrDrawer
@@ -44,7 +46,7 @@ export default function DeleteExpense() {
       <Form method="post" className="flex flex-col gap-2 sm:flex-row">
         <Button
           type="submit"
-          size="xl"
+          size={isDesktop ? "lg" : "xl"}
           variant="destructive"
           className="sm:flex-1 cursor-pointer"
         >
@@ -52,7 +54,7 @@ export default function DeleteExpense() {
         </Button>
         <Button
           type="button"
-          size="xl"
+          size={isDesktop ? "lg" : "xl"}
           variant="muted"
           onClick={() => navigate(-1)}
           className="sm:flex-1 cursor-pointer"

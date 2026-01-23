@@ -4,6 +4,7 @@ import { getGroup, getTransfer, deleteTransfer } from "../storage";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -31,6 +32,7 @@ export default function DeleteTransfer() {
   const { group, transfer, getPersonName } =
     useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
 
   return (
     <DialogOrDrawer
@@ -50,14 +52,14 @@ export default function DeleteTransfer() {
         <Button
           type="submit"
           variant="destructive"
-          size="xl"
+          size={isDesktop ? "lg" : "xl"}
           className="sm:flex-1 cursor-pointer"
         >
           Delete
         </Button>
         <Button
           type="button"
-          size="xl"
+          size={isDesktop ? "lg" : "xl"}
           variant="muted"
           onClick={() => navigate(-1)}
           className="sm:flex-1 cursor-pointer"
