@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -50,6 +51,8 @@ export async function clientAction({
   return redirect(`/${params.groupId}`);
 }
 
+export type SplitType = "equal" | "custom";
+
 export default function NewExpense() {
   const { group } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
@@ -59,7 +62,7 @@ export default function NewExpense() {
   const [paidById, setPaidById] = useState(
     group.people[0]?.id.toString() || "",
   );
-  const [splitType, setSplitType] = useState<"equal" | "custom">("equal");
+  const [splitType, setSplitType] = useState<SplitType>("equal");
   const [shares, setShares] = useState<ExpenseShare[]>(
     group.people.map((p) => ({ personId: p.id, amount: 0 })),
   );
@@ -77,7 +80,7 @@ export default function NewExpense() {
     }
   };
 
-  const handleSplitTypeChange = (type: "equal" | "custom") => {
+  const handleSplitTypeChange = (type: SplitType) => {
     setSplitType(type);
     if (type === "equal" && amount) {
       const amountNum = parseFloat(amount);
@@ -193,31 +196,24 @@ export default function NewExpense() {
             <Field>
               <div className="flex justify-between items-center">
                 <FieldLabel>Share per person</FieldLabel>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => handleSplitTypeChange("equal")}
-                    variant={splitType === "equal" ? "default" : "outline"}
-                    size="sm"
-                  >
-                    Split equally
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => handleSplitTypeChange("custom")}
-                    variant={splitType === "custom" ? "default" : "outline"}
-                    size="sm"
-                  >
-                    Custom
-                  </Button>
-                </div>
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  value={splitType}
+                  onValueChange={(value) =>
+                    handleSplitTypeChange(value as SplitType)
+                  }
+                >
+                  <ToggleGroupItem value="equal">Split equally</ToggleGroupItem>
+                  <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
+                </ToggleGroup>
               </div>
               <div className="space-y-2">
                 {group.people.map((person) => {
                   const share = shares.find((s) => s.personId === person.id);
                   return (
                     <div key={person.id} className="flex items-center gap-2">
-                      <Label className="flex-1">{person.name}</Label>
+                      <p className="flex-1">{person.name}</p>
                       <Input
                         type="number"
                         value={share?.amount || 0}

@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import type { SplitType } from "./expenses.new";
+import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -64,7 +66,14 @@ export default function EditExpense() {
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());
-  const [splitType, setSplitType] = useState<"equal" | "custom">("custom");
+  const [splitType, setSplitType] = useState<SplitType>(() => {
+    if (!expense.shares || expense.shares.length === 0) return "custom";
+    const first = expense.shares[0].amount;
+    const allEqual = expense.shares.every(
+      (s) => Math.abs(s.amount - first) < 0.01,
+    );
+    return allEqual ? "equal" : "custom";
+  });
   const [shares, setShares] = useState<ExpenseShare[]>(expense.shares);
 
   const handleAmountChange = (value: string) => {
@@ -80,7 +89,7 @@ export default function EditExpense() {
     }
   };
 
-  const handleSplitTypeChange = (type: "equal" | "custom") => {
+  const handleSplitTypeChange = (type: SplitType) => {
     setSplitType(type);
     if (type === "equal" && amount) {
       const amountNum = parseFloat(amount);
@@ -176,22 +185,19 @@ export default function EditExpense() {
               <div className="flex justify-between items-center">
                 <FieldLabel>Share per person</FieldLabel>
                 <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    onClick={() => handleSplitTypeChange("equal")}
-                    variant={splitType === "equal" ? "default" : "outline"}
-                    size="sm"
+                  <ToggleGroup
+                    type="single"
+                    variant="outline"
+                    value={splitType}
+                    onValueChange={(value) =>
+                      handleSplitTypeChange(value as SplitType)
+                    }
                   >
-                    Split equally
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => handleSplitTypeChange("custom")}
-                    variant={splitType === "custom" ? "default" : "outline"}
-                    size="sm"
-                  >
-                    Custom
-                  </Button>
+                    <ToggleGroupItem value="equal">
+                      Split equally
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
               </div>
               <div className="space-y-2">
@@ -199,7 +205,7 @@ export default function EditExpense() {
                   const share = shares.find((s) => s.personId === person.id);
                   return (
                     <div key={person.id} className="flex items-center gap-2">
-                      <Label className="flex-1">{person.name}</Label>
+                      <p className="flex-1">{person.name}</p>
                       <Input
                         type="number"
                         value={share?.amount || 0}
