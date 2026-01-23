@@ -3,7 +3,42 @@ import type { Route } from "./+types/group";
 import { getGroup } from "../storage";
 import { calculateBalances } from "../balances";
 import { Button } from "~/components/ui/button";
-import { Card } from "~/components/ui/card";
+import {
+  PeopleAvatarGroup,
+  PersonAvatar,
+} from "~/components/app/PeopleAvatarGroup";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ArrowLeft02Icon,
+  CheckmarkBadge02Icon,
+  ChevronRight,
+  Money03Icon,
+  MoreVerticalIcon,
+  PencilEdit01Icon,
+  SaveMoneyDollarIcon,
+  Trash2,
+} from "@hugeicons/core-free-icons";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "~/components/ui/item";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
+import { format } from "date-fns";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -26,6 +61,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export default function GroupPage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
+  const isDesktop = useIsDesktop();
 
   // Combine expenses and transfers into a timeline
   const timeline = [
@@ -33,209 +69,211 @@ export default function GroupPage() {
     ...group.transfers.map((t) => ({ type: "transfer" as const, ...t })),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  const timelineGroupedByDate = timeline.reduce(
+    (acc, item) => {
+      const dateKey = format(new Date(item.date), "PP");
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof timeline>,
+  );
+
   const getPersonName = (id: number) =>
     group.people.find((p) => p.id === id)?.name || "Unknown";
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6 pb-8">
       <div className="flex justify-between items-center">
-        <div className="flex gap-3 items-center">
-          <h1 className="text-3xl font-title text-foreground">{group.name}</h1>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link to={`/${group.id}/edit`} prefetch="viewport">
-              Edit
+        <div className="flex gap-2 items-center">
+          <Button variant="ghost" size="icon-lg" asChild>
+            <Link to={`/`} prefetch="viewport">
+              <HugeiconsIcon icon={ArrowLeft02Icon} className="size-6" />
             </Link>
           </Button>
-          <Button asChild variant="destructive">
-            <Link to={`/${group.id}/delete`} prefetch="viewport">
-              Delete Group
-            </Link>
-          </Button>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left column */}
-        <div className="space-y-8">
-          {/* People section */}
-          <Card className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-foreground">People</h2>
-            </div>
-
-            {group.people.length === 0 ? (
-              <p className="text-muted-foreground">
-                No people yet. Add someone to get started!
-              </p>
-            ) : (
-              <ul className="space-y-2">
+          <div className="flex gap-3 items-center">
+            <Popover>
+              <PopoverTrigger className="flex gap-2 items-center">
+                <PeopleAvatarGroup
+                  people={group.people}
+                  max={2}
+                  size="default"
+                />
+              </PopoverTrigger>
+              <PopoverContent align="start">
                 {group.people.map((person) => (
-                  <li
-                    key={person.id}
-                    className="px-4 py-2 bg-muted rounded-lg text-foreground"
-                  >
-                    {person.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-
-          {/* Balances section */}
-          <Card className="p-6">
-            <h2 className="text-2xl font-semibold text-foreground mb-4">
-              Who Owes What
-            </h2>
-            {balances.length === 0 ? (
-              <p className="text-muted-foreground">
-                All balanced! No one owes anything.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {balances.map((balance, idx) => (
-                  <li
-                    key={idx}
-                    className="px-4 py-3 bg-primary/10 rounded-lg text-foreground"
-                  >
-                    <span className="font-medium">
-                      {getPersonName(balance.fromPersonId)}
-                    </span>
-                    {" owes "}
-                    <span className="font-medium">
-                      {getPersonName(balance.toPersonId)}
-                    </span>{" "}
-                    <span className="font-bold text-primary">
-                      ${balance.amount.toFixed(2)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
-
-        {/* Right column */}
-        <div>
-          {/* Timeline section */}
-          <Card className="p-6">
-            <h2 className="text-2xl font-semibold text-foreground mb-4">
-              Timeline
-            </h2>
-
-            <div className="flex gap-2 mb-6">
-              <Button asChild className="flex-1">
-                <Link to={`/${group.id}/expenses/new`} prefetch="viewport">
-                  + Add Expense
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" className="flex-1">
-                <Link to={`/${group.id}/transfers/new`} prefetch="viewport">
-                  + Add Transfer
-                </Link>
-              </Button>
-            </div>
-
-            {timeline.length === 0 ? (
-              <p className="text-muted-foreground">
-                No expenses or transfers yet.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {timeline.map((item) => (
-                  <div
-                    key={item.id}
-                    className="p-4 border-l-4 border-primary bg-muted rounded"
-                  >
-                    {item.type === "expense" ? (
-                      <div>
-                        <div className="text-sm text-muted-foreground mb-1">
-                          {new Date(item.date).toLocaleDateString()}{" "}
-                          {new Date(item.date).toLocaleTimeString()}
-                        </div>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="font-semibold text-foreground">
-                              {item.description}
-                            </div>
-                            <div className="text-foreground">
-                              Paid by {getPersonName(item.paidById)}: $
-                              {item.amount.toFixed(2)}
-                            </div>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              Split:{" "}
-                              {item.shares
-                                .map(
-                                  (s) =>
-                                    `${getPersonName(s.personId)} ($${s.amount.toFixed(2)})`,
-                                )
-                                .join(", ")}
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button asChild variant="outline" size="sm">
-                              <Link
-                                to={`/${group.id}/expenses/${item.id}/edit`}
-                                prefetch="viewport"
-                              >
-                                Edit
-                              </Link>
-                            </Button>
-                            <Button asChild variant="destructive" size="sm">
-                              <Link
-                                to={`/${group.id}/expenses/${item.id}/delete`}
-                                prefetch="viewport"
-                              >
-                                Delete
-                              </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="text-sm text-muted-foreground mb-1">
-                          {new Date(item.date).toLocaleDateString()}{" "}
-                          {new Date(item.date).toLocaleTimeString()}
-                        </div>
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="font-semibold text-foreground">
-                              Transfer
-                            </div>
-                            <div className="text-foreground">
-                              {getPersonName(item.paidById)} paid{" "}
-                              {getPersonName(item.paidToId)}: $
-                              {item.amount.toFixed(2)}
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button asChild variant="outline" size="sm">
-                              <Link
-                                to={`/${group.id}/transfers/${item.id}/edit`}
-                                prefetch="viewport"
-                              >
-                                Edit
-                              </Link>
-                            </Button>
-                            <Button asChild variant="destructive" size="sm">
-                              <Link
-                                to={`/${group.id}/transfers/${item.id}/delete`}
-                                prefetch="viewport"
-                              >
-                                Delete
-                              </Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                  <div key={person.id} className="flex items-center gap-2">
+                    <PersonAvatar person={person} />
+                    <span>{person.name}</span>
                   </div>
                 ))}
+              </PopoverContent>
+            </Popover>
+            <Link to={`/${group.id}/edit`} prefetch="viewport">
+              <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+                {group.name}
+              </h1>
+            </Link>
+          </div>
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-lg" className="cursor-pointer">
+              <HugeiconsIcon icon={MoreVerticalIcon} size={24} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link to={`/${group.id}/edit`} prefetch="viewport">
+                <HugeiconsIcon icon={PencilEdit01Icon} /> Edit
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" asChild>
+              <Link to={`/${group.id}/delete`} prefetch="viewport">
+                <HugeiconsIcon icon={Trash2} /> Delete
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        {timeline.length === 0 && (
+          <Item variant="muted" className="p-4">
+            <h2 className="text-lg text-muted-foreground">
+              No expenses or transfers yet.
+            </h2>
+          </Item>
+        )}
+        {timeline.length !== 0 && (
+          <div>
+            {balances.length === 0 ? (
+              <Item className="p-4 bg-success text-foreground">
+                <ItemContent className="flex flex-row gap-3 items-center text-xl">
+                  <HugeiconsIcon icon={CheckmarkBadge02Icon} size={36} /> All
+                  balanced!
+                </ItemContent>
+              </Item>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {balances.map((balance, idx) => {
+                  const fromPerson = group.people.find(
+                    (p) => p.id === balance.fromPersonId,
+                  )!;
+                  const toPerson = group.people.find(
+                    (p) => p.id === balance.toPersonId,
+                  )!;
+                  return (
+                    <Item variant="muted" size="xl" key={idx} asChild>
+                      <Link
+                        to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
+                        prefetch="viewport"
+                      >
+                        <ItemMedia variant="icon">
+                          <HugeiconsIcon
+                            icon={SaveMoneyDollarIcon}
+                            size={24}
+                            className="size-6"
+                          />
+                        </ItemMedia>
+                        <ItemContent>
+                          <ItemTitle className="text-lg">
+                            {fromPerson.name} owes {toPerson.name}
+                          </ItemTitle>
+                          <ItemDescription className="text-primary text-lg">
+                            ${balance.amount.toFixed(2)}
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          Mark as paid{" "}
+                          <HugeiconsIcon icon={ChevronRight} size={24} />
+                        </ItemActions>
+                      </Link>
+                    </Item>
+                  );
+                })}
               </div>
             )}
-          </Card>
+          </div>
+        )}
+        <div className="flex flex-col gap-6">
+          <div className="flex gap-2 items-center justify-between sm:justify-start">
+            <Button
+              asChild
+              variant="default"
+              size="lg"
+              className="flex-1 sm:flex-initial"
+            >
+              <Link to={`/${group.id}/expenses/new`} prefetch="viewport">
+                <HugeiconsIcon icon={Money03Icon} /> New Expense
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="secondary"
+              size="lg"
+              className="flex-1 sm:flex-initial"
+            >
+              <Link to={`/${group.id}/transfers/new`} prefetch="viewport">
+                <HugeiconsIcon icon={SaveMoneyDollarIcon} /> New Transfer
+              </Link>
+            </Button>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            {Object.entries(timelineGroupedByDate).map(([date, items]) => (
+              <div key={date} className="flex flex-col gap-2">
+                <h3 className="text-muted-foreground ml-1">{date}</h3>
+                <div className="flex flex-col -ml-3">
+                  {items.map((item) =>
+                    item.type === "expense" ? (
+                      <Item asChild size="xl" key={item.id}>
+                        <Link
+                          to={`/${group.id}/expenses/${item.id}/edit`}
+                          prefetch="viewport"
+                        >
+                          <ItemMedia variant="icon">
+                            <HugeiconsIcon icon={Money03Icon} />
+                          </ItemMedia>
+                          <ItemContent>
+                            <ItemTitle>
+                              {getPersonName(item.paidById)} paid $
+                              {item.amount.toFixed(2)}
+                            </ItemTitle>
+                            <ItemDescription>
+                              {item.description}
+                            </ItemDescription>
+                          </ItemContent>
+                        </Link>
+                      </Item>
+                    ) : (
+                      <Item asChild size="xl" key={item.id}>
+                        <Link
+                          to={`/${group.id}/transfers/${item.id}/edit`}
+                          prefetch="viewport"
+                        >
+                          <ItemMedia variant="icon">
+                            <HugeiconsIcon icon={SaveMoneyDollarIcon} />
+                          </ItemMedia>
+                          <ItemContent>
+                            <ItemTitle>
+                              {getPersonName(item.paidById)} sent $
+                              {item.amount.toFixed(2)} to{" "}
+                              {getPersonName(item.paidToId)}
+                            </ItemTitle>
+                          </ItemContent>
+                        </Link>
+                      </Item>
+                    ),
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <Outlet />

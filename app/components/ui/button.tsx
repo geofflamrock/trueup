@@ -33,10 +33,9 @@ const buttonVariants = cva(
         hero: "h-12 gap-2 rounded-full px-12 has-data-[icon=inline-end]:pr-6 has-data-[icon=inline-start]:pl-6 text-xl",
         icon: "size-8",
         "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
-        "icon-lg": "size-9",
+          "size-6 rounded-full in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm": "size-7 rounded-full in-data-[slot=button-group]:rounded-lg",
+        "icon-lg": "size-9 rounded-full",
       },
     },
     defaultVariants: {
