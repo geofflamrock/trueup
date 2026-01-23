@@ -14,11 +14,7 @@ import {
   InputGroupInput,
 } from "~/components/ui/input-group";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Trash2,
-  UserAdd01FreeIcons,
-  UserAdd01Icon,
-} from "@hugeicons/core-free-icons";
+import { Trash2, UserAdd01Icon } from "@hugeicons/core-free-icons";
 
 export type NewGroupRequest = {
   name: string;

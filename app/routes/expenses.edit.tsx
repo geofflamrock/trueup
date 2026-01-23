@@ -8,6 +8,8 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -51,6 +53,7 @@ export async function clientAction({
 export default function EditExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());
@@ -113,124 +116,125 @@ export default function EditExpense() {
     >
       <Form method="post" onSubmit={handleSubmit}>
         <input type="hidden" name="date" value={expense.date} />
+        <FieldSet>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="description">Description *</FieldLabel>
+              <Input
+                type="text"
+                id="description"
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+              />
+            </Field>
 
-        <div className="mb-6">
-          <Label htmlFor="description">Description *</Label>
-          <Input
-            type="text"
-            id="description"
-            name="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            className="mt-2"
-          />
-        </div>
+            <Field>
+              <FieldLabel htmlFor="amount">Amount *</FieldLabel>
+              <Input
+                type="number"
+                id="amount"
+                name="amount"
+                value={amount}
+                onChange={(e) => handleAmountChange(e.target.value)}
+                step="0.01"
+                min="0"
+                required
+              />
+            </Field>
 
-        <div className="mb-6">
-          <Label htmlFor="amount">Amount *</Label>
-          <Input
-            type="number"
-            id="amount"
-            name="amount"
-            value={amount}
-            onChange={(e) => handleAmountChange(e.target.value)}
-            step="0.01"
-            min="0"
-            required
-            className="mt-2"
-          />
-        </div>
-
-        <div className="mb-6">
-          <Label htmlFor="paidById">Paid By *</Label>
-          <select
-            id="paidById"
-            name="paidById"
-            value={paidById}
-            onChange={(e) => setPaidById(e.target.value)}
-            required
-            className="mt-2 w-full h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors focus-visible:ring-[3px] focus-visible:border-ring focus-visible:ring-ring/50 outline-none"
-          >
-            {group.people.map((person) => (
-              <option key={person.id} value={person.id}>
-                {person.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <Label>Share per person *</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                onClick={() => handleSplitTypeChange("equal")}
-                variant={splitType === "equal" ? "default" : "outline"}
-                size="sm"
+            <Field>
+              <FieldLabel htmlFor="paidById">Paid By *</FieldLabel>
+              <select
+                id="paidById"
+                name="paidById"
+                value={paidById}
+                onChange={(e) => setPaidById(e.target.value)}
+                required
+                className="w-full h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors focus-visible:ring-[3px] focus-visible:border-ring focus-visible:ring-ring/50 outline-none"
               >
-                Split equally
-              </Button>
-              <Button
-                type="button"
-                onClick={() => handleSplitTypeChange("custom")}
-                variant={splitType === "custom" ? "default" : "outline"}
-                size="sm"
-              >
-                Custom
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            {group.people.map((person) => {
-              const share = shares.find((s) => s.personId === person.id);
-              return (
-                <div key={person.id} className="flex items-center gap-2">
-                  <Label className="flex-1">{person.name}</Label>
-                  <Input
-                    type="number"
-                    value={share?.amount || 0}
-                    onChange={(e) => updateShare(person.id, e.target.value)}
-                    step="0.01"
-                    min="0"
-                    disabled={splitType === "equal"}
-                    className="w-32"
-                  />
+                {group.people.map((person) => (
+                  <option key={person.id} value={person.id}>
+                    {person.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field>
+              <div className="flex justify-between items-center mb-2">
+                <FieldLabel>Share per person *</FieldLabel>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => handleSplitTypeChange("equal")}
+                    variant={splitType === "equal" ? "default" : "outline"}
+                    size="sm"
+                  >
+                    Split equally
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => handleSplitTypeChange("custom")}
+                    variant={splitType === "custom" ? "default" : "outline"}
+                    size="sm"
+                  >
+                    Custom
+                  </Button>
                 </div>
-              );
-            })}
-          </div>
-          <div className="mt-2 text-sm text-muted-foreground">
-            Total shares: ${totalShares.toFixed(2)}
-            {!isValid && amount && (
-              <span className="text-destructive ml-2">
-                (must equal ${parseFloat(amount).toFixed(2)})
-              </span>
-            )}
-          </div>
-          <input type="hidden" name="shares" />
-        </div>
+              </div>
+              <div className="space-y-2">
+                {group.people.map((person) => {
+                  const share = shares.find((s) => s.personId === person.id);
+                  return (
+                    <div key={person.id} className="flex items-center gap-2">
+                      <Label className="flex-1">{person.name}</Label>
+                      <Input
+                        type="number"
+                        value={share?.amount || 0}
+                        onChange={(e) => updateShare(person.id, e.target.value)}
+                        step="0.01"
+                        min="0"
+                        disabled={splitType === "equal"}
+                        className="w-32"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Total shares: ${totalShares.toFixed(2)}
+                {!isValid && amount && (
+                  <span className="text-destructive ml-2">
+                    (must equal ${parseFloat(amount).toFixed(2)})
+                  </span>
+                )}
+              </div>
+              <input type="hidden" name="shares" />
+            </Field>
 
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            type="submit"
-            size="xl"
-            disabled={!isValid}
-            className="sm:flex-1 cursor-pointer"
-          >
-            Save Changes
-          </Button>
-          <Button
-            type="button"
-            size="xl"
-            variant="muted"
-            className="sm:flex-1 cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            Cancel
-          </Button>
-        </div>
+            <Field orientation={isDesktop ? "horizontal" : "vertical"}>
+              <Button
+                type="submit"
+                size={isDesktop ? "lg" : "xl"}
+                disabled={!isValid}
+                className="sm:flex-1 cursor-pointer"
+              >
+                Save Changes
+              </Button>
+              <Button
+                type="button"
+                size={isDesktop ? "lg" : "xl"}
+                variant="muted"
+                className="sm:flex-1 cursor-pointer"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </Button>
+            </Field>
+          </FieldGroup>
+        </FieldSet>
       </Form>
     </DialogOrDrawer>
   );
