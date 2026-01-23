@@ -3,22 +3,18 @@ import type { Route } from "./+types/home";
 import { getAllGroups } from "../storage";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { Item, ItemContent, ItemMedia, ItemTitle } from "~/components/ui/item";
-import { Avatar, AvatarFallback } from "~/components/ui/avatar";
-
-function getInitials(name: string) {
-  if (!name) return "";
-  // Remove special characters except letters, numbers and spaces
-  const cleaned = name.replace(/[^a-zA-Z0-9\s]/g, "").trim();
-  if (!cleaned) return "";
-  const parts = cleaned.split(/\s+/).filter(Boolean);
-  if (parts.length === 1) {
-    return parts[0].slice(0, 1).toUpperCase();
-  }
-  const first = parts[0].slice(0, 1);
-  const second = parts[1].slice(0, 1);
-  return (first + second).toUpperCase();
-}
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemMedia,
+  ItemTitle,
+} from "~/components/ui/item";
+import { Avatar, AvatarFallback, AvatarGroup } from "~/components/ui/avatar";
+import { PeopleAvatarGroup } from "~/components/app/PeopleAvatarGroup";
+import { Header } from "~/components/app/Header";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { ChevronRight } from "@hugeicons/core-free-icons";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -38,7 +34,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { groups } = loaderData;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 py-16">
+      <Header />
       {groups.length === 0 && (
         <div className="flex flex-col gap-8 text-foreground text-3xl font-title">
           <p>
@@ -62,37 +59,19 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       {groups.length > 0 && (
         <div className="flex flex-col gap-4">
           {groups.map((group) => (
-            <Link key={group.id} to={`/${group.id}`} prefetch="viewport">
-              <Item variant="muted">
+            <Item variant="muted" size="xl" asChild>
+              <Link key={group.id} to={`/${group.id}`} prefetch="viewport">
                 <ItemMedia>
-                  <div className="*:data-[slot=avatar]:ring-background flex -space-x-4 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale *:data-[slot=avatar]:size-10">
-                    {(() => {
-                      const show = group.people.slice(0, 2);
-                      const remaining = group.people.length - show.length;
-                      return (
-                        <>
-                          {show.map((person) => (
-                            <Avatar key={person.id}>
-                              <AvatarFallback>
-                                {getInitials(person.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                          ))}
-                          {remaining > 0 && (
-                            <Avatar key="more">
-                              <AvatarFallback>{`+${remaining}`}</AvatarFallback>
-                            </Avatar>
-                          )}
-                        </>
-                      );
-                    })()}
-                  </div>
+                  <PeopleAvatarGroup people={group.people} max={2} />
                 </ItemMedia>
                 <ItemContent>
-                  <ItemTitle>{group.name}</ItemTitle>
+                  <ItemTitle className="text-lg">{group.name}</ItemTitle>
                 </ItemContent>
-              </Item>
-            </Link>
+                <ItemActions>
+                  <HugeiconsIcon icon={ChevronRight} size={24} />
+                </ItemActions>
+              </Link>
+            </Item>
           ))}
         </div>
       )}

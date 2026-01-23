@@ -1,4 +1,11 @@
-import { Form, Link, redirect, useLoaderData, useNavigate } from "react-router";
+import {
+  Form,
+  Link,
+  redirect,
+  useLoaderData,
+  useNavigate,
+  useSearchParams,
+} from "react-router";
 import type { Route } from "./+types/transfers.new";
 import { getGroup, addTransfer } from "../storage";
 import { useState } from "react";
@@ -48,14 +55,18 @@ export async function clientAction({
 
 export default function NewTransfer() {
   const { group } = useLoaderData<typeof clientLoader>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(searchParams.get("amount") || "");
   const [paidById, setPaidById] = useState(
-    group.people[0]?.id.toString() || "",
+    searchParams.get("from") || group.people[0]?.id.toString() || "",
   );
   const [paidToId, setPaidToId] = useState(
-    group.people[1]?.id.toString() || group.people[0]?.id.toString() || "",
+    searchParams.get("to") ||
+      group.people[1]?.id.toString() ||
+      group.people[0]?.id.toString() ||
+      "",
   );
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
