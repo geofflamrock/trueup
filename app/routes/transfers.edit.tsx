@@ -74,7 +74,7 @@ export default function EditTransfer() {
         <FieldSet>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="amount">Amount *</FieldLabel>
+              <FieldLabel htmlFor="amount">Amount</FieldLabel>
               <Input
                 type="number"
                 id="amount"
@@ -88,7 +88,7 @@ export default function EditTransfer() {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="paidById">From *</FieldLabel>
+              <FieldLabel htmlFor="paidById">From</FieldLabel>
               <Select
                 name="paidById"
                 value={paidById}
@@ -109,7 +109,7 @@ export default function EditTransfer() {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="paidToId">To *</FieldLabel>
+              <FieldLabel htmlFor="paidToId">To</FieldLabel>
               <Select
                 name="paidToId"
                 value={paidToId}

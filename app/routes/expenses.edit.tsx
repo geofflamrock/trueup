@@ -126,7 +126,7 @@ export default function EditExpense() {
         <FieldSet>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="description">Description *</FieldLabel>
+              <FieldLabel htmlFor="description">Description</FieldLabel>
               <Input
                 type="text"
                 id="description"
@@ -138,7 +138,7 @@ export default function EditExpense() {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="amount">Amount *</FieldLabel>
+              <FieldLabel htmlFor="amount">Amount</FieldLabel>
               <Input
                 type="number"
                 id="amount"
@@ -152,7 +152,7 @@ export default function EditExpense() {
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="paidById">Paid By *</FieldLabel>
+              <FieldLabel htmlFor="paidById">Paid By</FieldLabel>
               <Select
                 name="paidById"
                 value={paidById}
@@ -173,8 +173,8 @@ export default function EditExpense() {
             </Field>
 
             <Field>
-              <div className="flex justify-between items-center mb-2">
-                <FieldLabel>Share per person *</FieldLabel>
+              <div className="flex justify-between items-center">
+                <FieldLabel>Share per person</FieldLabel>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -214,7 +214,7 @@ export default function EditExpense() {
                 })}
               </div>
               <div className="mt-2 text-sm text-muted-foreground">
-                Total shares: ${totalShares.toFixed(2)}
+                Total: ${totalShares.toFixed(2)}
                 {!isValid && amount && (
                   <span className="text-destructive ml-2">
                     (must equal ${parseFloat(amount).toFixed(2)})
