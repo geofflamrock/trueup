@@ -10,6 +10,13 @@ import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -164,20 +171,23 @@ export default function NewExpense() {
 
             <Field>
               <FieldLabel htmlFor="paidById">Paid By *</FieldLabel>
-              <select
-                id="paidById"
+              <Select
                 name="paidById"
                 value={paidById}
-                onChange={(e) => setPaidById(e.target.value)}
+                onValueChange={(value) => setPaidById(value)}
                 required
-                className="w-full h-8 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm transition-colors focus-visible:ring-[3px] focus-visible:border-ring focus-visible:ring-ring/50 outline-none"
               >
-                {group.people.map((person) => (
-                  <option key={person.id} value={person.id}>
-                    {person.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select person" />
+                </SelectTrigger>
+                <SelectContent>
+                  {group.people.map((person) => (
+                    <SelectItem key={person.id} value={person.id.toString()}>
+                      {person.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field>
