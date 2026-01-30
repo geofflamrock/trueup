@@ -7,7 +7,13 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
-import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldSeparator,
+  FieldSet,
+} from "~/components/ui/field";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
 import {
   Select,
@@ -152,6 +158,18 @@ export default function EditTransfer() {
                 onClick={() => navigate(-1)}
               >
                 Cancel
+              </Button>
+            </Field>
+            <Field>
+              <Button
+                asChild
+                variant="ghost"
+                size={isDesktop ? "lg" : "xl"}
+                className="w-full text-destructive cursor-pointer"
+              >
+                <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>
+                  Delete Transfer
+                </Link>
               </Button>
             </Field>
           </FieldGroup>
