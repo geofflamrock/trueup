@@ -65,23 +65,24 @@ export default function GroupPage() {
   const isDesktop = useIsDesktop();
 
   // Combine expenses and transfers into a timeline
-  // Keep track of insertion order using array index and parse dates once
+  // Keep track of insertion order using array index
   const timeline = [
     ...group.expenses.map((e, idx) => ({ 
       type: "expense" as const, 
       insertionOrder: idx,
-      parsedDate: new Date(parseDateToYYYYMMDD(e.date)),
+      dateString: parseDateToYYYYMMDD(e.date),
       ...e 
     })),
     ...group.transfers.map((t, idx) => ({ 
       type: "transfer" as const, 
       insertionOrder: group.expenses.length + idx,
-      parsedDate: new Date(parseDateToYYYYMMDD(t.date)),
+      dateString: parseDateToYYYYMMDD(t.date),
       ...t 
     })),
   ].sort((a, b) => {
-    // Sort by date descending (newest first)
-    const dateCompare = b.parsedDate.getTime() - a.parsedDate.getTime();
+    // Sort by date descending (newest first) using string comparison
+    // YYYY-MM-DD format allows lexicographic comparison
+    const dateCompare = b.dateString.localeCompare(a.dateString);
     
     // If dates are the same, maintain insertion order
     if (dateCompare === 0) {
@@ -92,7 +93,7 @@ export default function GroupPage() {
 
   const timelineGroupedByDate = timeline.reduce(
     (acc, item) => {
-      const dateKey = format(item.parsedDate, "PP");
+      const dateKey = format(new Date(item.dateString + 'T00:00:00'), "PP");
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
