@@ -67,6 +67,9 @@ export default function EditTransfer() {
   const isDesktop = useIsDesktop();
   const [amount, setAmount] = useState(transfer.amount.toString());
   const [description, setDescription] = useState(transfer.description || "");
+  const [date, setDate] = useState(
+    transfer.date.includes("T") ? transfer.date.split("T")[0] : transfer.date
+  );
   const [paidById, setPaidById] = useState(transfer.paidById.toString());
   const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
 
@@ -79,7 +82,6 @@ export default function EditTransfer() {
       onClose={() => navigate(-1)}
     >
       <Form method="post">
-        <input type="hidden" name="date" value={transfer.date} />
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -104,6 +106,18 @@ export default function EditTransfer() {
                 onChange={(e) => setAmount(e.target.value)}
                 step="0.01"
                 min="0"
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="date">Date</FieldLabel>
+              <Input
+                type="date"
+                id="date"
+                name="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
             </Field>

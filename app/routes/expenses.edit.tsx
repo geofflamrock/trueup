@@ -72,6 +72,9 @@ export default function EditExpense() {
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());
+  const [date, setDate] = useState(
+    expense.date.includes("T") ? expense.date.split("T")[0] : expense.date
+  );
   const [splitType, setSplitType] = useState<SplitType>(() => {
     if (!expense.shares || expense.shares.length === 0) return "custom";
     const first = expense.shares[0].amount;
@@ -137,7 +140,6 @@ export default function EditExpense() {
       onClose={() => navigate(-1)}
     >
       <Form method="post" onSubmit={handleSubmit}>
-        <input type="hidden" name="date" value={expense.date} />
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -162,6 +164,18 @@ export default function EditExpense() {
                 onChange={(e) => handleAmountChange(e.target.value)}
                 step="0.01"
                 min="0"
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="date">Date</FieldLabel>
+              <Input
+                type="date"
+                id="date"
+                name="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
             </Field>

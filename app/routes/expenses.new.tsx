@@ -36,15 +36,16 @@ export async function clientAction({
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
   const sharesJson = formData.get("shares") as string;
+  const date = formData.get("date") as string;
 
-  if (description && amount && paidById && sharesJson) {
+  if (description && amount && paidById && sharesJson && date) {
     const shares = JSON.parse(sharesJson);
     addExpense(params.groupId, {
       description,
       amount,
       paidById,
       shares,
-      date: new Date().toISOString(),
+      date,
     });
   }
 
@@ -61,6 +62,9 @@ export default function NewExpense() {
   const [amount, setAmount] = useState("");
   const [paidById, setPaidById] = useState(
     group.people[0]?.id.toString() || "",
+  );
+  const [date, setDate] = useState(
+    new Date().toISOString().split("T")[0]
   );
   const [splitType, setSplitType] = useState<SplitType>("equal");
   const [shares, setShares] = useState<ExpenseShare[]>(
@@ -168,6 +172,18 @@ export default function NewExpense() {
                 onChange={(e) => handleAmountChange(e.target.value)}
                 step="0.01"
                 min="0"
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="date">Date</FieldLabel>
+              <Input
+                type="date"
+                id="date"
+                name="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
             </Field>

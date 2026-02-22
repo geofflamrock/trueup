@@ -10,7 +10,7 @@ export interface ExpenseShare {
 
 export interface Expense {
   id: string;
-  date: string; // ISO 8601 string with timezone
+  date: string; // Date string in YYYY-MM-DD format
   paidById: number;
   amount: number;
   description: string;
@@ -19,7 +19,7 @@ export interface Expense {
 
 export interface Transfer {
   id: string;
-  date: string; // ISO 8601 string with timezone
+  date: string; // Date string in YYYY-MM-DD format
   paidById: number;
   paidToId: number;
   amount: number;
