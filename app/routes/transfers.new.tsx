@@ -48,7 +48,7 @@ export async function clientAction({
       paidById,
       paidToId,
       date: new Date().toISOString(),
-      ...(description && { description }),
+      description: description || undefined,
     });
   }
 

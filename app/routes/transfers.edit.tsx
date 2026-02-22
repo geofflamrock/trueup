@@ -54,7 +54,7 @@ export async function clientAction({
       paidById,
       paidToId,
       date,
-      ...(description && { description }),
+      description: description || undefined,
     });
   }
 
