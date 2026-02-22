@@ -23,6 +23,7 @@ export interface Transfer {
   paidById: number;
   paidToId: number;
   amount: number;
+  description?: string;
 }
 
 export interface Group {

@@ -265,6 +265,11 @@ export default function GroupPage() {
                               {item.amount.toFixed(2)} to{" "}
                               {getPersonName(item.paidToId)}
                             </ItemTitle>
+                            {item.description && (
+                              <ItemDescription>
+                                {item.description}
+                              </ItemDescription>
+                            )}
                           </ItemContent>
                         </Link>
                       </Item>

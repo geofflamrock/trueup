@@ -40,6 +40,7 @@ export async function clientAction({
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
   const paidToId = parseInt(formData.get("paidToId") as string);
+  const description = formData.get("description") as string;
 
   if (amount && paidById && paidToId && paidById !== paidToId) {
     addTransfer(params.groupId, {
@@ -47,6 +48,7 @@ export async function clientAction({
       paidById,
       paidToId,
       date: new Date().toISOString(),
+      description: description || undefined,
     });
   }
 
@@ -59,6 +61,7 @@ export default function NewTransfer() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const [amount, setAmount] = useState(searchParams.get("amount") || "");
+  const [description, setDescription] = useState("");
   const [paidById, setPaidById] = useState(
     searchParams.get("from") || group.people[0]?.id.toString() || "",
   );
@@ -101,6 +104,18 @@ export default function NewTransfer() {
       <Form method="post">
         <FieldSet>
           <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="description">Description (optional)</FieldLabel>
+              <Input
+                type="text"
+                id="description"
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g., Payment for dinner"
+              />
+            </Field>
+
             <Field>
               <FieldLabel htmlFor="amount">Amount</FieldLabel>
               <Input

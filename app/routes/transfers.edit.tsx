@@ -46,6 +46,7 @@ export async function clientAction({
   const paidById = parseInt(formData.get("paidById") as string);
   const paidToId = parseInt(formData.get("paidToId") as string);
   const date = formData.get("date") as string;
+  const description = formData.get("description") as string;
 
   if (amount && paidById && paidToId && date && paidById !== paidToId) {
     updateTransfer(params.groupId, params.transferId, {
@@ -53,6 +54,7 @@ export async function clientAction({
       paidById,
       paidToId,
       date,
+      description: description || undefined,
     });
   }
 
@@ -64,6 +66,7 @@ export default function EditTransfer() {
   const navigate = useNavigate();
   const isDesktop = useIsDesktop();
   const [amount, setAmount] = useState(transfer.amount.toString());
+  const [description, setDescription] = useState(transfer.description || "");
   const [paidById, setPaidById] = useState(transfer.paidById.toString());
   const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
 
@@ -79,6 +82,18 @@ export default function EditTransfer() {
         <input type="hidden" name="date" value={transfer.date} />
         <FieldSet>
           <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="description">Description (optional)</FieldLabel>
+              <Input
+                type="text"
+                id="description"
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g., Payment for dinner"
+              />
+            </Field>
+
             <Field>
               <FieldLabel htmlFor="amount">Amount</FieldLabel>
               <Input
