@@ -39,6 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { parseDateToYYYYMMDD } from "~/lib/utils";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -78,8 +79,8 @@ export default function GroupPage() {
     })),
   ].sort((a, b) => {
     // Sort by date descending (newest first)
-    const dateA = new Date(a.date.includes("T") ? a.date.split("T")[0] : a.date);
-    const dateB = new Date(b.date.includes("T") ? b.date.split("T")[0] : b.date);
+    const dateA = new Date(parseDateToYYYYMMDD(a.date));
+    const dateB = new Date(parseDateToYYYYMMDD(b.date));
     const dateCompare = dateB.getTime() - dateA.getTime();
     
     // If dates are the same, maintain insertion order
@@ -91,7 +92,7 @@ export default function GroupPage() {
 
   const timelineGroupedByDate = timeline.reduce(
     (acc, item) => {
-      const dateKey = format(new Date(item.date.includes("T") ? item.date.split("T")[0] : item.date), "PP");
+      const dateKey = format(new Date(parseDateToYYYYMMDD(item.date)), "PP");
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }

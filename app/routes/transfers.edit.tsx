@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { parseDateToYYYYMMDD } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -67,9 +68,7 @@ export default function EditTransfer() {
   const isDesktop = useIsDesktop();
   const [amount, setAmount] = useState(transfer.amount.toString());
   const [description, setDescription] = useState(transfer.description || "");
-  const [date, setDate] = useState(
-    transfer.date.includes("T") ? transfer.date.split("T")[0] : transfer.date
-  );
+  const [date, setDate] = useState(parseDateToYYYYMMDD(transfer.date));
   const [paidById, setPaidById] = useState(transfer.paidById.toString());
   const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
 

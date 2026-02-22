@@ -25,6 +25,7 @@ import {
 } from "~/components/ui/select";
 import type { SplitType } from "./expenses.new";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { parseDateToYYYYMMDD } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -72,9 +73,7 @@ export default function EditExpense() {
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());
-  const [date, setDate] = useState(
-    expense.date.includes("T") ? expense.date.split("T")[0] : expense.date
-  );
+  const [date, setDate] = useState(parseDateToYYYYMMDD(expense.date));
   const [splitType, setSplitType] = useState<SplitType>(() => {
     if (!expense.shares || expense.shares.length === 0) return "custom";
     const first = expense.shares[0].amount;
