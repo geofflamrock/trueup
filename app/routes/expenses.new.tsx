@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { getTodayYYYYMMDD } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -63,9 +64,7 @@ export default function NewExpense() {
   const [paidById, setPaidById] = useState(
     group.people[0]?.id.toString() || "",
   );
-  const [date, setDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [date, setDate] = useState(getTodayYYYYMMDD());
   const [splitType, setSplitType] = useState<SplitType>("equal");
   const [shares, setShares] = useState<ExpenseShare[]>(
     group.people.map((p) => ({ personId: p.id, amount: 0 })),

@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { getTodayYYYYMMDD } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -63,9 +64,7 @@ export default function NewTransfer() {
   const isDesktop = useIsDesktop();
   const [amount, setAmount] = useState(searchParams.get("amount") || "");
   const [description, setDescription] = useState("");
-  const [date, setDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [date, setDate] = useState(getTodayYYYYMMDD());
   const [paidById, setPaidById] = useState(
     searchParams.get("from") || group.people[0]?.id.toString() || "",
   );
