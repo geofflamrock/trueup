@@ -21,6 +21,7 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
+  { rel: "manifest", href: "/manifest.webmanifest" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -29,8 +30,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="An expense tracking app for groups to manage shared expenses and settle balances" />
+        <meta name="theme-color" content="#000000" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
         <Meta />
         <Links />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js', { scope: '/' });
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body>
         <ThemeProvider
