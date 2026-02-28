@@ -39,6 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { parseDateToYYYYMMDD } from "~/lib/utils";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -64,14 +65,35 @@ export default function GroupPage() {
   const isDesktop = useIsDesktop();
 
   // Combine expenses and transfers into a timeline
+  // Keep track of insertion order using array index
   const timeline = [
-    ...group.expenses.map((e) => ({ type: "expense" as const, ...e })),
-    ...group.transfers.map((t) => ({ type: "transfer" as const, ...t })),
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    ...group.expenses.map((e, idx) => ({ 
+      type: "expense" as const, 
+      insertionOrder: idx,
+      dateString: parseDateToYYYYMMDD(e.date),
+      ...e 
+    })),
+    ...group.transfers.map((t, idx) => ({ 
+      type: "transfer" as const, 
+      insertionOrder: group.expenses.length + idx,
+      dateString: parseDateToYYYYMMDD(t.date),
+      ...t 
+    })),
+  ].sort((a, b) => {
+    // Sort by date descending (newest first) using string comparison
+    // YYYY-MM-DD format allows lexicographic comparison
+    const dateCompare = b.dateString.localeCompare(a.dateString);
+    
+    // If dates are the same, maintain insertion order
+    if (dateCompare === 0) {
+      return a.insertionOrder - b.insertionOrder;
+    }
+    return dateCompare;
+  });
 
   const timelineGroupedByDate = timeline.reduce(
     (acc, item) => {
-      const dateKey = format(new Date(item.date), "PP");
+      const dateKey = format(new Date(item.dateString + 'T00:00:00'), "PP");
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }

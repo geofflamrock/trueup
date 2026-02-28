@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { getTodayYYYYMMDD } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -41,13 +42,14 @@ export async function clientAction({
   const paidById = parseInt(formData.get("paidById") as string);
   const paidToId = parseInt(formData.get("paidToId") as string);
   const description = formData.get("description") as string;
+  const date = formData.get("date") as string;
 
-  if (amount && paidById && paidToId && paidById !== paidToId) {
+  if (amount && paidById && paidToId && date && paidById !== paidToId) {
     addTransfer(params.groupId, {
       amount,
       paidById,
       paidToId,
-      date: new Date().toISOString(),
+      date,
       description: description || undefined,
     });
   }
@@ -62,6 +64,7 @@ export default function NewTransfer() {
   const isDesktop = useIsDesktop();
   const [amount, setAmount] = useState(searchParams.get("amount") || "");
   const [description, setDescription] = useState("");
+  const [date, setDate] = useState(getTodayYYYYMMDD());
   const [paidById, setPaidById] = useState(
     searchParams.get("from") || group.people[0]?.id.toString() || "",
   );
@@ -126,6 +129,18 @@ export default function NewTransfer() {
                 onChange={(e) => setAmount(e.target.value)}
                 step="0.01"
                 min="0"
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="date">Date</FieldLabel>
+              <Input
+                type="date"
+                id="date"
+                name="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
             </Field>

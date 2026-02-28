@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
+import { getTodayYYYYMMDD } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -36,15 +37,16 @@ export async function clientAction({
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
   const sharesJson = formData.get("shares") as string;
+  const date = formData.get("date") as string;
 
-  if (description && amount && paidById && sharesJson) {
+  if (description && amount && paidById && sharesJson && date) {
     const shares = JSON.parse(sharesJson);
     addExpense(params.groupId, {
       description,
       amount,
       paidById,
       shares,
-      date: new Date().toISOString(),
+      date,
     });
   }
 
@@ -62,6 +64,7 @@ export default function NewExpense() {
   const [paidById, setPaidById] = useState(
     group.people[0]?.id.toString() || "",
   );
+  const [date, setDate] = useState(getTodayYYYYMMDD());
   const [splitType, setSplitType] = useState<SplitType>("equal");
   const [shares, setShares] = useState<ExpenseShare[]>(
     group.people.map((p) => ({ personId: p.id, amount: 0 })),
@@ -168,6 +171,18 @@ export default function NewExpense() {
                 onChange={(e) => handleAmountChange(e.target.value)}
                 step="0.01"
                 min="0"
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="date">Date</FieldLabel>
+              <Input
+                type="date"
+                id="date"
+                name="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
             </Field>

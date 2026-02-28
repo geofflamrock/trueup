@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { parseDateToYYYYMMDD } from "~/lib/utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -67,6 +68,7 @@ export default function EditTransfer() {
   const isDesktop = useIsDesktop();
   const [amount, setAmount] = useState(transfer.amount.toString());
   const [description, setDescription] = useState(transfer.description || "");
+  const [date, setDate] = useState(parseDateToYYYYMMDD(transfer.date));
   const [paidById, setPaidById] = useState(transfer.paidById.toString());
   const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
 
@@ -79,7 +81,6 @@ export default function EditTransfer() {
       onClose={() => navigate(-1)}
     >
       <Form method="post">
-        <input type="hidden" name="date" value={transfer.date} />
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -104,6 +105,18 @@ export default function EditTransfer() {
                 onChange={(e) => setAmount(e.target.value)}
                 step="0.01"
                 min="0"
+                required
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="date">Date</FieldLabel>
+              <Input
+                type="date"
+                id="date"
+                name="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
               />
             </Field>
