@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { format, parseISO } from "date-fns"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -10,16 +11,17 @@ export function cn(...inputs: ClassValue[]) {
  * and returns just the date portion in YYYY-MM-DD format
  */
 export function parseDateToYYYYMMDD(date: string): string {
-  return date.includes("T") ? date.split("T")[0] : date;
+  // If it's already in YYYY-MM-DD format, return as-is
+  if (!date.includes("T")) {
+    return date;
+  }
+  // Parse ISO string and format as YYYY-MM-DD
+  return format(parseISO(date), "yyyy-MM-dd");
 }
 
 /**
  * Returns today's date in YYYY-MM-DD format using local timezone
  */
 export function getTodayYYYYMMDD(): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return format(new Date(), "yyyy-MM-dd");
 }
