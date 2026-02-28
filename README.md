@@ -8,6 +8,28 @@ When a group of people are traveling together or doing shared activities, differ
 
 All data is stored securely on your device - nothing is stored on the internet and no account is required.
 
+## Installation
+
+TrueUp is a Progressive Web Application (PWA) that can be installed on your device for a native app-like experience:
+
+1. **Desktop (Chrome, Edge, Brave)**:
+   - Visit the TrueUp website
+   - Look for the install icon in the address bar (⊕ or install prompt)
+   - Click "Install" to add TrueUp to your applications
+
+2. **Mobile (iOS Safari)**:
+   - Visit the TrueUp website in Safari
+   - Tap the Share button
+   - Select "Add to Home Screen"
+   - Tap "Add" to install
+
+3. **Mobile (Android Chrome)**:
+   - Visit the TrueUp website
+   - Tap the three-dot menu
+   - Select "Install app" or "Add to Home Screen"
+
+Once installed, TrueUp works offline and provides a seamless app experience with all your data stored locally on your device.
+
 ## How to Use
 
 ### Creating a Group
@@ -96,7 +118,8 @@ npm run build
 - **Language**: TypeScript
 - **Styling**: TailwindCSS
 - **Storage**: Browser LocalStorage (no server/backend required)
-- **ID Format**: 
+- **PWA Support**: Installable with offline capabilities via vite-plugin-pwa
+- **ID Format**:
   - Groups: 8-character hexadecimal
   - People: Sequential integers
   - Expenses/Transfers: GUIDs with ISO 8601 timestamps
