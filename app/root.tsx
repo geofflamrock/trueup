@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -21,6 +22,9 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
+  { rel: "manifest", href: "/manifest.webmanifest" },
+  { rel: "icon", href: "/favicon.ico" },
+  { rel: "apple-touch-icon", href: "/pwa-192x192.png" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -29,6 +33,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#0f172a" />
         <Meta />
         <Links />
       </head>
@@ -42,6 +47,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+
+    import("virtual:pwa-register").then(({ registerSW }) => {
+      registerSW({ immediate: true });
+    });
+  }, []);
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto max-w-4xl p-4">
