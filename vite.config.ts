@@ -16,6 +16,7 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico"],
+      injectRegister: "auto",
       manifest: {
         name: "TrueUp",
         short_name: "TrueUp",
