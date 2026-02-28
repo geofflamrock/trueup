@@ -15,6 +15,7 @@ export default defineConfig({
     // netlify(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: 'auto',
       includeAssets: ["favicon.ico"],
       manifest: {
         name: "TrueUp - Expense Tracker",
