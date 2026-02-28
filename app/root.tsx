@@ -35,17 +35,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <Meta />
         <Links />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js', { scope: '/' });
-                });
-              }
-            `,
-          }}
-        />
       </head>
       <body>
         <ThemeProvider
@@ -57,6 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
+        <script src="/registerSW.js" />
       </body>
     </html>
   );
