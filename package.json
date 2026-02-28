@@ -5,7 +5,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
-    "start": "react-router-serve ./build/server/index.js",
+    "start": "react-router-serve ./build/server/server.js",
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
@@ -40,9 +40,13 @@
     "@types/node": "^24",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "sharp": "^0.34.5",
+    "svg2img": "^1.0.0-beta.2",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
-    "vite-tsconfig-paths": "^6.0.3"
+    "vite-plugin-pwa": "^1.2.0",
+    "vite-tsconfig-paths": "^6.0.3",
+    "workbox-window": "^7.4.0"
   }
 }
