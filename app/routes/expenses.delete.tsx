@@ -46,7 +46,7 @@ export default function DeleteExpense() {
       <Form method="post" className="flex flex-col gap-2 sm:flex-row">
         <Button
           type="submit"
-          size={isDesktop ? "lg" : "xl"}
+          size={"lg"}
           variant="destructive"
           className="sm:flex-1 cursor-pointer"
         >
@@ -54,8 +54,8 @@ export default function DeleteExpense() {
         </Button>
         <Button
           type="button"
-          size={isDesktop ? "lg" : "xl"}
-          variant="muted"
+          size={"lg"}
+          variant="secondary"
           onClick={() => navigate(-1)}
           className="sm:flex-1 cursor-pointer"
         >

@@ -44,15 +44,15 @@ export default function DeleteGroup({ loaderData }: Route.ComponentProps) {
         <Button
           type="submit"
           variant="destructive"
-          size={isDesktop ? "lg" : "xl"}
+          size={"lg"}
           className="sm:flex-1 cursor-pointer"
         >
           Delete
         </Button>
         <Button
           type="button"
-          size={isDesktop ? "lg" : "xl"}
-          variant="muted"
+          size={"lg"}
+          variant="secondary"
           onClick={() => navigate(-1)}
           className="sm:flex-1 cursor-pointer"
         >

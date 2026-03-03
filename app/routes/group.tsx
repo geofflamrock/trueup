@@ -67,23 +67,23 @@ export default function GroupPage() {
   // Combine expenses and transfers into a timeline
   // Keep track of insertion order using array index
   const timeline = [
-    ...group.expenses.map((e, idx) => ({ 
-      type: "expense" as const, 
+    ...group.expenses.map((e, idx) => ({
+      type: "expense" as const,
       insertionOrder: idx,
       dateString: parseDateToYYYYMMDD(e.date),
-      ...e 
+      ...e,
     })),
-    ...group.transfers.map((t, idx) => ({ 
-      type: "transfer" as const, 
+    ...group.transfers.map((t, idx) => ({
+      type: "transfer" as const,
       insertionOrder: group.expenses.length + idx,
       dateString: parseDateToYYYYMMDD(t.date),
-      ...t 
+      ...t,
     })),
   ].sort((a, b) => {
     // Sort by date descending (newest first) using string comparison
     // YYYY-MM-DD format allows lexicographic comparison
     const dateCompare = b.dateString.localeCompare(a.dateString);
-    
+
     // If dates are the same, maintain insertion order
     if (dateCompare === 0) {
       return a.insertionOrder - b.insertionOrder;
@@ -93,7 +93,7 @@ export default function GroupPage() {
 
   const timelineGroupedByDate = timeline.reduce(
     (acc, item) => {
-      const dateKey = format(new Date(item.dateString + 'T00:00:00'), "PP");
+      const dateKey = format(new Date(item.dateString + "T00:00:00"), "PP");
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
@@ -110,11 +110,15 @@ export default function GroupPage() {
     <div className="flex flex-col gap-6 pb-8">
       <div className="flex justify-between items-center">
         <div className="flex gap-2 items-center">
-          <Button variant="ghost" size="icon-lg" asChild>
-            <Link to={`/`} prefetch="viewport">
-              <HugeiconsIcon icon={ArrowLeft02Icon} className="size-6" />
-            </Link>
-          </Button>
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            render={
+              <Link to={`/`} prefetch="viewport">
+                <HugeiconsIcon icon={ArrowLeft02Icon} className="size-6" />
+              </Link>
+            }
+          ></Button>
 
           <div className="flex gap-3 items-center">
             <Popover>
@@ -143,22 +147,29 @@ export default function GroupPage() {
         </div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-lg" className="cursor-pointer">
-              <HugeiconsIcon icon={MoreVerticalIcon} size={24} />
-            </Button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-lg" className="cursor-pointer">
+                <HugeiconsIcon icon={MoreVerticalIcon} size={24} />
+              </Button>
+            }
+          ></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to={`/${group.id}/edit`} prefetch="viewport">
-                <HugeiconsIcon icon={PencilEdit01Icon} /> Edit
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" asChild>
-              <Link to={`/${group.id}/delete`} prefetch="viewport">
-                <HugeiconsIcon icon={Trash2} /> Delete
-              </Link>
-            </DropdownMenuItem>
+            <DropdownMenuItem
+              render={
+                <Link to={`/${group.id}/edit`} prefetch="viewport">
+                  <HugeiconsIcon icon={PencilEdit01Icon} /> Edit
+                </Link>
+              }
+            ></DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              render={
+                <Link to={`/${group.id}/delete`} prefetch="viewport">
+                  <HugeiconsIcon icon={Trash2} /> Delete
+                </Link>
+              }
+            ></DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -190,32 +201,37 @@ export default function GroupPage() {
                     (p) => p.id === balance.toPersonId,
                   )!;
                   return (
-                    <Item variant="muted" size="xl" key={idx} asChild>
-                      <Link
-                        to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
-                        prefetch="viewport"
-                      >
-                        <ItemMedia variant="icon">
-                          <HugeiconsIcon
-                            icon={SaveMoneyDollarIcon}
-                            size={24}
-                            className="size-6"
-                          />
-                        </ItemMedia>
-                        <ItemContent>
-                          <ItemTitle className="text-lg">
-                            {fromPerson.name} owes {toPerson.name}
-                          </ItemTitle>
-                          <ItemDescription className="text-primary text-lg">
-                            ${balance.amount.toFixed(2)}
-                          </ItemDescription>
-                        </ItemContent>
-                        <ItemActions>
-                          Mark as paid{" "}
-                          <HugeiconsIcon icon={ChevronRight} size={24} />
-                        </ItemActions>
-                      </Link>
-                    </Item>
+                    <Item
+                      variant="muted"
+                      size="default"
+                      key={idx}
+                      render={
+                        <Link
+                          to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
+                          prefetch="viewport"
+                        >
+                          <ItemMedia variant="icon">
+                            <HugeiconsIcon
+                              icon={SaveMoneyDollarIcon}
+                              size={24}
+                              className="size-6"
+                            />
+                          </ItemMedia>
+                          <ItemContent>
+                            <ItemTitle className="text-lg">
+                              {fromPerson.name} owes {toPerson.name}
+                            </ItemTitle>
+                            <ItemDescription className="text-primary text-lg">
+                              ${balance.amount.toFixed(2)}
+                            </ItemDescription>
+                          </ItemContent>
+                          <ItemActions>
+                            Mark as paid{" "}
+                            <HugeiconsIcon icon={ChevronRight} size={24} />
+                          </ItemActions>
+                        </Link>
+                      }
+                    ></Item>
                   );
                 })}
               </div>
@@ -225,25 +241,25 @@ export default function GroupPage() {
         <div className="flex flex-col gap-6">
           <div className="flex gap-2 items-center justify-between sm:justify-start">
             <Button
-              asChild
+              render={
+                <Link to={`/${group.id}/expenses/new`} prefetch="viewport">
+                  <HugeiconsIcon icon={Money03Icon} /> New Expense
+                </Link>
+              }
               variant="default"
               size="lg"
               className="flex-1 sm:flex-initial"
-            >
-              <Link to={`/${group.id}/expenses/new`} prefetch="viewport">
-                <HugeiconsIcon icon={Money03Icon} /> New Expense
-              </Link>
-            </Button>
+            ></Button>
             <Button
-              asChild
+              render={
+                <Link to={`/${group.id}/transfers/new`} prefetch="viewport">
+                  <HugeiconsIcon icon={SaveMoneyDollarIcon} /> New Transfer
+                </Link>
+              }
               variant="secondary"
               size="lg"
               className="flex-1 sm:flex-initial"
-            >
-              <Link to={`/${group.id}/transfers/new`} prefetch="viewport">
-                <HugeiconsIcon icon={SaveMoneyDollarIcon} /> New Transfer
-              </Link>
-            </Button>
+            ></Button>
           </div>
 
           <div className="flex flex-col gap-6">
@@ -253,48 +269,56 @@ export default function GroupPage() {
                 <div className="flex flex-col -ml-3">
                   {items.map((item) =>
                     item.type === "expense" ? (
-                      <Item asChild size="xl" key={item.id}>
-                        <Link
-                          to={`/${group.id}/expenses/${item.id}/edit`}
-                          prefetch="viewport"
-                        >
-                          <ItemMedia variant="icon">
-                            <HugeiconsIcon icon={Money03Icon} />
-                          </ItemMedia>
-                          <ItemContent>
-                            <ItemTitle>
-                              {getPersonName(item.paidById)} paid $
-                              {item.amount.toFixed(2)}
-                            </ItemTitle>
-                            <ItemDescription>
-                              {item.description}
-                            </ItemDescription>
-                          </ItemContent>
-                        </Link>
-                      </Item>
-                    ) : (
-                      <Item asChild size="xl" key={item.id}>
-                        <Link
-                          to={`/${group.id}/transfers/${item.id}/edit`}
-                          prefetch="viewport"
-                        >
-                          <ItemMedia variant="icon">
-                            <HugeiconsIcon icon={SaveMoneyDollarIcon} />
-                          </ItemMedia>
-                          <ItemContent>
-                            <ItemTitle>
-                              {getPersonName(item.paidById)} sent $
-                              {item.amount.toFixed(2)} to{" "}
-                              {getPersonName(item.paidToId)}
-                            </ItemTitle>
-                            {item.description && (
+                      <Item
+                        render={
+                          <Link
+                            to={`/${group.id}/expenses/${item.id}/edit`}
+                            prefetch="viewport"
+                          >
+                            <ItemMedia variant="icon">
+                              <HugeiconsIcon icon={Money03Icon} />
+                            </ItemMedia>
+                            <ItemContent>
+                              <ItemTitle>
+                                {getPersonName(item.paidById)} paid $
+                                {item.amount.toFixed(2)}
+                              </ItemTitle>
                               <ItemDescription>
                                 {item.description}
                               </ItemDescription>
-                            )}
-                          </ItemContent>
-                        </Link>
-                      </Item>
+                            </ItemContent>
+                          </Link>
+                        }
+                        size="default"
+                        key={item.id}
+                      ></Item>
+                    ) : (
+                      <Item
+                        render={
+                          <Link
+                            to={`/${group.id}/transfers/${item.id}/edit`}
+                            prefetch="viewport"
+                          >
+                            <ItemMedia variant="icon">
+                              <HugeiconsIcon icon={SaveMoneyDollarIcon} />
+                            </ItemMedia>
+                            <ItemContent>
+                              <ItemTitle>
+                                {getPersonName(item.paidById)} sent $
+                                {item.amount.toFixed(2)} to{" "}
+                                {getPersonName(item.paidToId)}
+                              </ItemTitle>
+                              {item.description && (
+                                <ItemDescription>
+                                  {item.description}
+                                </ItemDescription>
+                              )}
+                            </ItemContent>
+                          </Link>
+                        }
+                        size="default"
+                        key={item.id}
+                      ></Item>
                     ),
                   )}
                 </div>

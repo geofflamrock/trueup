@@ -9,7 +9,8 @@
     "typecheck": "react-router typegen && tsc"
   },
   "dependencies": {
-    "@base-ui/react": "^1.0.0",
+    "@base-ui/react": "^1.2.0",
+    "@fontsource-variable/outfit": "^5.2.8",
     "@fontsource-variable/comfortaa": "^5.2.8",
     "@fontsource-variable/manrope": "^5.2.8",
     "@fontsource-variable/noto-sans": "^5.2.10",
@@ -22,6 +23,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "isbot": "^5.1.32",
+    "lucide-react": "^0.576.0",
     "motion": "^12.25.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.3",
