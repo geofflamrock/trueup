@@ -73,6 +73,10 @@ export default function EditTransfer() {
   const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
+  const peopleItems = group.people.map((person) => ({
+    label: person.name,
+    value: person.id.toString(),
+  }));
 
   return (
     <DialogOrDrawer
@@ -126,9 +130,10 @@ export default function EditTransfer() {
             <Field>
               <FieldLabel htmlFor="paidById">From</FieldLabel>
               <Select
+                items={peopleItems}
                 name="paidById"
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => value && setPaidById(value)}
                 required
               >
                 <SelectTrigger>
@@ -147,9 +152,10 @@ export default function EditTransfer() {
             <Field>
               <FieldLabel htmlFor="paidToId">To</FieldLabel>
               <Select
+                items={peopleItems}
                 name="paidToId"
                 value={paidToId}
-                onValueChange={(value) => setPaidToId(value)}
+                onValueChange={(value) => value && setPaidToId(value)}
                 required
               >
                 <SelectTrigger>

@@ -275,7 +275,7 @@ export default function EditExpense() {
                     Delete Expense
                   </Link>
                 }
-                variant="ghost"
+                variant="destructive"
                 size={"lg"}
                 className="w-full text-destructive cursor-pointer"
               ></Button>

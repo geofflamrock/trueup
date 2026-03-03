@@ -82,7 +82,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       <div>
         <Button
           variant="default"
-          size="default"
+          size="lg"
           className={cn("cursor-pointer rounded-full")}
           render={
             <Link to="/groups/new" prefetch="viewport">
