@@ -31,8 +31,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var s=localStorage.getItem('color-scheme');var d=(s==='dark')||(s!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');})();`,
+          }}
+        />
       </head>
-      <body className="dark">
+      <body>
         {children}
         <ScrollRestoration />
         <Scripts />
