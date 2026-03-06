@@ -34,7 +34,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
   const { groups } = loaderData;
 
   return (
-    <div className="flex flex-col gap-8 py-16">
+    <div className="flex flex-col gap-8 py-16 px-4">
       <Header />
       {groups.length === 0 && (
         <div className="flex flex-col gap-8 text-foreground text-3xl font-title">
