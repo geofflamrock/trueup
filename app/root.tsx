@@ -8,7 +8,7 @@ import {
 } from "react-router";
 import type { Route } from "./+types/root";
 import "./app.css";
-import { Header } from "./components/app/Header";
+import { ColorSchemeProvider, useColorScheme } from "./hooks/useColorScheme";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -23,7 +23,8 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
-export function Layout({ children }: { children: React.ReactNode }) {
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const { isDark } = useColorScheme();
   return (
     <html lang="en">
       <head>
@@ -31,18 +32,21 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var s=localStorage.getItem('color-scheme');var d=(s==='dark')||(s!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');})();`,
-          }}
-        />
       </head>
-      <body>
+      <body className={isDark ? "dark" : undefined} suppressHydrationWarning>
         {children}
         <ScrollRestoration />
         <Scripts />
       </body>
     </html>
+  );
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <ColorSchemeProvider>
+      <LayoutContent>{children}</LayoutContent>
+    </ColorSchemeProvider>
   );
 }
 

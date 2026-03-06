@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 export type ColorScheme = "light" | "dark" | "system";
 
@@ -13,31 +13,53 @@ function getStoredColorScheme(): ColorScheme {
   return "system";
 }
 
-function applyColorScheme(scheme: ColorScheme) {
-  if (typeof window === "undefined") return;
-  const isDark =
-    scheme === "dark" ||
-    (scheme === "system" &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.classList.toggle("dark", isDark);
-}
+type ColorSchemeContextValue = {
+  colorScheme: ColorScheme;
+  setColorScheme: (scheme: ColorScheme) => void;
+  isDark: boolean;
+};
 
-export function useColorScheme() {
+const ColorSchemeContext = createContext<ColorSchemeContextValue | null>(null);
+
+export function ColorSchemeProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [colorScheme, setColorScheme] =
     useState<ColorScheme>(getStoredColorScheme);
 
+  const [systemDark, setSystemDark] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
   useEffect(() => {
-    applyColorScheme(colorScheme);
     localStorage.setItem(STORAGE_KEY, colorScheme);
   }, [colorScheme]);
 
   useEffect(() => {
-    if (colorScheme !== "system") return;
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => applyColorScheme("system");
+    const handleChange = (e: MediaQueryListEvent) =>
+      setSystemDark(e.matches);
     mediaQuery.addEventListener("change", handleChange);
+    setSystemDark(mediaQuery.matches);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [colorScheme]);
+  }, []);
 
-  return { colorScheme, setColorScheme };
+  const isDark =
+    colorScheme === "dark" || (colorScheme === "system" && systemDark);
+
+  return (
+    <ColorSchemeContext.Provider value={{ colorScheme, setColorScheme, isDark }}>
+      {children}
+    </ColorSchemeContext.Provider>
+  );
+}
+
+export function useColorScheme() {
+  const ctx = useContext(ColorSchemeContext);
+  if (!ctx)
+    throw new Error("useColorScheme must be used inside ColorSchemeProvider");
+  return ctx;
 }
