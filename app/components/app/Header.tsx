@@ -1,17 +1,11 @@
-import { ComputerIcon, MoonIcon, SaveMoneyDollarIcon, SunIcon } from "@hugeicons/core-free-icons";
+import { MoonIcon, SaveMoneyDollarIcon, SunIcon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "react-router";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { useColorScheme, type ColorScheme } from "~/hooks/useColorScheme";
+import { Button } from "~/components/ui/button";
+import { useColorScheme } from "~/hooks/useColorScheme";
 
 export function Header() {
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { resolvedTheme, setTheme } = useColorScheme();
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-background/30 backdrop-blur-xs">
@@ -26,28 +20,19 @@ export function Header() {
             <h1 className="text-2xl text-primary font-title">True Up</h1>
           </div>
         </Link>
-        <Select
-          value={colorScheme}
-          onValueChange={(value) => setColorScheme(value as ColorScheme)}
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Toggle theme"
+          onClick={() =>
+            setTheme(resolvedTheme === "dark" ? "light" : "dark")
+          }
         >
-          <SelectTrigger size="sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="light">
-              <HugeiconsIcon icon={SunIcon} size={14} />
-              Light
-            </SelectItem>
-            <SelectItem value="dark">
-              <HugeiconsIcon icon={MoonIcon} size={14} />
-              Dark
-            </SelectItem>
-            <SelectItem value="system">
-              <HugeiconsIcon icon={ComputerIcon} size={14} />
-              System
-            </SelectItem>
-          </SelectContent>
-        </Select>
+          <HugeiconsIcon
+            icon={resolvedTheme === "dark" ? SunIcon : MoonIcon}
+            size={16}
+          />
+        </Button>
       </div>
     </div>
   );
