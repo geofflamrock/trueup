@@ -22,7 +22,7 @@ export function Header() {
         </Link>
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="icon-lg"
           aria-label="Toggle theme"
           onClick={() =>
             setTheme(resolvedTheme === "dark" ? "light" : "dark")
@@ -30,7 +30,7 @@ export function Header() {
         >
           <HugeiconsIcon
             icon={resolvedTheme === "dark" ? SunIcon : MoonIcon}
-            size={16}
+            size={24}
           />
         </Button>
       </div>
