@@ -5,6 +5,44 @@ publish = "build/client"
 [dev]
 command = "react-router dev"
 
+# Serve PWA files directly without redirect
+[[redirects]]
+from = "/manifest.webmanifest"
+to = "/manifest.webmanifest"
+status = 200
+
+[[redirects]]
+from = "/sw.js"
+to = "/sw.js"
+status = 200
+
+[[redirects]]
+from = "/registerSW.js"
+to = "/registerSW.js"
+status = 200
+
+[[redirects]]
+from = "/workbox-*.js"
+to = "/workbox-:splat.js"
+status = 200
+
+# Serve PWA icon files directly
+[[redirects]]
+from = "/icon-192.png"
+to = "/icon-192.png"
+status = 200
+
+[[redirects]]
+from = "/icon-512.png"
+to = "/icon-512.png"
+status = 200
+
+[[redirects]]
+from = "/favicon.ico"
+to = "/favicon.ico"
+status = 200
+
+# Catch-all redirect for SPA routing
 [[redirects]]
 from = "/*"
 to = "/index.html"
