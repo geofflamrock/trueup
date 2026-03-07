@@ -26,6 +26,22 @@ from = "/workbox-*.js"
 to = "/workbox-:splat.js"
 status = 200
 
+# Serve PWA icon files directly
+[[redirects]]
+from = "/icon-192.png"
+to = "/icon-192.png"
+status = 200
+
+[[redirects]]
+from = "/icon-512.png"
+to = "/icon-512.png"
+status = 200
+
+[[redirects]]
+from = "/favicon.ico"
+to = "/favicon.ico"
+status = 200
+
 # Catch-all redirect for SPA routing
 [[redirects]]
 from = "/*"
