@@ -2,10 +2,10 @@ import { MoonIcon, SaveMoneyDollarIcon, SunIcon } from "@hugeicons/core-free-ico
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
-import { useColorScheme } from "~/hooks/useColorScheme";
+import { useTheme } from "next-themes";
 
 export function Header() {
-  const { resolvedTheme, setTheme } = useColorScheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   return (
     <div className="fixed top-0 left-0 right-0 bg-background/30 backdrop-blur-xs">
