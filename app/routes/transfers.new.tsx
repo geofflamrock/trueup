@@ -88,11 +88,14 @@ export default function NewTransfer() {
           <p className="text-foreground">
             You need at least 2 people in the group before creating transfers.
           </p>
-          <Button asChild className="w-full">
-            <Link to={`/${group.id}/edit`} prefetch="viewport">
-              Add People
-            </Link>
-          </Button>
+          <Button
+            render={
+              <Link to={`/${group.id}/edit`} prefetch="viewport">
+                Add People
+              </Link>
+            }
+            className="w-full"
+          ></Button>
         </div>
       </DialogOrDrawer>
     );
@@ -108,7 +111,9 @@ export default function NewTransfer() {
         <FieldSet>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="description">Description (optional)</FieldLabel>
+              <FieldLabel htmlFor="description">
+                Description (optional)
+              </FieldLabel>
               <Input
                 type="text"
                 id="description"
@@ -196,7 +201,7 @@ export default function NewTransfer() {
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size={isDesktop ? "lg" : "xl"}
+                size={"lg"}
                 disabled={!isValid}
                 className="sm:flex-1 cursor-pointer"
               >
@@ -204,8 +209,8 @@ export default function NewTransfer() {
               </Button>
               <Button
                 type="button"
-                size={isDesktop ? "lg" : "xl"}
-                variant="muted"
+                size={"lg"}
+                variant="secondary"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >

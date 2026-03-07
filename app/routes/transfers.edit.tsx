@@ -73,6 +73,10 @@ export default function EditTransfer() {
   const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
+  const peopleItems = group.people.map((person) => ({
+    label: person.name,
+    value: person.id.toString(),
+  }));
 
   return (
     <DialogOrDrawer
@@ -84,7 +88,9 @@ export default function EditTransfer() {
         <FieldSet>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="description">Description (optional)</FieldLabel>
+              <FieldLabel htmlFor="description">
+                Description (optional)
+              </FieldLabel>
               <Input
                 type="text"
                 id="description"
@@ -124,9 +130,10 @@ export default function EditTransfer() {
             <Field>
               <FieldLabel htmlFor="paidById">From</FieldLabel>
               <Select
+                items={peopleItems}
                 name="paidById"
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => value && setPaidById(value)}
                 required
               >
                 <SelectTrigger>
@@ -145,9 +152,10 @@ export default function EditTransfer() {
             <Field>
               <FieldLabel htmlFor="paidToId">To</FieldLabel>
               <Select
+                items={peopleItems}
                 name="paidToId"
                 value={paidToId}
-                onValueChange={(value) => setPaidToId(value)}
+                onValueChange={(value) => value && setPaidToId(value)}
                 required
               >
                 <SelectTrigger>
@@ -172,7 +180,7 @@ export default function EditTransfer() {
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size={isDesktop ? "lg" : "xl"}
+                size={"lg"}
                 disabled={!isValid}
                 className="sm:flex-1 cursor-pointer"
               >
@@ -180,8 +188,8 @@ export default function EditTransfer() {
               </Button>
               <Button
                 type="button"
-                size={isDesktop ? "lg" : "xl"}
-                variant="muted"
+                size={"lg"}
+                variant="secondary"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >
@@ -190,15 +198,15 @@ export default function EditTransfer() {
             </Field>
             <Field>
               <Button
-                asChild
+                render={
+                  <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>
+                    Delete Transfer
+                  </Link>
+                }
                 variant="ghost"
-                size={isDesktop ? "lg" : "xl"}
+                size={"lg"}
                 className="w-full text-destructive cursor-pointer"
-              >
-                <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>
-                  Delete Transfer
-                </Link>
-              </Button>
+              ></Button>
             </Field>
           </FieldGroup>
         </FieldSet>
