@@ -13,7 +13,6 @@ export default defineConfig({
     netlifyReactRouter(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: false,
       includeAssets: ["favicon.ico"],
       manifest: {
         id: "true-up",
