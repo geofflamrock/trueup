@@ -76,6 +76,10 @@ export default function NewTransfer() {
   );
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
+  const peopleItems = group.people.map((person) => ({
+    label: person.name,
+    value: person.id.toString(),
+  }));
 
   if (group.people.length < 2) {
     return (
@@ -154,6 +158,7 @@ export default function NewTransfer() {
               <FieldLabel htmlFor="paidById">From</FieldLabel>
               <Select
                 name="paidById"
+                items={peopleItems}
                 value={paidById}
                 onValueChange={(value) => setPaidById(value!)}
                 required
@@ -175,6 +180,7 @@ export default function NewTransfer() {
               <FieldLabel htmlFor="paidToId">To</FieldLabel>
               <Select
                 name="paidToId"
+                items={peopleItems}
                 value={paidToId}
                 onValueChange={(value) => setPaidToId(value!)}
                 required

@@ -107,6 +107,10 @@ export default function NewExpense() {
 
   const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
   const isValid = amount && Math.abs(totalShares - parseFloat(amount)) < 0.01;
+  const peopleItems = group.people.map((person) => ({
+    label: person.name,
+    value: person.id.toString(),
+  }));
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const form = e.currentTarget;
@@ -194,6 +198,7 @@ export default function NewExpense() {
               <FieldLabel htmlFor="paidById">Paid By</FieldLabel>
               <Select
                 name="paidById"
+                items={peopleItems}
                 value={paidById}
                 onValueChange={(value) => setPaidById(value!)}
                 required
@@ -213,18 +218,17 @@ export default function NewExpense() {
 
             <Field>
               <div className="flex justify-between items-center">
-                {/* <FieldLabel>Share per person</FieldLabel>
+                <FieldLabel>Share per person</FieldLabel>
                 <ToggleGroup
-                  type="single"
                   variant="outline"
-                  value={splitType}
+                  value={[splitType]}
                   onValueChange={(value) =>
-                    handleSplitTypeChange(value as SplitType)
+                    handleSplitTypeChange(value[0] as SplitType)
                   }
                 >
                   <ToggleGroupItem value="equal">Split equally</ToggleGroupItem>
                   <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
-                </ToggleGroup> */}
+                </ToggleGroup>
               </div>
               <div className="space-y-2">
                 {group.people.map((person) => {
