@@ -17,6 +17,7 @@ import {
   BadgeCheck,
   Banknote,
   ChevronRight,
+  Coins,
   HandCoins,
   MoreVertical,
   Pencil,
@@ -195,7 +196,7 @@ export default function GroupPage() {
                         prefetch="viewport"
                       >
                         <ItemMedia variant="icon">
-                          <HandCoins
+                          <Coins
                             size={24}
                             className="size-6"
                           />
