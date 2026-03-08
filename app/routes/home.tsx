@@ -13,8 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarGroup } from "~/components/ui/avatar";
 import { PeopleAvatarGroup } from "~/components/app/PeopleAvatarGroup";
 import { Header } from "~/components/app/Header";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ChevronRight } from "@hugeicons/core-free-icons";
+import { ChevronRight } from "lucide-react";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -68,7 +67,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                   <ItemTitle className="text-lg">{group.name}</ItemTitle>
                 </ItemContent>
                 <ItemActions>
-                  <HugeiconsIcon icon={ChevronRight} size={24} />
+                  <ChevronRight size={24} />
                 </ItemActions>
               </Link>
             </Item>

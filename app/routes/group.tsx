@@ -12,17 +12,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "~/components/ui/popover";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowLeft02Icon,
-  CheckmarkBadge02Icon,
+  ArrowLeft,
+  BadgeCheck,
+  Banknote,
   ChevronRight,
-  Money03Icon,
-  MoreVerticalIcon,
-  PencilEdit01Icon,
-  SaveMoneyDollarIcon,
+  MoreVertical,
+  Pencil,
+  PiggyBank,
   Trash2,
-} from "@hugeicons/core-free-icons";
+} from "lucide-react";
 import {
   Item,
   ItemActions,
@@ -112,7 +111,7 @@ export default function GroupPage() {
         <div className="flex gap-2 items-center">
           <Button variant="ghost" size="icon-lg" asChild>
             <Link to={`/`} prefetch="viewport">
-              <HugeiconsIcon icon={ArrowLeft02Icon} className="size-6" />
+              <ArrowLeft className="size-6" />
             </Link>
           </Button>
 
@@ -145,18 +144,18 @@ export default function GroupPage() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon-lg" className="cursor-pointer">
-              <HugeiconsIcon icon={MoreVerticalIcon} size={24} />
+              <MoreVertical size={24} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
               <Link to={`/${group.id}/edit`} prefetch="viewport">
-                <HugeiconsIcon icon={PencilEdit01Icon} /> Edit
+                <Pencil /> Edit
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem variant="destructive" asChild>
               <Link to={`/${group.id}/delete`} prefetch="viewport">
-                <HugeiconsIcon icon={Trash2} /> Delete
+                <Trash2 /> Delete
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -176,7 +175,7 @@ export default function GroupPage() {
             {balances.length === 0 ? (
               <Item className="p-4 bg-success text-foreground">
                 <ItemContent className="flex flex-row gap-3 items-center text-xl">
-                  <HugeiconsIcon icon={CheckmarkBadge02Icon} size={36} /> All
+                  <BadgeCheck size={36} /> All
                   balanced!
                 </ItemContent>
               </Item>
@@ -196,8 +195,7 @@ export default function GroupPage() {
                         prefetch="viewport"
                       >
                         <ItemMedia variant="icon">
-                          <HugeiconsIcon
-                            icon={SaveMoneyDollarIcon}
+                          <PiggyBank
                             size={24}
                             className="size-6"
                           />
@@ -212,7 +210,7 @@ export default function GroupPage() {
                         </ItemContent>
                         <ItemActions>
                           Mark as paid{" "}
-                          <HugeiconsIcon icon={ChevronRight} size={24} />
+                          <ChevronRight size={24} />
                         </ItemActions>
                       </Link>
                     </Item>
@@ -231,7 +229,7 @@ export default function GroupPage() {
               className="flex-1 sm:flex-initial"
             >
               <Link to={`/${group.id}/expenses/new`} prefetch="viewport">
-                <HugeiconsIcon icon={Money03Icon} /> New Expense
+                <Banknote /> New Expense
               </Link>
             </Button>
             <Button
@@ -241,7 +239,7 @@ export default function GroupPage() {
               className="flex-1 sm:flex-initial"
             >
               <Link to={`/${group.id}/transfers/new`} prefetch="viewport">
-                <HugeiconsIcon icon={SaveMoneyDollarIcon} /> New Transfer
+                <PiggyBank /> New Transfer
               </Link>
             </Button>
           </div>
@@ -259,7 +257,7 @@ export default function GroupPage() {
                           prefetch="viewport"
                         >
                           <ItemMedia variant="icon">
-                            <HugeiconsIcon icon={Money03Icon} />
+                            <Banknote />
                           </ItemMedia>
                           <ItemContent>
                             <ItemTitle>
@@ -279,7 +277,7 @@ export default function GroupPage() {
                           prefetch="viewport"
                         >
                           <ItemMedia variant="icon">
-                            <HugeiconsIcon icon={SaveMoneyDollarIcon} />
+                            <PiggyBank />
                           </ItemMedia>
                           <ItemContent>
                             <ItemTitle>

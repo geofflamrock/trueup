@@ -13,8 +13,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "~/components/ui/input-group";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Trash2, UserAdd01Icon } from "@hugeicons/core-free-icons";
+import { Trash2, UserPlus } from "lucide-react";
 
 export type NewGroupRequest = {
   name: string;
@@ -103,7 +102,7 @@ export default function NewGroup() {
                           size="icon-xs"
                           className="cursor-pointer"
                         >
-                          <HugeiconsIcon icon={Trash2} />
+                          <Trash2 />
                         </InputGroupButton>
                       </InputGroupAddon>
                     )}
@@ -118,7 +117,7 @@ export default function NewGroup() {
                   size={isDesktop ? "sm" : "default"}
                   className="cursor-pointer"
                 >
-                  <HugeiconsIcon icon={UserAdd01Icon} /> Add Person
+                  <UserPlus /> Add Person
                 </Button>
               </div>
             </Field>

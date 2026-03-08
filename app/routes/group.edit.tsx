@@ -14,8 +14,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "~/components/ui/input-group";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { Trash2, UserAdd01Icon } from "@hugeicons/core-free-icons";
+import { Trash2, UserPlus } from "lucide-react";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export type EditGroupRequest = {
@@ -151,7 +150,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
                         size="icon-xs"
                         className="cursor-pointer"
                       >
-                        <HugeiconsIcon icon={Trash2} />
+                        <Trash2 />
                       </InputGroupButton>
                     </InputGroupAddon>
                   )}
@@ -167,7 +166,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
                 size={isDesktop ? "sm" : "default"}
                 className="cursor-pointer"
               >
-                <HugeiconsIcon icon={UserAdd01Icon} /> Add Person
+                <UserPlus /> Add Person
               </Button>
             </div>
           </Field>
