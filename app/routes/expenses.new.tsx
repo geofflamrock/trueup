@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { getTodayYYYYMMDD } from "~/lib/utils";
+import { getTodayYYYYMMDD } from "~/lib/date-utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -129,11 +129,14 @@ export default function NewExpense() {
           <p className="text-foreground">
             You need to add people to the group before creating expenses.
           </p>
-          <Button asChild className="w-full">
-            <Link to={`/${group.id}/edit`} prefetch="viewport">
-              Add People
-            </Link>
-          </Button>
+          <Button
+            render={
+              <Link to={`/${group.id}/edit`} prefetch="viewport">
+                Add People
+              </Link>
+            }
+            className="w-full"
+          />
         </div>
       </DialogOrDrawer>
     );
@@ -192,7 +195,7 @@ export default function NewExpense() {
               <Select
                 name="paidById"
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => setPaidById(value!)}
                 required
               >
                 <SelectTrigger>
@@ -210,7 +213,7 @@ export default function NewExpense() {
 
             <Field>
               <div className="flex justify-between items-center">
-                <FieldLabel>Share per person</FieldLabel>
+                {/* <FieldLabel>Share per person</FieldLabel>
                 <ToggleGroup
                   type="single"
                   variant="outline"
@@ -221,7 +224,7 @@ export default function NewExpense() {
                 >
                   <ToggleGroupItem value="equal">Split equally</ToggleGroupItem>
                   <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
-                </ToggleGroup>
+                </ToggleGroup> */}
               </div>
               <div className="space-y-2">
                 {group.people.map((person) => {

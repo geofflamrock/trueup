@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { getTodayYYYYMMDD } from "~/lib/utils";
+import { getTodayYYYYMMDD } from "~/lib/date-utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -88,11 +88,14 @@ export default function NewTransfer() {
           <p className="text-foreground">
             You need at least 2 people in the group before creating transfers.
           </p>
-          <Button asChild className="w-full">
-            <Link to={`/${group.id}/edit`} prefetch="viewport">
-              Add People
-            </Link>
-          </Button>
+          <Button
+            className="w-full"
+            render={
+              <Link to={`/${group.id}/edit`} prefetch="viewport">
+                Add People
+              </Link>
+            }
+          />
         </div>
       </DialogOrDrawer>
     );
@@ -152,7 +155,7 @@ export default function NewTransfer() {
               <Select
                 name="paidById"
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => setPaidById(value!)}
                 required
               >
                 <SelectTrigger>
@@ -173,7 +176,7 @@ export default function NewTransfer() {
               <Select
                 name="paidToId"
                 value={paidToId}
-                onValueChange={(value) => setPaidToId(value)}
+                onValueChange={(value) => setPaidToId(value!)}
                 required
               >
                 <SelectTrigger>

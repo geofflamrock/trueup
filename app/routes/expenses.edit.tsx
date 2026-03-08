@@ -25,7 +25,7 @@ import {
 } from "~/components/ui/select";
 import type { SplitType } from "./expenses.new";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { parseDateToYYYYMMDD } from "~/lib/utils";
+import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -184,7 +184,7 @@ export default function EditExpense() {
               <Select
                 name="paidById"
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => setPaidById(value!)}
                 required
               >
                 <SelectTrigger>
@@ -203,13 +203,13 @@ export default function EditExpense() {
             <Field>
               <div className="flex justify-between items-center">
                 <FieldLabel>Share per person</FieldLabel>
-                <div className="flex gap-2">
+                {/* <div className="flex gap-2">
                   <ToggleGroup
                     type="single"
                     variant="outline"
                     value={splitType}
                     onValueChange={(value) =>
-                      handleSplitTypeChange(value as SplitType)
+                      handleSplitTypeChange(value as unknown as SplitType)
                     }
                   >
                     <ToggleGroupItem value="equal">
@@ -217,7 +217,7 @@ export default function EditExpense() {
                     </ToggleGroupItem>
                     <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
                   </ToggleGroup>
-                </div>
+                </div> */}
               </div>
               <div className="space-y-2">
                 {group.people.map((person) => {
@@ -270,15 +270,15 @@ export default function EditExpense() {
             </Field>
             <Field>
               <Button
-                asChild
+                render={
+                  <Link to={`/${group.id}/expenses/${expense.id}/delete`}>
+                    Delete Expense
+                  </Link>
+                }
                 variant="ghost"
                 size="lg"
                 className="w-full text-destructive cursor-pointer"
-              >
-                <Link to={`/${group.id}/expenses/${expense.id}/delete`}>
-                  Delete Expense
-                </Link>
-              </Button>
+              />
             </Field>
           </FieldGroup>
         </FieldSet>

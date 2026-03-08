@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { parseDateToYYYYMMDD } from "~/lib/utils";
+import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -128,7 +128,7 @@ export default function EditTransfer() {
               <Select
                 name="paidById"
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => setPaidById(value!)}
                 required
               >
                 <SelectTrigger>
@@ -149,7 +149,7 @@ export default function EditTransfer() {
               <Select
                 name="paidToId"
                 value={paidToId}
-                onValueChange={(value) => setPaidToId(value)}
+                onValueChange={(value) => setPaidToId(value!)}
                 required
               >
                 <SelectTrigger>
@@ -192,15 +192,15 @@ export default function EditTransfer() {
             </Field>
             <Field>
               <Button
-                asChild
                 variant="ghost"
                 size="lg"
                 className="w-full text-destructive cursor-pointer"
-              >
-                <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>
-                  Delete Transfer
-                </Link>
-              </Button>
+                render={
+                  <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>
+                    Delete Transfer
+                  </Link>
+                }
+              />
             </Field>
           </FieldGroup>
         </FieldSet>
