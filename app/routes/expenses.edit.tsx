@@ -142,7 +142,11 @@ export default function EditExpense() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post" onSubmit={handleSubmit}>
+      <Form
+        method="post"
+        onSubmit={handleSubmit}
+        className="no-scrollbar overflow-y-auto"
+      >
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -208,21 +212,16 @@ export default function EditExpense() {
             <Field>
               <div className="flex justify-between items-center">
                 <FieldLabel>Share per person</FieldLabel>
-                <div className="flex gap-2">
-                  <FieldLabel>Share per person</FieldLabel>
-                  <ToggleGroup
-                    variant="outline"
-                    value={[splitType]}
-                    onValueChange={(value) =>
-                      handleSplitTypeChange(value[0] as SplitType)
-                    }
-                  >
-                    <ToggleGroupItem value="equal">
-                      Split equally
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
+                <ToggleGroup
+                  variant="outline"
+                  value={[splitType]}
+                  onValueChange={(value) =>
+                    handleSplitTypeChange(value[0] as SplitType)
+                  }
+                >
+                  <ToggleGroupItem value="equal">Split equally</ToggleGroupItem>
+                  <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
+                </ToggleGroup>
               </div>
               <div className="space-y-2">
                 {group.people.map((person) => {

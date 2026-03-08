@@ -84,7 +84,7 @@ export default function EditTransfer() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post">
+      <Form method="post" className="no-scrollbar overflow-y-auto">
         <FieldSet>
           <FieldGroup>
             <Field>

@@ -19,6 +19,7 @@ import {
 } from "~/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { getTodayYYYYMMDD } from "~/lib/date-utils";
+import { DrawerFooter } from "~/components/ui/drawer";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -152,7 +153,11 @@ export default function NewExpense() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post" onSubmit={handleSubmit}>
+      <Form
+        method="post"
+        onSubmit={handleSubmit}
+        className="no-scrollbar overflow-y-auto"
+      >
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -259,7 +264,6 @@ export default function NewExpense() {
               </div>
               <input type="hidden" name="shares" />
             </Field>
-
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
