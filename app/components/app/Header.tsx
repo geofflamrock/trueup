@@ -1,5 +1,4 @@
-import { MoonIcon, SaveMoneyDollarIcon, SunIcon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { Coins, Moon, Sun } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { useTheme } from "next-themes";
@@ -12,8 +11,7 @@ export function Header() {
       <div className="container mx-auto p-4 max-w-4xl flex justify-between items-center">
         <Link to="/" prefetch="viewport">
           <div className="flex gap-2 items-center">
-            <HugeiconsIcon
-              icon={SaveMoneyDollarIcon}
+            <Coins
               className="text-primary"
               size={24}
             />
@@ -28,10 +26,11 @@ export function Header() {
             setTheme(resolvedTheme === "dark" ? "light" : "dark")
           }
         >
-          <HugeiconsIcon
-            icon={resolvedTheme === "dark" ? SunIcon : MoonIcon}
-            size={24}
-          />
+          {resolvedTheme === "dark" ? (
+            <Sun size={24} />
+          ) : (
+            <Moon size={24} />
+          )}
         </Button>
       </div>
     </div>
