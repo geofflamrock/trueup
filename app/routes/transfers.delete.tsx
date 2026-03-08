@@ -60,7 +60,7 @@ export default function DeleteTransfer() {
         <Button
           type="button"
           size="lg"
-          variant="secondary"
+          variant="outline"
           onClick={() => navigate(-1)}
           className="sm:flex-1 cursor-pointer"
         >

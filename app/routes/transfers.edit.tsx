@@ -189,7 +189,7 @@ export default function EditTransfer() {
               <Button
                 type="button"
                 size="lg"
-                variant="secondary"
+                variant="outline"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >

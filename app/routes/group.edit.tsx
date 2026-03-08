@@ -162,7 +162,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
               <Button
                 type="button"
                 onClick={addPerson}
-                variant="secondary"
+                variant="outline"
                 size={isDesktop ? "sm" : "default"}
                 className="cursor-pointer"
               >
@@ -183,7 +183,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
             <Button
               type="button"
               size="lg"
-              variant="secondary"
+              variant="outline"
               className="sm:flex-1 cursor-pointer"
               onClick={onClose}
             >

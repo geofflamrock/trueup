@@ -245,7 +245,7 @@ export default function GroupPage() {
               }
             />
             <Button
-              variant="secondary"
+              variant="outline"
               size="lg"
               className="flex-1 sm:flex-initial"
               render={

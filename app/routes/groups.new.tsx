@@ -113,7 +113,7 @@ export default function NewGroup() {
                 <Button
                   type="button"
                   onClick={addPerson}
-                  variant="secondary"
+                  variant="outline"
                   size={isDesktop ? "sm" : "default"}
                   className="cursor-pointer"
                 >
@@ -133,7 +133,7 @@ export default function NewGroup() {
               <Button
                 type="button"
                 size="lg"
-                variant="secondary"
+                variant="outline"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >
