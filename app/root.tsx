@@ -30,23 +30,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="An expense tracking app for groups to manage shared expenses and settle balances" />
+        <meta
+          name="description"
+          content="An expense tracking app for groups to manage shared expenses and settle balances"
+        />
         <meta name="theme-color" content="#000000" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
         <Meta />
         <Links />
       </head>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-        >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
-        <script src="/registerSW.js" />
+        {/* <script src="/registerSW.js" /> */}
       </body>
     </html>
   );

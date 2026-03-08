@@ -15,12 +15,13 @@ export default defineConfig({
     // netlify(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: 'auto',
+      injectRegister: "auto",
       includeAssets: ["favicon.ico"],
       manifest: {
-        name: "TrueUp - Expense Tracker",
-        short_name: "TrueUp",
-        description: "An expense tracking app for groups to manage shared expenses and settle balances",
+        id: "true-up",
+        name: "True Up",
+        short_name: "True Up",
+        description: "Track your group's expenses and true up",
         theme_color: "#000000",
         background_color: "#000000",
         display: "standalone",
