@@ -52,6 +52,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    console.log("beforeinstallprompt event fired");
+  });
+
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto max-w-4xl p-4">
