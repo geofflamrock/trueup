@@ -1,4 +1,4 @@
-import { Moon, PiggyBank, Sun } from "lucide-react";
+import { Coins, Moon, Sun } from "lucide-react";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { useTheme } from "next-themes";
@@ -11,7 +11,7 @@ export function Header() {
       <div className="container mx-auto p-4 max-w-4xl flex justify-between items-center">
         <Link to="/" prefetch="viewport">
           <div className="flex gap-2 items-center">
-            <PiggyBank
+            <Coins
               className="text-primary"
               size={24}
             />

@@ -17,9 +17,9 @@ import {
   BadgeCheck,
   Banknote,
   ChevronRight,
+  HandCoins,
   MoreVertical,
   Pencil,
-  PiggyBank,
   Trash2,
 } from "lucide-react";
 import {
@@ -195,7 +195,7 @@ export default function GroupPage() {
                         prefetch="viewport"
                       >
                         <ItemMedia variant="icon">
-                          <PiggyBank
+                          <HandCoins
                             size={24}
                             className="size-6"
                           />
@@ -239,7 +239,7 @@ export default function GroupPage() {
               className="flex-1 sm:flex-initial"
             >
               <Link to={`/${group.id}/transfers/new`} prefetch="viewport">
-                <PiggyBank /> New Transfer
+                <HandCoins /> New Transfer
               </Link>
             </Button>
           </div>
@@ -277,7 +277,7 @@ export default function GroupPage() {
                           prefetch="viewport"
                         >
                           <ItemMedia variant="icon">
-                            <PiggyBank />
+                            <HandCoins />
                           </ItemMedia>
                           <ItemContent>
                             <ItemTitle>
