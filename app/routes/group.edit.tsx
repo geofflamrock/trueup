@@ -162,7 +162,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
               <Button
                 type="button"
                 onClick={addPerson}
-                variant="muted"
+                variant="secondary"
                 size={isDesktop ? "sm" : "default"}
                 className="cursor-pointer"
               >
@@ -174,7 +174,7 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
           <Field orientation={isDesktop ? "horizontal" : "vertical"}>
             <Button
               type="submit"
-              size={isDesktop ? "lg" : "xl"}
+              size="lg"
               className="sm:flex-1 cursor-pointer"
               disabled={fetcher.state !== "idle"}
             >
@@ -182,8 +182,8 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
             </Button>
             <Button
               type="button"
-              size={isDesktop ? "lg" : "xl"}
-              variant="muted"
+              size="lg"
+              variant="secondary"
               className="sm:flex-1 cursor-pointer"
               onClick={onClose}
             >

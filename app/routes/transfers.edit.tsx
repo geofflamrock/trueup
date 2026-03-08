@@ -84,7 +84,9 @@ export default function EditTransfer() {
         <FieldSet>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="description">Description (optional)</FieldLabel>
+              <FieldLabel htmlFor="description">
+                Description (optional)
+              </FieldLabel>
               <Input
                 type="text"
                 id="description"
@@ -172,7 +174,7 @@ export default function EditTransfer() {
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 disabled={!isValid}
                 className="sm:flex-1 cursor-pointer"
               >
@@ -180,8 +182,8 @@ export default function EditTransfer() {
               </Button>
               <Button
                 type="button"
-                size={isDesktop ? "lg" : "xl"}
-                variant="muted"
+                size="lg"
+                variant="secondary"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >
@@ -192,7 +194,7 @@ export default function EditTransfer() {
               <Button
                 asChild
                 variant="ghost"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 className="w-full text-destructive cursor-pointer"
               >
                 <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>

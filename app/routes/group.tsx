@@ -67,23 +67,23 @@ export default function GroupPage() {
   // Combine expenses and transfers into a timeline
   // Keep track of insertion order using array index
   const timeline = [
-    ...group.expenses.map((e, idx) => ({ 
-      type: "expense" as const, 
+    ...group.expenses.map((e, idx) => ({
+      type: "expense" as const,
       insertionOrder: idx,
       dateString: parseDateToYYYYMMDD(e.date),
-      ...e 
+      ...e,
     })),
-    ...group.transfers.map((t, idx) => ({ 
-      type: "transfer" as const, 
+    ...group.transfers.map((t, idx) => ({
+      type: "transfer" as const,
       insertionOrder: group.expenses.length + idx,
       dateString: parseDateToYYYYMMDD(t.date),
-      ...t 
+      ...t,
     })),
   ].sort((a, b) => {
     // Sort by date descending (newest first) using string comparison
     // YYYY-MM-DD format allows lexicographic comparison
     const dateCompare = b.dateString.localeCompare(a.dateString);
-    
+
     // If dates are the same, maintain insertion order
     if (dateCompare === 0) {
       return a.insertionOrder - b.insertionOrder;
@@ -93,7 +93,7 @@ export default function GroupPage() {
 
   const timelineGroupedByDate = timeline.reduce(
     (acc, item) => {
-      const dateKey = format(new Date(item.dateString + 'T00:00:00'), "PP");
+      const dateKey = format(new Date(item.dateString + "T00:00:00"), "PP");
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
@@ -176,8 +176,7 @@ export default function GroupPage() {
             {balances.length === 0 ? (
               <Item className="p-4 bg-success text-foreground">
                 <ItemContent className="flex flex-row gap-3 items-center text-xl">
-                  <BadgeCheck size={36} /> All
-                  balanced!
+                  <BadgeCheck size={36} /> All balanced!
                 </ItemContent>
               </Item>
             ) : (
@@ -190,16 +189,13 @@ export default function GroupPage() {
                     (p) => p.id === balance.toPersonId,
                   )!;
                   return (
-                    <Item variant="muted" size="xl" key={idx} asChild>
+                    <Item variant="muted" size="default" key={idx} asChild>
                       <Link
                         to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
                         prefetch="viewport"
                       >
                         <ItemMedia variant="icon">
-                          <Coins
-                            size={24}
-                            className="size-6"
-                          />
+                          <Coins size={24} className="size-6" />
                         </ItemMedia>
                         <ItemContent>
                           <ItemTitle className="text-lg">
@@ -210,8 +206,7 @@ export default function GroupPage() {
                           </ItemDescription>
                         </ItemContent>
                         <ItemActions>
-                          Mark as paid{" "}
-                          <ChevronRight size={24} />
+                          Mark as paid <ChevronRight size={24} />
                         </ItemActions>
                       </Link>
                     </Item>
@@ -252,7 +247,7 @@ export default function GroupPage() {
                 <div className="flex flex-col -ml-3">
                   {items.map((item) =>
                     item.type === "expense" ? (
-                      <Item asChild size="xl" key={item.id}>
+                      <Item asChild size="default" key={item.id}>
                         <Link
                           to={`/${group.id}/expenses/${item.id}/edit`}
                           prefetch="viewport"
@@ -272,7 +267,7 @@ export default function GroupPage() {
                         </Link>
                       </Item>
                     ) : (
-                      <Item asChild size="xl" key={item.id}>
+                      <Item asChild size="default" key={item.id}>
                         <Link
                           to={`/${group.id}/transfers/${item.id}/edit`}
                           prefetch="viewport"

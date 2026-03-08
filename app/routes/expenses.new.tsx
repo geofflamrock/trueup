@@ -256,7 +256,7 @@ export default function NewExpense() {
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 disabled={!isValid}
                 className="sm:flex-1 cursor-pointer"
               >
@@ -264,8 +264,8 @@ export default function NewExpense() {
               </Button>
               <Button
                 type="button"
-                size={isDesktop ? "lg" : "xl"}
-                variant="muted"
+                size="lg"
+                variant="secondary"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >
