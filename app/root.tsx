@@ -9,6 +9,7 @@ import {
 import type { Route } from "./+types/root";
 import "./app.css";
 import { ThemeProvider } from "next-themes";
+import { useState } from "react";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -35,7 +36,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           content="An expense tracking app for groups to manage shared expenses and settle balances"
         />
         <meta name="theme-color" content="#000000" />
+        <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="mask-icon" href="/mask-icon.svg" color="#FFFFFF" />
         <Meta />
         <Links />
       </head>
@@ -45,18 +48,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
-        {/* <script src="/registerSW.js" /> */}
       </body>
     </html>
   );
 }
 
 export default function App() {
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    console.log("beforeinstallprompt event fired");
-  });
-
   return (
     <main className="min-h-screen bg-background">
       <div className="container mx-auto max-w-4xl p-4">
