@@ -18,7 +18,8 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { getTodayYYYYMMDD } from "~/lib/utils";
+import { getTodayYYYYMMDD } from "~/lib/date-utils";
+import { DrawerFooter } from "~/components/ui/drawer";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -107,6 +108,10 @@ export default function NewExpense() {
 
   const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
   const isValid = amount && Math.abs(totalShares - parseFloat(amount)) < 0.01;
+  const peopleItems = group.people.map((person) => ({
+    label: person.name,
+    value: person.id.toString(),
+  }));
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const form = e.currentTarget;
@@ -129,11 +134,14 @@ export default function NewExpense() {
           <p className="text-foreground">
             You need to add people to the group before creating expenses.
           </p>
-          <Button asChild className="w-full">
-            <Link to={`/${group.id}/edit`} prefetch="viewport">
-              Add People
-            </Link>
-          </Button>
+          <Button
+            render={
+              <Link to={`/${group.id}/edit`} prefetch="viewport">
+                Add People
+              </Link>
+            }
+            className="w-full"
+          />
         </div>
       </DialogOrDrawer>
     );
@@ -145,7 +153,11 @@ export default function NewExpense() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post" onSubmit={handleSubmit}>
+      <Form
+        method="post"
+        onSubmit={handleSubmit}
+        className="no-scrollbar overflow-y-auto"
+      >
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -191,8 +203,9 @@ export default function NewExpense() {
               <FieldLabel htmlFor="paidById">Paid By</FieldLabel>
               <Select
                 name="paidById"
+                items={peopleItems}
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => setPaidById(value!)}
                 required
               >
                 <SelectTrigger>
@@ -212,11 +225,10 @@ export default function NewExpense() {
               <div className="flex justify-between items-center">
                 <FieldLabel>Share per person</FieldLabel>
                 <ToggleGroup
-                  type="single"
                   variant="outline"
-                  value={splitType}
+                  value={[splitType]}
                   onValueChange={(value) =>
-                    handleSplitTypeChange(value as SplitType)
+                    handleSplitTypeChange(value[0] as SplitType)
                   }
                 >
                   <ToggleGroupItem value="equal">Split equally</ToggleGroupItem>
@@ -252,11 +264,10 @@ export default function NewExpense() {
               </div>
               <input type="hidden" name="shares" />
             </Field>
-
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 disabled={!isValid}
                 className="sm:flex-1 cursor-pointer"
               >
@@ -264,8 +275,8 @@ export default function NewExpense() {
               </Button>
               <Button
                 type="button"
-                size={isDesktop ? "lg" : "xl"}
-                variant="muted"
+                size="lg"
+                variant="outline"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >

@@ -25,7 +25,7 @@ import {
 } from "~/components/ui/select";
 import type { SplitType } from "./expenses.new";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { parseDateToYYYYMMDD } from "~/lib/utils";
+import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -121,6 +121,10 @@ export default function EditExpense() {
 
   const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
   const isValid = amount && Math.abs(totalShares - parseFloat(amount)) < 0.01;
+  const peopleItems = group.people.map((person) => ({
+    label: person.name,
+    value: person.id.toString(),
+  }));
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     const form = e.currentTarget;
@@ -138,7 +142,11 @@ export default function EditExpense() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post" onSubmit={handleSubmit}>
+      <Form
+        method="post"
+        onSubmit={handleSubmit}
+        className="no-scrollbar overflow-y-auto"
+      >
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -183,8 +191,9 @@ export default function EditExpense() {
               <FieldLabel htmlFor="paidById">Paid By</FieldLabel>
               <Select
                 name="paidById"
+                items={peopleItems}
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => setPaidById(value!)}
                 required
               >
                 <SelectTrigger>
@@ -203,21 +212,16 @@ export default function EditExpense() {
             <Field>
               <div className="flex justify-between items-center">
                 <FieldLabel>Share per person</FieldLabel>
-                <div className="flex gap-2">
-                  <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    value={splitType}
-                    onValueChange={(value) =>
-                      handleSplitTypeChange(value as SplitType)
-                    }
-                  >
-                    <ToggleGroupItem value="equal">
-                      Split equally
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
-                  </ToggleGroup>
-                </div>
+                <ToggleGroup
+                  variant="outline"
+                  value={[splitType]}
+                  onValueChange={(value) =>
+                    handleSplitTypeChange(value[0] as SplitType)
+                  }
+                >
+                  <ToggleGroupItem value="equal">Split equally</ToggleGroupItem>
+                  <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
+                </ToggleGroup>
               </div>
               <div className="space-y-2">
                 {group.people.map((person) => {
@@ -252,7 +256,7 @@ export default function EditExpense() {
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 disabled={!isValid}
                 className="sm:flex-1 cursor-pointer"
               >
@@ -260,8 +264,8 @@ export default function EditExpense() {
               </Button>
               <Button
                 type="button"
-                size={isDesktop ? "lg" : "xl"}
-                variant="muted"
+                size="lg"
+                variant="outline"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >
@@ -270,15 +274,15 @@ export default function EditExpense() {
             </Field>
             <Field>
               <Button
-                asChild
+                render={
+                  <Link to={`/${group.id}/expenses/${expense.id}/delete`}>
+                    Delete Expense
+                  </Link>
+                }
                 variant="ghost"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 className="w-full text-destructive cursor-pointer"
-              >
-                <Link to={`/${group.id}/expenses/${expense.id}/delete`}>
-                  Delete Expense
-                </Link>
-              </Button>
+              />
             </Field>
           </FieldGroup>
         </FieldSet>

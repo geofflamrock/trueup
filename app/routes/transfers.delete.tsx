@@ -52,15 +52,15 @@ export default function DeleteTransfer() {
         <Button
           type="submit"
           variant="destructive"
-          size={isDesktop ? "lg" : "xl"}
+          size="lg"
           className="sm:flex-1 cursor-pointer"
         >
           Delete
         </Button>
         <Button
           type="button"
-          size={isDesktop ? "lg" : "xl"}
-          variant="muted"
+          size="lg"
+          variant="outline"
           onClick={() => navigate(-1)}
           className="sm:flex-1 cursor-pointer"
         >

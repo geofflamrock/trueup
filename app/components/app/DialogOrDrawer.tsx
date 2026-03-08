@@ -47,7 +47,7 @@ export function DialogOrDrawer({
   }
 
   return (
-    <Drawer open={open} onClose={onClose}>
+    <Drawer open={open} onClose={onClose} repositionInputs={false}>
       <DrawerContent className="p-4 pb-8">
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>

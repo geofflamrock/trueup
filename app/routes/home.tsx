@@ -36,7 +36,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
     <div className="flex flex-col gap-8 py-16">
       <Header />
       {groups.length === 0 && (
-        <div className="flex flex-col gap-8 text-foreground text-3xl font-title">
+        <div className="flex flex-col gap-8 text-foreground text-3xl">
           <p>
             Track who paid for what on your{" "}
             <span className="text-primary">family holiday to Europe.</span>
@@ -58,33 +58,37 @@ export default function Home({ loaderData }: Route.ComponentProps) {
       {groups.length > 0 && (
         <div className="flex flex-col gap-4">
           {groups.map((group) => (
-            <Item variant="muted" size="xl" asChild>
-              <Link key={group.id} to={`/${group.id}`} prefetch="viewport">
-                <ItemMedia>
-                  <PeopleAvatarGroup people={group.people} max={2} />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle className="text-lg">{group.name}</ItemTitle>
-                </ItemContent>
-                <ItemActions>
-                  <ChevronRight size={24} />
-                </ItemActions>
-              </Link>
-            </Item>
+            <Item
+              variant="muted"
+              size="default"
+              render={
+                <Link key={group.id} to={`/${group.id}`} prefetch="viewport">
+                  <ItemMedia>
+                    <PeopleAvatarGroup people={group.people} max={2} />
+                  </ItemMedia>
+                  <ItemContent>
+                    <ItemTitle className="text-lg">{group.name}</ItemTitle>
+                  </ItemContent>
+                  <ItemActions>
+                    <ChevronRight size={24} />
+                  </ItemActions>
+                </Link>
+              }
+            />
           ))}
         </div>
       )}
       <div>
         <Button
-          variant="hero"
-          size="hero"
+          variant="default"
+          size="lg"
           className={cn("cursor-pointer rounded-full")}
-          asChild
-        >
-          <Link to="/groups/new" prefetch="viewport">
-            {groups.length === 0 ? "Get Started" : "Create Group"}
-          </Link>
-        </Button>
+          render={
+            <Link to="/groups/new" prefetch="viewport">
+              {groups.length === 0 ? "Get Started" : "Create Group"}
+            </Link>
+          }
+        />
       </div>
       <Outlet />
     </div>

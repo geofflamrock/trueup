@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { getTodayYYYYMMDD } from "~/lib/utils";
+import { getTodayYYYYMMDD } from "~/lib/date-utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -76,6 +76,10 @@ export default function NewTransfer() {
   );
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
+  const peopleItems = group.people.map((person) => ({
+    label: person.name,
+    value: person.id.toString(),
+  }));
 
   if (group.people.length < 2) {
     return (
@@ -88,11 +92,14 @@ export default function NewTransfer() {
           <p className="text-foreground">
             You need at least 2 people in the group before creating transfers.
           </p>
-          <Button asChild className="w-full">
-            <Link to={`/${group.id}/edit`} prefetch="viewport">
-              Add People
-            </Link>
-          </Button>
+          <Button
+            className="w-full"
+            render={
+              <Link to={`/${group.id}/edit`} prefetch="viewport">
+                Add People
+              </Link>
+            }
+          />
         </div>
       </DialogOrDrawer>
     );
@@ -104,11 +111,13 @@ export default function NewTransfer() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post">
+      <Form method="post" className="no-scrollbar overflow-y-auto">
         <FieldSet>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="description">Description (optional)</FieldLabel>
+              <FieldLabel htmlFor="description">
+                Description (optional)
+              </FieldLabel>
               <Input
                 type="text"
                 id="description"
@@ -149,8 +158,9 @@ export default function NewTransfer() {
               <FieldLabel htmlFor="paidById">From</FieldLabel>
               <Select
                 name="paidById"
+                items={peopleItems}
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => setPaidById(value!)}
                 required
               >
                 <SelectTrigger>
@@ -170,8 +180,9 @@ export default function NewTransfer() {
               <FieldLabel htmlFor="paidToId">To</FieldLabel>
               <Select
                 name="paidToId"
+                items={peopleItems}
                 value={paidToId}
-                onValueChange={(value) => setPaidToId(value)}
+                onValueChange={(value) => setPaidToId(value!)}
                 required
               >
                 <SelectTrigger>
@@ -196,7 +207,7 @@ export default function NewTransfer() {
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 disabled={!isValid}
                 className="sm:flex-1 cursor-pointer"
               >
@@ -204,8 +215,8 @@ export default function NewTransfer() {
               </Button>
               <Button
                 type="button"
-                size={isDesktop ? "lg" : "xl"}
-                variant="muted"
+                size="lg"
+                variant="outline"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >

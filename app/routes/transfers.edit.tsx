@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { parseDateToYYYYMMDD } from "~/lib/utils";
+import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -73,6 +73,10 @@ export default function EditTransfer() {
   const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
+  const peopleItems = group.people.map((person) => ({
+    label: person.name,
+    value: person.id.toString(),
+  }));
 
   return (
     <DialogOrDrawer
@@ -80,11 +84,13 @@ export default function EditTransfer() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post">
+      <Form method="post" className="no-scrollbar overflow-y-auto">
         <FieldSet>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="description">Description (optional)</FieldLabel>
+              <FieldLabel htmlFor="description">
+                Description (optional)
+              </FieldLabel>
               <Input
                 type="text"
                 id="description"
@@ -125,8 +131,9 @@ export default function EditTransfer() {
               <FieldLabel htmlFor="paidById">From</FieldLabel>
               <Select
                 name="paidById"
+                items={peopleItems}
                 value={paidById}
-                onValueChange={(value) => setPaidById(value)}
+                onValueChange={(value) => setPaidById(value!)}
                 required
               >
                 <SelectTrigger>
@@ -146,8 +153,9 @@ export default function EditTransfer() {
               <FieldLabel htmlFor="paidToId">To</FieldLabel>
               <Select
                 name="paidToId"
+                items={peopleItems}
                 value={paidToId}
-                onValueChange={(value) => setPaidToId(value)}
+                onValueChange={(value) => setPaidToId(value!)}
                 required
               >
                 <SelectTrigger>
@@ -172,7 +180,7 @@ export default function EditTransfer() {
             <Field orientation={isDesktop ? "horizontal" : "vertical"}>
               <Button
                 type="submit"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 disabled={!isValid}
                 className="sm:flex-1 cursor-pointer"
               >
@@ -180,8 +188,8 @@ export default function EditTransfer() {
               </Button>
               <Button
                 type="button"
-                size={isDesktop ? "lg" : "xl"}
-                variant="muted"
+                size="lg"
+                variant="outline"
                 className="sm:flex-1 cursor-pointer"
                 onClick={() => navigate(-1)}
               >
@@ -190,15 +198,15 @@ export default function EditTransfer() {
             </Field>
             <Field>
               <Button
-                asChild
                 variant="ghost"
-                size={isDesktop ? "lg" : "xl"}
+                size="lg"
                 className="w-full text-destructive cursor-pointer"
-              >
-                <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>
-                  Delete Transfer
-                </Link>
-              </Button>
+                render={
+                  <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>
+                    Delete Transfer
+                  </Link>
+                }
+              />
             </Field>
           </FieldGroup>
         </FieldSet>
