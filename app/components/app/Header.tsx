@@ -26,18 +26,22 @@ export function Header() {
             <h1 className="text-2xl text-primary font-title">True Up</h1>
           </div>
         </Link>
-        <InstallAppButton />
-        <Button
-          variant="ghost"
-          size="icon-lg"
-          aria-label="Toggle theme"
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-        >
-          <HugeiconsIcon
-            icon={resolvedTheme === "dark" ? SunIcon : MoonIcon}
-            size={24}
-          />
-        </Button>
+        <div className="flex gap-2 items-center">
+          <InstallAppButton />
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            aria-label="Toggle theme"
+            onClick={() =>
+              setTheme(resolvedTheme === "dark" ? "light" : "dark")
+            }
+          >
+            <HugeiconsIcon
+              icon={resolvedTheme === "dark" ? SunIcon : MoonIcon}
+              size={24}
+            />
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -57,7 +61,7 @@ function InstallAppButton() {
 
   return (
     <Button
-      size="sm"
+      size="lg"
       variant="ghost"
       className="cursor-pointer"
       onClick={() => {
