@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import netlifyReactRouter from "@netlify/vite-plugin-react-router";
-import netlify from "@netlify/vite-plugin";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   plugins: [
@@ -11,6 +11,44 @@ export default defineConfig({
     reactRouter(),
     tsconfigPaths(),
     netlifyReactRouter(),
-    // netlify(),
+    VitePWA({
+      registerType: "autoUpdate",
+      includeAssets: ["favicon.ico"],
+      manifest: {
+        id: "true-up",
+        name: "True Up",
+        short_name: "True Up",
+        description: "Track your group's expenses and true up",
+        theme_color: "#030712",
+        background_color: "#030712",
+        display: "standalone",
+        scope: "/",
+        start_url: "/",
+        icons: [
+          {
+            src: "pwa-64x64.png",
+            sizes: "64x64",
+            type: "image/png",
+          },
+          {
+            src: "pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
+          },
+          {
+            src: "maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+    }),
   ],
 });
