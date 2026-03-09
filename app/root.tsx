@@ -32,7 +32,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta
           name="theme-color"
           media="(prefers-color-scheme: light)"
-          content="#FFFFFF"
+          content="#ffffff"
         />
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />
@@ -40,7 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link
           rel="mask-icon"
           href="/maskable-icon-512x512.png"
-          color="#FFFFFF"
+          color="#0c0a0b"
         />
         <Meta />
         <Links />
