@@ -65,8 +65,30 @@ export default function NewGroup() {
       title="Create New Group"
       open={true}
       onClose={() => navigate(-1)}
+      footer={
+        <div className="flex flex-row gap-2">
+          <Button
+            type="submit"
+            size="lg"
+            form="new-group"
+            className="flex-1 cursor-pointer"
+            disabled={fetcher.state !== "idle"}
+          >
+            {fetcher.state !== "idle" ? "Saving..." : "Save"}
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            className="flex-1 cursor-pointer"
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </Button>
+        </div>
+      }
     >
-      <fetcher.Form method="post">
+      <fetcher.Form id="new-group" method="post">
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -120,25 +142,6 @@ export default function NewGroup() {
                   <UserPlus /> Add Person
                 </Button>
               </div>
-            </Field>
-            <Field orientation={isDesktop ? "horizontal" : "vertical"}>
-              <Button
-                type="submit"
-                size="lg"
-                className="sm:flex-1 cursor-pointer"
-                disabled={fetcher.state !== "idle"}
-              >
-                {fetcher.state !== "idle" ? "Creating..." : "Create Group"}
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                variant="outline"
-                className="sm:flex-1 cursor-pointer"
-                onClick={() => navigate(-1)}
-              >
-                Cancel
-              </Button>
             </Field>
           </FieldGroup>
         </FieldSet>

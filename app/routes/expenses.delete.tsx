@@ -43,12 +43,12 @@ export default function DeleteExpense() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      <Form method="post" className="flex flex-col gap-2 sm:flex-row">
+      <Form method="post" className="flex flex-row gap-2">
         <Button
           type="submit"
           size="lg"
           variant="destructive"
-          className="sm:flex-1 cursor-pointer"
+          className="flex-1 cursor-pointer"
         >
           Delete
         </Button>
@@ -57,7 +57,7 @@ export default function DeleteExpense() {
           size="lg"
           variant="outline"
           onClick={() => navigate(-1)}
-          className="sm:flex-1 cursor-pointer"
+          className="flex-1 cursor-pointer"
         >
           Cancel
         </Button>

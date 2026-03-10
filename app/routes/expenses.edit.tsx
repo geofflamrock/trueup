@@ -5,17 +5,8 @@ import { useState } from "react";
 import type { ExpenseShare } from "../types";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-  FieldSet,
-} from "~/components/ui/field";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
+import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -26,6 +17,7 @@ import {
 import type { SplitType } from "./expenses.new";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -141,12 +133,42 @@ export default function EditExpense() {
       title="Edit Expense"
       open={true}
       onClose={() => navigate(-1)}
+      footer={
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row gap-2">
+            <Button
+              type="submit"
+              form="edit-expense"
+              size="lg"
+              disabled={!isValid}
+              className="flex-1 cursor-pointer"
+            >
+              Save
+            </Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="flex-1 cursor-pointer"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </Button>
+          </div>
+          <Button
+            render={
+              <Link to={`/${group.id}/expenses/${expense.id}/delete`}>
+                Delete
+              </Link>
+            }
+            variant={"ghost"}
+            size="lg"
+            className="cursor-pointer text-destructive"
+          />
+        </div>
+      }
     >
-      <Form
-        method="post"
-        onSubmit={handleSubmit}
-        className="no-scrollbar overflow-y-auto"
-      >
+      <Form id="edit-expense" method="post" onSubmit={handleSubmit}>
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -251,38 +273,6 @@ export default function EditExpense() {
                 )}
               </div>
               <input type="hidden" name="shares" />
-            </Field>
-
-            <Field orientation={isDesktop ? "horizontal" : "vertical"}>
-              <Button
-                type="submit"
-                size="lg"
-                disabled={!isValid}
-                className="sm:flex-1 cursor-pointer"
-              >
-                Save Changes
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                variant="outline"
-                className="sm:flex-1 cursor-pointer"
-                onClick={() => navigate(-1)}
-              >
-                Cancel
-              </Button>
-            </Field>
-            <Field>
-              <Button
-                render={
-                  <Link to={`/${group.id}/expenses/${expense.id}/delete`}>
-                    Delete Expense
-                  </Link>
-                }
-                variant="ghost"
-                size="lg"
-                className="w-full text-destructive cursor-pointer"
-              />
             </Field>
           </FieldGroup>
         </FieldSet>
