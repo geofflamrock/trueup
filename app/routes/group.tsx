@@ -298,14 +298,20 @@ export default function GroupPage() {
                             <ItemActions>
                               <Popover>
                                 <PopoverTrigger
-                                  className="flex cursor-default items-center text-muted-foreground"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                  }}
-                                >
-                                  <ChartPie size={16} />
-                                </PopoverTrigger>
+                                  render={
+                                    <Button
+                                      variant="ghost"
+                                      size="icon-lg"
+                                      className="cursor-pointer text-muted-foreground"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                      }}
+                                    >
+                                      <ChartPie size={16} />
+                                    </Button>
+                                  }
+                                ></PopoverTrigger>
                                 <PopoverContent
                                   align="end"
                                   side="top"
@@ -325,9 +331,7 @@ export default function GroupPage() {
                                         <span>
                                           {getPersonName(share.personId)}
                                         </span>
-                                        <span>
-                                          ${share.amount.toFixed(2)}
-                                        </span>
+                                        <span>${share.amount.toFixed(2)}</span>
                                       </div>
                                     ))}
                                   </div>
