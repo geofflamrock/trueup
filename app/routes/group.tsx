@@ -269,6 +269,7 @@ export default function GroupPage() {
                       <Item
                         size="default"
                         key={item.id}
+                        className="pr-0"
                         render={
                           <Link
                             to={`/${group.id}/expenses/${item.id}/edit`}
