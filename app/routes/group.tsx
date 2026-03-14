@@ -61,17 +61,6 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   return { group, balances };
 }
 
-function isEqualSplit(expense: {
-  shares: { amount: number }[];
-  amount: number;
-}) {
-  if (expense.shares.length === 0) return false;
-  const equalShare = expense.amount / expense.shares.length;
-  return expense.shares.every(
-    (share) => Math.abs(share.amount - equalShare) < 0.01,
-  );
-}
-
 export default function GroupPage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
   const isDesktop = useIsDesktop();
@@ -318,11 +307,7 @@ export default function GroupPage() {
                                   className="w-auto min-w-48"
                                 >
                                   <div className="flex flex-col gap-2">
-                                    <span className="font-medium">
-                                      {isEqualSplit(item)
-                                        ? "Split equally"
-                                        : "Custom split"}
-                                    </span>
+                                    <span>Share per person</span>
                                     {item.shares.map((share) => (
                                       <div
                                         key={share.personId}
