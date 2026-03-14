@@ -10,6 +10,8 @@ import {
 import {
   Popover,
   PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
   PopoverTrigger,
 } from "~/components/ui/popover";
 import {
@@ -306,8 +308,10 @@ export default function GroupPage() {
                                   side="top"
                                   className="w-auto min-w-48"
                                 >
+                                  <PopoverHeader>
+                                    <PopoverTitle>Split</PopoverTitle>
+                                  </PopoverHeader>
                                   <div className="flex flex-col gap-2">
-                                    <span>Split</span>
                                     {item.shares.map((share) => (
                                       <div
                                         key={share.personId}
