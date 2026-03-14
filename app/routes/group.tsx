@@ -18,9 +18,11 @@ import {
   Banknote,
   ChevronRight,
   Coins,
+  Equal,
   HandCoins,
   MoreVertical,
   Pencil,
+  SlidersHorizontal,
   Trash2,
 } from "lucide-react";
 import {
@@ -31,6 +33,11 @@ import {
   ItemMedia,
   ItemTitle,
 } from "~/components/ui/item";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
 import { format } from "date-fns";
 import {
@@ -58,6 +65,17 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   }
   const balances = calculateBalances(group);
   return { group, balances };
+}
+
+function isEqualSplit(expense: {
+  shares: { amount: number }[];
+  amount: number;
+}) {
+  if (expense.shares.length === 0) return false;
+  const equalShare = expense.amount / expense.shares.length;
+  return expense.shares.every(
+    (share) => Math.abs(share.amount - equalShare) < 0.01,
+  );
 }
 
 export default function GroupPage() {
@@ -283,6 +301,24 @@ export default function GroupPage() {
                                 {item.description}
                               </ItemDescription>
                             </ItemContent>
+                            <ItemActions>
+                              <Tooltip>
+                                <TooltipTrigger
+                                  className="flex cursor-default items-center text-muted-foreground"
+                                >
+                                  {isEqualSplit(item) ? (
+                                    <Equal size={16} />
+                                  ) : (
+                                    <SlidersHorizontal size={16} />
+                                  )}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {isEqualSplit(item)
+                                    ? "Split equally"
+                                    : "Custom split"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </ItemActions>
                           </Link>
                         }
                       />
