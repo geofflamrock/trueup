@@ -18,7 +18,9 @@ import {
   Banknote,
   ChevronRight,
   Coins,
+  Equal,
   HandCoins,
+  ListChecks,
   MoreVertical,
   Pencil,
   Trash2,
@@ -40,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
+import type { ExpenseShare } from "~/types";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -105,6 +108,28 @@ export default function GroupPage() {
 
   const getPersonName = (id: number) =>
     group.people.find((p) => p.id === id)?.name || "Unknown";
+
+  const isEqualSplit = (shares: ExpenseShare[]) => {
+    if (!shares?.length) return false;
+    const firstShare = shares[0].amount;
+    return shares.every((share) => Math.abs(share.amount - firstShare) < 0.01);
+  };
+
+  const getSplitTooltip = (shares: ExpenseShare[]) => {
+    if (!shares?.length) return "Custom split";
+    const shareDetails = shares
+      .map(
+        (share) => `${getPersonName(share.personId)} $${share.amount.toFixed(2)}`,
+      )
+      .join(", ");
+
+    if (isEqualSplit(shares)) {
+      const perPerson = shares[0].amount;
+      return `Split equally: $${perPerson.toFixed(2)} each`;
+    }
+
+    return `Custom split: ${shareDetails}`;
+  };
 
   return (
     <div className="flex flex-col gap-6 pb-8">
@@ -283,6 +308,19 @@ export default function GroupPage() {
                                 {item.description}
                               </ItemDescription>
                             </ItemContent>
+                            <ItemActions className="ml-auto text-muted-foreground">
+                              <span
+                                title={getSplitTooltip(item.shares)}
+                                aria-label={getSplitTooltip(item.shares)}
+                                className="flex items-center"
+                              >
+                                {isEqualSplit(item.shares) ? (
+                                  <Equal size={18} />
+                                ) : (
+                                  <ListChecks size={18} />
+                                )}
+                              </span>
+                            </ItemActions>
                           </Link>
                         }
                       />
