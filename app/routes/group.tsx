@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   BadgeCheck,
   Banknote,
+  ChartPie,
   ChevronRight,
   Coins,
   HandCoins,
@@ -283,6 +284,45 @@ export default function GroupPage() {
                                 {item.description}
                               </ItemDescription>
                             </ItemContent>
+                            <ItemActions>
+                              <Popover>
+                                <PopoverTrigger
+                                  render={
+                                    <Button
+                                      variant="ghost"
+                                      size="icon-lg"
+                                      className="cursor-pointer text-muted-foreground"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                      }}
+                                    >
+                                      <ChartPie size={16} />
+                                    </Button>
+                                  }
+                                ></PopoverTrigger>
+                                <PopoverContent
+                                  align="end"
+                                  side="top"
+                                  className="w-auto min-w-48"
+                                >
+                                  <div className="flex flex-col gap-2">
+                                    <span>Share per person</span>
+                                    {item.shares.map((share) => (
+                                      <div
+                                        key={share.personId}
+                                        className="flex justify-between gap-4"
+                                      >
+                                        <span>
+                                          {getPersonName(share.personId)}
+                                        </span>
+                                        <span>${share.amount.toFixed(2)}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            </ItemActions>
                           </Link>
                         }
                       />
