@@ -211,7 +211,7 @@ export default function EditExpense() {
 
             <Field>
               <div className="flex justify-between items-center">
-                <FieldLabel>Share per person</FieldLabel>
+                <FieldLabel>Split</FieldLabel>
                 <ToggleGroup
                   variant="outline"
                   value={[splitType]}
@@ -219,7 +219,7 @@ export default function EditExpense() {
                     handleSplitTypeChange(value[0] as SplitType)
                   }
                 >
-                  <ToggleGroupItem value="equal">Split equally</ToggleGroupItem>
+                  <ToggleGroupItem value="equal">Equally</ToggleGroupItem>
                   <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
                 </ToggleGroup>
               </div>

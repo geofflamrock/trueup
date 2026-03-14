@@ -307,7 +307,7 @@ export default function GroupPage() {
                                   className="w-auto min-w-48"
                                 >
                                   <div className="flex flex-col gap-2">
-                                    <span>Share per person</span>
+                                    <span>Split</span>
                                     {item.shares.map((share) => (
                                       <div
                                         key={share.personId}
