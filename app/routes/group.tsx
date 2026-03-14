@@ -21,7 +21,9 @@ import {
   HandCoins,
   MoreVertical,
   Pencil,
+  Split,
   Trash2,
+  UserCog,
 } from "lucide-react";
 import {
   Item,
@@ -31,6 +33,11 @@ import {
   ItemMedia,
   ItemTitle,
 } from "~/components/ui/item";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
 import { format } from "date-fns";
 import {
@@ -63,6 +70,41 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 export default function GroupPage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
   const isDesktop = useIsDesktop();
+
+  // Helper function to determine split type for an expense
+  const getSplitInfo = (expense: typeof group.expenses[0]) => {
+    if (!expense.shares || expense.shares.length === 0) {
+      return { isEqual: false, icon: UserCog, description: "Custom split" };
+    }
+
+    const first = expense.shares[0].amount;
+    const allEqual = expense.shares.every(
+      (s) => Math.abs(s.amount - first) < 0.01,
+    );
+
+    if (allEqual) {
+      return {
+        isEqual: true,
+        icon: Split,
+        description: "Split equally"
+      };
+    } else {
+      // Build custom split description showing each person's share
+      const shareDescriptions = expense.shares
+        .map((share) => {
+          const person = group.people.find((p) => p.id === share.personId);
+          return person ? `${person.name}: $${share.amount.toFixed(2)}` : null;
+        })
+        .filter(Boolean)
+        .join(", ");
+
+      return {
+        isEqual: false,
+        icon: UserCog,
+        description: `Custom split: ${shareDescriptions}`
+      };
+    }
+  };
 
   // Combine expenses and transfers into a timeline
   // Keep track of insertion order using array index
@@ -283,6 +325,20 @@ export default function GroupPage() {
                                 {item.description}
                               </ItemDescription>
                             </ItemContent>
+                            <ItemActions>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  {(() => {
+                                    const splitInfo = getSplitInfo(item);
+                                    const IconComponent = splitInfo.icon;
+                                    return <IconComponent size={20} className="text-muted-foreground" />;
+                                  })()}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {getSplitInfo(item).description}
+                                </TooltipContent>
+                              </Tooltip>
+                            </ItemActions>
                           </Link>
                         }
                       />
