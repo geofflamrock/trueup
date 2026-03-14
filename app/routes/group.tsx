@@ -16,13 +16,12 @@ import {
   ArrowLeft,
   BadgeCheck,
   Banknote,
+  ChartPie,
   ChevronRight,
   Coins,
-  Equal,
   HandCoins,
   MoreVertical,
   Pencil,
-  SlidersHorizontal,
   Trash2,
 } from "lucide-react";
 import {
@@ -33,11 +32,6 @@ import {
   ItemMedia,
   ItemTitle,
 } from "~/components/ui/item";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
 import { format } from "date-fns";
 import {
@@ -302,22 +296,43 @@ export default function GroupPage() {
                               </ItemDescription>
                             </ItemContent>
                             <ItemActions>
-                              <Tooltip>
-                                <TooltipTrigger
+                              <Popover>
+                                <PopoverTrigger
                                   className="flex cursor-default items-center text-muted-foreground"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                  }}
                                 >
-                                  {isEqualSplit(item) ? (
-                                    <Equal size={16} />
-                                  ) : (
-                                    <SlidersHorizontal size={16} />
-                                  )}
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  {isEqualSplit(item)
-                                    ? "Split equally"
-                                    : "Custom split"}
-                                </TooltipContent>
-                              </Tooltip>
+                                  <ChartPie size={16} />
+                                </PopoverTrigger>
+                                <PopoverContent
+                                  align="end"
+                                  side="top"
+                                  className="w-auto min-w-48"
+                                >
+                                  <div className="flex flex-col gap-2">
+                                    <span className="font-medium">
+                                      {isEqualSplit(item)
+                                        ? "Split equally"
+                                        : "Custom split"}
+                                    </span>
+                                    {item.shares.map((share) => (
+                                      <div
+                                        key={share.personId}
+                                        className="flex justify-between gap-4"
+                                      >
+                                        <span>
+                                          {getPersonName(share.personId)}
+                                        </span>
+                                        <span>
+                                          ${share.amount.toFixed(2)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
                             </ItemActions>
                           </Link>
                         }
