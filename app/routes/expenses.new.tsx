@@ -5,11 +5,8 @@ import { useState } from "react";
 import type { ExpenseShare } from "../types";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
-import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
 import {
   Select,
   SelectContent,
@@ -19,7 +16,6 @@ import {
 } from "~/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { getTodayYYYYMMDD } from "~/lib/date-utils";
-import { DrawerFooter } from "~/components/ui/drawer";
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -59,7 +55,6 @@ export type SplitType = "equal" | "custom";
 export default function NewExpense() {
   const { group } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop();
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [paidById, setPaidById] = useState(
@@ -152,12 +147,30 @@ export default function NewExpense() {
       title="Add Expense"
       open={true}
       onClose={() => navigate(-1)}
+      footer={
+        <div className="flex flex-row gap-2">
+          <Button
+            type="submit"
+            form="new-expense"
+            size="lg"
+            disabled={!isValid}
+            className="flex-1 cursor-pointer"
+          >
+            Save
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            className="flex-1 cursor-pointer"
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </Button>
+        </div>
+      }
     >
-      <Form
-        method="post"
-        onSubmit={handleSubmit}
-        className="no-scrollbar overflow-y-auto"
-      >
+      <Form id="new-expense" method="post" onSubmit={handleSubmit}>
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -263,25 +276,6 @@ export default function NewExpense() {
                 )}
               </div>
               <input type="hidden" name="shares" />
-            </Field>
-            <Field orientation={isDesktop ? "horizontal" : "vertical"}>
-              <Button
-                type="submit"
-                size="lg"
-                disabled={!isValid}
-                className="sm:flex-1 cursor-pointer"
-              >
-                Add Expense
-              </Button>
-              <Button
-                type="button"
-                size="lg"
-                variant="outline"
-                className="sm:flex-1 cursor-pointer"
-                onClick={() => navigate(-1)}
-              >
-                Cancel
-              </Button>
             </Field>
           </FieldGroup>
         </FieldSet>

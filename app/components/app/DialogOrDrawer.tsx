@@ -2,6 +2,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
@@ -9,6 +10,7 @@ import {
   Drawer,
   DrawerContent,
   DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "../ui/drawer";
@@ -19,6 +21,7 @@ type DialogOrDrawerProps = React.PropsWithChildren<{
   description?: string | React.ReactNode;
   open: boolean;
   onClose: () => void;
+  footer?: React.ReactNode;
 }>;
 
 export function DialogOrDrawer({
@@ -27,6 +30,7 @@ export function DialogOrDrawer({
   open,
   onClose,
   children,
+  footer,
 }: DialogOrDrawerProps) {
   const isDesktop = useIsDesktop();
 
@@ -40,7 +44,10 @@ export function DialogOrDrawer({
               <DialogDescription>{description}</DialogDescription>
             )}
           </DialogHeader>
-          {children}
+          <div className="flex-1 no-scrollbar overflow-y-auto p-2">
+            {children}
+          </div>
+          {footer && <DialogFooter>{footer}</DialogFooter>}
         </DialogContent>
       </Dialog>
     );
@@ -48,12 +55,15 @@ export function DialogOrDrawer({
 
   return (
     <Drawer open={open} onClose={onClose} repositionInputs={false}>
-      <DrawerContent className="p-4 pb-8">
+      <DrawerContent className="p-4">
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
           {description && <DrawerDescription>{description}</DrawerDescription>}
         </DrawerHeader>
-        {children}
+        <div className="flex-1 no-scrollbar overflow-y-auto p-2">
+          {children}
+        </div>
+        {footer && <DrawerFooter>{footer}</DrawerFooter>}
       </DrawerContent>
     </Drawer>
   );

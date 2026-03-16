@@ -64,21 +64,8 @@ export async function clientAction({
 }
 
 export default function EditGroup({ loaderData }: Route.ComponentProps) {
+  const { group } = loaderData;
   const navigate = useNavigate();
-
-  return (
-    <DialogOrDrawer title="Edit Group" open={true} onClose={() => navigate(-1)}>
-      <EditGroupForm onClose={() => navigate(-1)} group={loaderData.group} />
-    </DialogOrDrawer>
-  );
-}
-
-type EditGroupFormProps = {
-  group: Group;
-  onClose: () => void;
-};
-
-function EditGroupForm({ group, onClose }: EditGroupFormProps) {
   const [name, setName] = useState<string>(group.name);
   const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
     group.people,
@@ -111,87 +98,95 @@ function EditGroupForm({ group, onClose }: EditGroupFormProps) {
   };
 
   return (
-    <fetcher.Form onSubmit={onSubmit} method="post">
-      <FieldSet>
-        <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="name">Group Name</FieldLabel>
-            <Input
-              type="text"
-              id="name"
-              name="name"
-              required
-              placeholder="e.g., Trip to Paris"
-              className="mt-2"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </Field>
+    <DialogOrDrawer
+      title="Edit Group"
+      open={true}
+      onClose={() => navigate(-1)}
+      footer={
+        <div className="flex flex-row gap-2">
+          <Button
+            type="submit"
+            size="lg"
+            form="edit-group"
+            className="flex-1 cursor-pointer"
+            disabled={fetcher.state !== "idle"}
+          >
+            {fetcher.state !== "idle" ? "Saving..." : "Save"}
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            className="flex-1 cursor-pointer"
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </Button>
+        </div>
+      }
+    >
+      <fetcher.Form id="edit-group" onSubmit={onSubmit} method="post">
+        <FieldSet>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="name">Group Name</FieldLabel>
+              <Input
+                type="text"
+                id="name"
+                name="name"
+                required
+                placeholder="e.g., Trip to Paris"
+                className="mt-2"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </Field>
 
-          <Field>
-            <FieldLabel htmlFor="people">People</FieldLabel>
-            <div className="flex flex-col gap-2">
-              {people.map((person, index) => (
-                <InputGroup>
-                  <InputGroupInput
-                    type="text"
-                    value={person.name}
-                    onChange={(e) => updatePersonName(index, e.target.value)}
-                    placeholder="Person name"
-                    className="flex-1"
-                    required
-                  />
-                  {people.length > 1 && (
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupButton
-                        type="button"
-                        onClick={() => removePerson(index)}
-                        variant="ghost"
-                        size="icon-xs"
-                        className="cursor-pointer"
-                      >
-                        <Trash2 />
-                      </InputGroupButton>
-                    </InputGroupAddon>
-                  )}
-                </InputGroup>
-              ))}
-            </div>
-            <input type="hidden" name="people" />
-            <div>
-              <Button
-                type="button"
-                onClick={addPerson}
-                variant="outline"
-                size={isDesktop ? "sm" : "default"}
-                className="cursor-pointer"
-              >
-                <UserPlus /> Add Person
-              </Button>
-            </div>
-          </Field>
-
-          <Field orientation={isDesktop ? "horizontal" : "vertical"}>
-            <Button
-              type="submit"
-              size="lg"
-              className="sm:flex-1 cursor-pointer"
-              disabled={fetcher.state !== "idle"}
-            >
-              {fetcher.state !== "idle" ? "Saving..." : "Save Changes"}
-            </Button>
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              className="sm:flex-1 cursor-pointer"
-              onClick={onClose}
-            >
-              Cancel
-            </Button>
-          </Field>
-        </FieldGroup>
-      </FieldSet>
-    </fetcher.Form>
+            <Field>
+              <FieldLabel htmlFor="people">People</FieldLabel>
+              <div className="flex flex-col gap-2">
+                {people.map((person, index) => (
+                  <InputGroup>
+                    <InputGroupInput
+                      type="text"
+                      value={person.name}
+                      onChange={(e) => updatePersonName(index, e.target.value)}
+                      placeholder="Person name"
+                      className="flex-1"
+                      required
+                    />
+                    {people.length > 1 && (
+                      <InputGroupAddon align="inline-end">
+                        <InputGroupButton
+                          type="button"
+                          onClick={() => removePerson(index)}
+                          variant="ghost"
+                          size="icon-xs"
+                          className="cursor-pointer"
+                        >
+                          <Trash2 />
+                        </InputGroupButton>
+                      </InputGroupAddon>
+                    )}
+                  </InputGroup>
+                ))}
+              </div>
+              <input type="hidden" name="people" />
+              <div>
+                <Button
+                  type="button"
+                  onClick={addPerson}
+                  variant="outline"
+                  size={isDesktop ? "sm" : "default"}
+                  className="cursor-pointer"
+                >
+                  <UserPlus /> Add Person
+                </Button>
+              </div>
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+      </fetcher.Form>
+    </DialogOrDrawer>
   );
 }
