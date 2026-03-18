@@ -1,20 +1,21 @@
-import {
-  type RouteConfig,
-  index,
-  layout,
-  route,
-} from "@react-router/dev/routes";
+import { type RouteConfig, index, route } from "@react-router/dev/routes";
 
 export default [
-  route("", "routes/home.tsx", [route("groups/new", "routes/groups.new.tsx")]),
+  index("routes/home.tsx"),
+  route("groups/new", "routes/group.new.tsx"),
   route(":groupId", "routes/group.tsx", [
-    route("edit", "routes/group.edit.tsx"),
-    route("delete", "routes/group.delete.tsx"),
-    route("expenses/new", "routes/expenses.new.tsx"),
-    route("expenses/:expenseId/edit", "routes/expenses.edit.tsx"),
-    route("expenses/:expenseId/delete", "routes/expenses.delete.tsx"),
-    route("transfers/new", "routes/transfers.new.tsx"),
-    route("transfers/:transferId/edit", "routes/transfers.edit.tsx"),
-    route("transfers/:transferId/delete", "routes/transfers.delete.tsx"),
+    index("routes/group.home.tsx"),
+    route("activity", "routes/group.activity.tsx"),
+    route("settings", "routes/group.settings.tsx", [
+      route("delete", "routes/group.delete.tsx"),
+    ]),
+  ]),
+  route(":groupId/expenses/new", "routes/expense.new.tsx"),
+  route(":groupId/expenses/:expenseId", "routes/expense.edit.tsx", [
+    route("delete", "routes/expense.delete.tsx"),
+  ]),
+  route(":groupId/transfers/new", "routes/transfer.new.tsx"),
+  route(":groupId/transfers/:transferId", "routes/transfer.edit.tsx", [
+    route("delete", "routes/transfer.delete.tsx"),
   ]),
 ] satisfies RouteConfig;

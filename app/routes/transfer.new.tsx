@@ -1,10 +1,15 @@
-import { Form, Link, redirect, useLoaderData, useNavigate } from "react-router";
-import type { Route } from "./+types/transfers.edit";
-import { getGroup, getTransfer, updateTransfer } from "../storage";
+import {
+  Form,
+  Link,
+  redirect,
+  useLoaderData,
+  useSearchParams,
+} from "react-router";
+import type { Route } from "./+types/transfer.new";
+import { getGroup, addTransfer } from "../storage";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import {
   Select,
@@ -13,20 +18,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { parseDateToYYYYMMDD } from "~/lib/date-utils";
+import { getTodayYYYYMMDD } from "~/lib/date-utils";
+import { PageLayout } from "~/components/app/PageLayout";
+import { ArrowLeft } from "lucide-react";
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [
+    { title: `True Up: ${loaderData?.group.name ?? ""}` },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
+  ];
+}
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
   if (!group) {
     throw new Response("Group not found", { status: 404 });
   }
-
-  const transfer = getTransfer(params.groupId, params.transferId);
-  if (!transfer) {
-    throw new Response("Transfer not found", { status: 404 });
-  }
-
-  return { group, transfer };
+  return { group };
 }
 
 export async function clientAction({
@@ -37,11 +48,11 @@ export async function clientAction({
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
   const paidToId = parseInt(formData.get("paidToId") as string);
-  const date = formData.get("date") as string;
   const description = formData.get("description") as string;
+  const date = formData.get("date") as string;
 
   if (amount && paidById && paidToId && date && paidById !== paidToId) {
-    updateTransfer(params.groupId, params.transferId, {
+    addTransfer(params.groupId, {
       amount,
       paidById,
       paidToId,
@@ -53,14 +64,21 @@ export async function clientAction({
   return redirect(`/${params.groupId}`);
 }
 
-export default function EditTransfer() {
-  const { group, transfer } = useLoaderData<typeof clientLoader>();
-  const navigate = useNavigate();
-  const [amount, setAmount] = useState(transfer.amount.toString());
-  const [description, setDescription] = useState(transfer.description || "");
-  const [date, setDate] = useState(parseDateToYYYYMMDD(transfer.date));
-  const [paidById, setPaidById] = useState(transfer.paidById.toString());
-  const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
+export default function NewTransfer() {
+  const { group } = useLoaderData<typeof clientLoader>();
+  const [searchParams] = useSearchParams();
+  const [amount, setAmount] = useState(searchParams.get("amount") || "");
+  const [description, setDescription] = useState("");
+  const [date, setDate] = useState(getTodayYYYYMMDD());
+  const [paidById, setPaidById] = useState(
+    searchParams.get("from") || group.people[0]?.id.toString() || "",
+  );
+  const [paidToId, setPaidToId] = useState(
+    searchParams.get("to") ||
+      group.people[1]?.id.toString() ||
+      group.people[0]?.id.toString() ||
+      "",
+  );
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
   const peopleItems = group.people.map((person) => ({
@@ -68,47 +86,71 @@ export default function EditTransfer() {
     value: person.id.toString(),
   }));
 
-  return (
-    <DialogOrDrawer
-      title="Edit Transfer"
-      open={true}
-      onClose={() => navigate(-1)}
-      footer={
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-row gap-2">
+  if (group.people.length < 2) {
+    return (
+      <PageLayout
+        header={
+          <div className="flex gap-4 items-center p-4">
             <Button
-              type="submit"
-              form="edit-transfer"
-              size="lg"
-              disabled={!isValid}
-              className="flex-1 cursor-pointer"
-            >
-              Save
-            </Button>
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              className="flex-1 cursor-pointer"
-              onClick={() => navigate(-1)}
-            >
-              Cancel
-            </Button>
+              variant="muted"
+              size="icon-lg"
+              render={
+                <Link to={`/`} prefetch="viewport" className="cursor-pointer">
+                  <ArrowLeft className="size-6" />
+                </Link>
+              }
+            />
+            <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+              Add Transfer
+            </h1>
           </div>
+        }
+      >
+        <div className="space-y-4 p-4">
+          <p className="text-foreground">
+            You need at least 2 people in the group before creating transfers.
+          </p>
           <Button
-            variant="ghost"
-            size="lg"
-            className="w-full text-destructive cursor-pointer"
+            className="w-full"
             render={
-              <Link to={`/${group.id}/transfers/${transfer.id}/delete`}>
-                Delete
+              <Link
+                to={`/${group.id}/edit`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                Add People
               </Link>
             }
           />
         </div>
+      </PageLayout>
+    );
+  }
+
+  return (
+    <PageLayout
+      header={
+        <div className="flex gap-4 items-center p-4">
+          <Button
+            variant="muted"
+            size="icon-lg"
+            render={
+              <Link
+                to={`/${group.id}`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <ArrowLeft className="size-6" />
+              </Link>
+            }
+          />
+          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+            Add Transfer
+          </h1>
+        </div>
       }
     >
-      <Form id="edit-transfer" method="post">
+      <Form id="new-transfer" method="post" className="p-4">
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -200,9 +242,21 @@ export default function EditTransfer() {
                 Cannot transfer to the same person
               </div>
             )}
+
+            <div className="flex">
+              <Button
+                type="submit"
+                form="new-transfer"
+                size="xl"
+                disabled={!isValid}
+                className="flex-1 sm:flex-initial cursor-pointer"
+              >
+                Save
+              </Button>
+            </div>
           </FieldGroup>
         </FieldSet>
       </Form>
-    </DialogOrDrawer>
+    </PageLayout>
   );
 }

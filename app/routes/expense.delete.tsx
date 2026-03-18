@@ -1,10 +1,19 @@
-import { redirect, useLoaderData, Link, Form, useNavigate } from "react-router";
-import type { Route } from "./+types/expenses.delete";
+import { redirect, useLoaderData, Form, useNavigate } from "react-router";
+import type { Route } from "./+types/expense.delete";
 import { getGroup, getExpense, deleteExpense } from "../storage";
 import { Button } from "~/components/ui/button";
-import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [
+    { title: `True Up: ${loaderData?.group.name ?? ""}` },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
+  ];
+}
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -46,7 +55,7 @@ export default function DeleteExpense() {
       <Form method="post" className="flex flex-row gap-2">
         <Button
           type="submit"
-          size="lg"
+          size="xl"
           variant="destructive"
           className="flex-1 cursor-pointer"
         >
@@ -54,8 +63,8 @@ export default function DeleteExpense() {
         </Button>
         <Button
           type="button"
-          size="lg"
-          variant="outline"
+          size="xl"
+          variant="muted"
           onClick={() => navigate(-1)}
           className="flex-1 cursor-pointer"
         >

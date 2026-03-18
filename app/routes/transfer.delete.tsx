@@ -1,10 +1,19 @@
-import { redirect, useLoaderData, Link, Form, useNavigate } from "react-router";
-import type { Route } from "./+types/transfers.delete";
+import { redirect, useLoaderData, Form, useNavigate } from "react-router";
+import type { Route } from "./+types/transfer.delete";
 import { getGroup, getTransfer, deleteTransfer } from "../storage";
 import { Button } from "~/components/ui/button";
-import { Card } from "~/components/ui/card";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [
+    { title: `True Up: ${loaderData?.group.name ?? ""}` },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
+  ];
+}
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -52,15 +61,15 @@ export default function DeleteTransfer() {
         <Button
           type="submit"
           variant="destructive"
-          size="lg"
+          size="xl"
           className="flex-1 cursor-pointer"
         >
           Delete
         </Button>
         <Button
           type="button"
-          size="lg"
-          variant="outline"
+          size="xl"
+          variant="muted"
           onClick={() => navigate(-1)}
           className="flex-1 cursor-pointer"
         >

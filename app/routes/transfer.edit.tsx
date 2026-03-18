@@ -1,17 +1,16 @@
 import {
   Form,
   Link,
+  Outlet,
   redirect,
   useLoaderData,
   useNavigate,
-  useSearchParams,
 } from "react-router";
-import type { Route } from "./+types/transfers.new";
-import { getGroup, addTransfer } from "../storage";
+import type { Route } from "./+types/transfer.edit";
+import { getGroup, getTransfer, updateTransfer } from "../storage";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import {
   Select,
@@ -20,14 +19,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { getTodayYYYYMMDD } from "~/lib/date-utils";
+import { parseDateToYYYYMMDD } from "~/lib/date-utils";
+import { PageLayout } from "~/components/app/PageLayout";
+import { ArrowLeft } from "lucide-react";
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [
+    { title: `True Up: ${loaderData?.group.name ?? ""}` },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
+  ];
+}
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
   if (!group) {
     throw new Response("Group not found", { status: 404 });
   }
-  return { group };
+
+  const transfer = getTransfer(params.groupId, params.transferId);
+  if (!transfer) {
+    throw new Response("Transfer not found", { status: 404 });
+  }
+
+  return { group, transfer };
 }
 
 export async function clientAction({
@@ -38,11 +55,11 @@ export async function clientAction({
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
   const paidToId = parseInt(formData.get("paidToId") as string);
-  const description = formData.get("description") as string;
   const date = formData.get("date") as string;
+  const description = formData.get("description") as string;
 
   if (amount && paidById && paidToId && date && paidById !== paidToId) {
-    addTransfer(params.groupId, {
+    updateTransfer(params.groupId, params.transferId, {
       amount,
       paidById,
       paidToId,
@@ -54,22 +71,14 @@ export async function clientAction({
   return redirect(`/${params.groupId}`);
 }
 
-export default function NewTransfer() {
-  const { group } = useLoaderData<typeof clientLoader>();
-  const [searchParams, setSearchParams] = useSearchParams();
+export default function EditTransfer() {
+  const { group, transfer } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const [amount, setAmount] = useState(searchParams.get("amount") || "");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState(getTodayYYYYMMDD());
-  const [paidById, setPaidById] = useState(
-    searchParams.get("from") || group.people[0]?.id.toString() || "",
-  );
-  const [paidToId, setPaidToId] = useState(
-    searchParams.get("to") ||
-      group.people[1]?.id.toString() ||
-      group.people[0]?.id.toString() ||
-      "",
-  );
+  const [amount, setAmount] = useState(transfer.amount.toString());
+  const [description, setDescription] = useState(transfer.description || "");
+  const [date, setDate] = useState(parseDateToYYYYMMDD(transfer.date));
+  const [paidById, setPaidById] = useState(transfer.paidById.toString());
+  const [paidToId, setPaidToId] = useState(transfer.paidToId.toString());
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
   const peopleItems = group.people.map((person) => ({
@@ -77,59 +86,25 @@ export default function NewTransfer() {
     value: person.id.toString(),
   }));
 
-  if (group.people.length < 2) {
-    return (
-      <DialogOrDrawer
-        title="Add Transfer"
-        open={true}
-        onClose={() => navigate(-1)}
-      >
-        <div className="space-y-4">
-          <p className="text-foreground">
-            You need at least 2 people in the group before creating transfers.
-          </p>
-          <Button
-            className="w-full"
-            render={
-              <Link to={`/${group.id}/edit`} prefetch="viewport">
-                Add People
-              </Link>
-            }
-          />
-        </div>
-      </DialogOrDrawer>
-    );
-  }
-
   return (
-    <DialogOrDrawer
-      title="Add Transfer"
-      open={true}
-      onClose={() => navigate(-1)}
-      footer={
-        <div className="flex flex-row gap-2">
+    <PageLayout
+      header={
+        <div className="flex gap-4 items-center p-4">
           <Button
-            type="submit"
-            form="new-transfer"
-            size="lg"
-            disabled={!isValid}
-            className="flex-1 cursor-pointer"
-          >
-            Save
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            variant="outline"
-            className="flex-1 cursor-pointer"
+            variant="muted"
+            size="icon-lg"
+            className="cursor-pointer"
             onClick={() => navigate(-1)}
           >
-            Cancel
+            <ArrowLeft className="size-6" />
           </Button>
+          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+            Edit Transfer
+          </h1>
         </div>
       }
     >
-      <Form id="new-transfer" method="post">
+      <Form id="edit-transfer" method="post" className="p-4">
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -221,9 +196,36 @@ export default function NewTransfer() {
                 Cannot transfer to the same person
               </div>
             )}
+
+            <div className="flex flex-col sm:flex-row gap-2 justify-between">
+              <Button
+                type="submit"
+                form="edit-transfer"
+                size="xl"
+                disabled={!isValid}
+                className="cursor-pointer"
+              >
+                Save
+              </Button>
+              <Button
+                variant="ghost"
+                size="xl"
+                className="text-destructive cursor-pointer"
+                render={
+                  <Link
+                    to={`/${group.id}/transfers/${transfer.id}/delete`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    Delete Transfer
+                  </Link>
+                }
+              />
+            </div>
           </FieldGroup>
         </FieldSet>
       </Form>
-    </DialogOrDrawer>
+      <Outlet />
+    </PageLayout>
   );
 }
