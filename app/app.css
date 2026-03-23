@@ -129,3 +129,7 @@
     @apply font-sans;
   }
 }
+
+[data-slot="drawer-content"] {
+  translate: var(--drawer-swipe-movement-x, 0px) var(--drawer-swipe-movement-y, 0px);
+}
