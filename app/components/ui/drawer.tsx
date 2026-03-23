@@ -56,7 +56,13 @@ function DrawerContent({
           {...props}
         >
           <div className="mx-auto mt-4 hidden h-1.5 w-[100px] shrink-0 rounded-full bg-muted group-data-[swipe-direction=down]/drawer-content:block" />
-          {children}
+          <DrawerPrimitive.Content
+            data-slot="drawer-inner-content"
+            data-base-ui-swipe-ignore
+            className="flex flex-col flex-1 min-h-0"
+          >
+            {children}
+          </DrawerPrimitive.Content>
         </DrawerPrimitive.Popup>
       </DrawerPrimitive.Viewport>
     </DrawerPortal>
