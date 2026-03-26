@@ -1,12 +1,16 @@
-import { redirect, data, useFetcher, useNavigate } from "react-router";
-import type { Route } from "./+types/group.edit";
+import {
+  redirect,
+  data,
+  useFetcher,
+  useNavigate,
+  Link,
+  Outlet,
+} from "react-router";
+import type { Route } from "./+types/group.settings";
 import { getGroup, updateGroupName, updateGroupPeople } from "../storage";
 import { useState } from "react";
-import type { Group } from "~/types";
-import { Label } from "~/components/ui/label";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import {
   InputGroup,
@@ -16,6 +20,16 @@ import {
 } from "~/components/ui/input-group";
 import { Trash2, UserPlus } from "lucide-react";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [
+    { title: `True Up: ${loaderData?.group.name ?? ""}` },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
+  ];
+}
 
 export type EditGroupRequest = {
   name: string;
@@ -98,34 +112,13 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
   };
 
   return (
-    <DialogOrDrawer
-      title="Edit Group"
-      open={true}
-      onClose={() => navigate(-1)}
-      footer={
-        <div className="flex flex-row gap-2">
-          <Button
-            type="submit"
-            size="lg"
-            form="edit-group"
-            className="flex-1 cursor-pointer"
-            disabled={fetcher.state !== "idle"}
-          >
-            {fetcher.state !== "idle" ? "Saving..." : "Save"}
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            variant="outline"
-            className="flex-1 cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            Cancel
-          </Button>
-        </div>
-      }
-    >
-      <fetcher.Form id="edit-group" onSubmit={onSubmit} method="post">
+    <>
+      <fetcher.Form
+        id="edit-group"
+        onSubmit={onSubmit}
+        method="post"
+        className="p-4"
+      >
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -184,9 +177,36 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                 </Button>
               </div>
             </Field>
+            <div className="flex flex-col sm:flex-row gap-2 justify-between">
+              <Button
+                type="submit"
+                size="xl"
+                form="edit-group"
+                className="cursor-pointer"
+                disabled={fetcher.state !== "idle"}
+              >
+                {fetcher.state !== "idle" ? "Saving..." : "Save"}
+              </Button>
+              <Button
+                type="button"
+                size="xl"
+                variant="ghost"
+                className="text-destructive cursor-pointer"
+                render={
+                  <Link
+                    to={`/${group.id}/settings/delete`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    Delete Group
+                  </Link>
+                }
+              />
+            </div>
           </FieldGroup>
         </FieldSet>
       </fetcher.Form>
-    </DialogOrDrawer>
+      <Outlet />
+    </>
   );
 }

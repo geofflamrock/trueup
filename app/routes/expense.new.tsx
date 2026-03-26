@@ -1,11 +1,10 @@
 import { Form, Link, redirect, useLoaderData, useNavigate } from "react-router";
-import type { Route } from "./+types/expenses.edit";
-import { getGroup, getExpense, updateExpense } from "../storage";
+import type { Route } from "./+types/expense.new";
+import { getGroup, addExpense } from "../storage";
 import { useState } from "react";
 import type { ExpenseShare } from "../types";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import {
   Select,
@@ -14,23 +13,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import type { SplitType } from "./expenses.new";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { parseDateToYYYYMMDD } from "~/lib/date-utils";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
+import { getTodayYYYYMMDD } from "~/lib/date-utils";
+import { PageLayout } from "~/components/app/PageLayout";
+import { ArrowLeft } from "lucide-react";
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [
+    { title: `True Up: ${loaderData?.group.name ?? ""}` },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
+  ];
+}
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
   if (!group) {
     throw new Response("Group not found", { status: 404 });
   }
-
-  const expense = getExpense(params.groupId, params.expenseId);
-  if (!expense) {
-    throw new Response("Expense not found", { status: 404 });
-  }
-
-  return { group, expense };
+  return { group };
 }
 
 export async function clientAction({
@@ -46,7 +49,7 @@ export async function clientAction({
 
   if (description && amount && paidById && sharesJson && date) {
     const shares = JSON.parse(sharesJson);
-    updateExpense(params.groupId, params.expenseId, {
+    addExpense(params.groupId, {
       description,
       amount,
       paidById,
@@ -58,23 +61,21 @@ export async function clientAction({
   return redirect(`/${params.groupId}`);
 }
 
-export default function EditExpense() {
-  const { group, expense } = useLoaderData<typeof clientLoader>();
+export type SplitType = "equal" | "custom";
+
+export default function NewExpense() {
+  const { group } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop();
-  const [description, setDescription] = useState(expense.description);
-  const [amount, setAmount] = useState(expense.amount.toString());
-  const [paidById, setPaidById] = useState(expense.paidById.toString());
-  const [date, setDate] = useState(parseDateToYYYYMMDD(expense.date));
-  const [splitType, setSplitType] = useState<SplitType>(() => {
-    if (!expense.shares || expense.shares.length === 0) return "custom";
-    const first = expense.shares[0].amount;
-    const allEqual = expense.shares.every(
-      (s) => Math.abs(s.amount - first) < 0.01,
-    );
-    return allEqual ? "equal" : "custom";
-  });
-  const [shares, setShares] = useState<ExpenseShare[]>(expense.shares);
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [paidById, setPaidById] = useState(
+    group.people[0]?.id.toString() || "",
+  );
+  const [date, setDate] = useState(getTodayYYYYMMDD());
+  const [splitType, setSplitType] = useState<SplitType>("equal");
+  const [shares, setShares] = useState<ExpenseShare[]>(
+    group.people.map((p) => ({ personId: p.id, amount: 0 })),
+  );
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
@@ -129,46 +130,34 @@ export default function EditExpense() {
   };
 
   return (
-    <DialogOrDrawer
-      title="Edit Expense"
-      open={true}
-      onClose={() => navigate(-1)}
-      footer={
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-row gap-2">
-            <Button
-              type="submit"
-              form="edit-expense"
-              size="lg"
-              disabled={!isValid}
-              className="flex-1 cursor-pointer"
-            >
-              Save
-            </Button>
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              className="flex-1 cursor-pointer"
-              onClick={() => navigate(-1)}
-            >
-              Cancel
-            </Button>
-          </div>
+    <PageLayout
+      header={
+        <div className="flex gap-4 items-center p-4">
           <Button
+            variant="muted"
+            size="icon-lg"
             render={
-              <Link to={`/${group.id}/expenses/${expense.id}/delete`}>
-                Delete
+              <Link
+                to={`/${group.id}`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <ArrowLeft className="size-6" />
               </Link>
             }
-            variant={"ghost"}
-            size="lg"
-            className="cursor-pointer text-destructive"
           />
+          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+            New Expense
+          </h1>
         </div>
       }
     >
-      <Form id="edit-expense" method="post" onSubmit={handleSubmit}>
+      <Form
+        id="new-expense"
+        method="post"
+        onSubmit={handleSubmit}
+        className="p-4"
+      >
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -180,6 +169,7 @@ export default function EditExpense() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
+                placeholder="e.g., Hotel booking"
               />
             </Field>
 
@@ -214,9 +204,8 @@ export default function EditExpense() {
               <Select
                 name="paidById"
                 items={peopleItems}
-                value={paidById}
-                onValueChange={(value) => setPaidById(value!)}
                 required
+                defaultValue={group.people[0]?.id.toString() || ""}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select person" />
@@ -274,9 +263,20 @@ export default function EditExpense() {
               </div>
               <input type="hidden" name="shares" />
             </Field>
+            <div className="flex">
+              <Button
+                type="submit"
+                form="new-expense"
+                size="xl"
+                disabled={!isValid}
+                className="flex-1 sm:flex-initial cursor-pointer"
+              >
+                Save
+              </Button>
+            </div>
           </FieldGroup>
         </FieldSet>
       </Form>
-    </DialogOrDrawer>
+    </PageLayout>
   );
 }

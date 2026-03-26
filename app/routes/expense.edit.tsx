@@ -1,11 +1,17 @@
-import { Form, Link, redirect, useLoaderData, useNavigate } from "react-router";
-import type { Route } from "./+types/expenses.new";
-import { getGroup, addExpense } from "../storage";
+import {
+  Form,
+  Link,
+  Outlet,
+  redirect,
+  useLoaderData,
+  useNavigate,
+} from "react-router";
+import type { Route } from "./+types/expense.edit";
+import { getGroup, getExpense, updateExpense } from "../storage";
 import { useState } from "react";
 import type { ExpenseShare } from "../types";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import {
   Select,
@@ -14,15 +20,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import type { SplitType } from "./expense.new";
 import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
-import { getTodayYYYYMMDD } from "~/lib/date-utils";
+import { parseDateToYYYYMMDD } from "~/lib/date-utils";
+import { PageLayout } from "~/components/app/PageLayout";
+import { ArrowLeft } from "lucide-react";
+
+export function meta({ loaderData }: Route.MetaArgs) {
+  return [
+    { title: `True Up: ${loaderData?.group.name ?? ""}` },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
+  ];
+}
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
   if (!group) {
     throw new Response("Group not found", { status: 404 });
   }
-  return { group };
+
+  const expense = getExpense(params.groupId, params.expenseId);
+  if (!expense) {
+    throw new Response("Expense not found", { status: 404 });
+  }
+
+  return { group, expense };
 }
 
 export async function clientAction({
@@ -38,7 +63,7 @@ export async function clientAction({
 
   if (description && amount && paidById && sharesJson && date) {
     const shares = JSON.parse(sharesJson);
-    addExpense(params.groupId, {
+    updateExpense(params.groupId, params.expenseId, {
       description,
       amount,
       paidById,
@@ -50,21 +75,22 @@ export async function clientAction({
   return redirect(`/${params.groupId}`);
 }
 
-export type SplitType = "equal" | "custom";
-
-export default function NewExpense() {
-  const { group } = useLoaderData<typeof clientLoader>();
+export default function EditExpense() {
+  const { group, expense } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [paidById, setPaidById] = useState(
-    group.people[0]?.id.toString() || "",
-  );
-  const [date, setDate] = useState(getTodayYYYYMMDD());
-  const [splitType, setSplitType] = useState<SplitType>("equal");
-  const [shares, setShares] = useState<ExpenseShare[]>(
-    group.people.map((p) => ({ personId: p.id, amount: 0 })),
-  );
+  const [description, setDescription] = useState(expense.description);
+  const [amount, setAmount] = useState(expense.amount.toString());
+  const [paidById, setPaidById] = useState(expense.paidById.toString());
+  const [date, setDate] = useState(parseDateToYYYYMMDD(expense.date));
+  const [splitType, setSplitType] = useState<SplitType>(() => {
+    if (!expense.shares || expense.shares.length === 0) return "custom";
+    const first = expense.shares[0].amount;
+    const allEqual = expense.shares.every(
+      (s) => Math.abs(s.amount - first) < 0.01,
+    );
+    return allEqual ? "equal" : "custom";
+  });
+  const [shares, setShares] = useState<ExpenseShare[]>(expense.shares);
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
@@ -118,59 +144,30 @@ export default function NewExpense() {
     }
   };
 
-  if (group.people.length === 0) {
-    return (
-      <DialogOrDrawer
-        title="Add Expense"
-        open={true}
-        onClose={() => navigate(-1)}
-      >
-        <div className="space-y-4">
-          <p className="text-foreground">
-            You need to add people to the group before creating expenses.
-          </p>
-          <Button
-            render={
-              <Link to={`/${group.id}/edit`} prefetch="viewport">
-                Add People
-              </Link>
-            }
-            className="w-full"
-          />
-        </div>
-      </DialogOrDrawer>
-    );
-  }
-
   return (
-    <DialogOrDrawer
-      title="Add Expense"
-      open={true}
-      onClose={() => navigate(-1)}
-      footer={
-        <div className="flex flex-row gap-2">
+    <PageLayout
+      header={
+        <div className="flex gap-4 items-center p-4">
           <Button
-            type="submit"
-            form="new-expense"
-            size="lg"
-            disabled={!isValid}
-            className="flex-1 cursor-pointer"
-          >
-            Save
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            variant="outline"
-            className="flex-1 cursor-pointer"
+            variant="muted"
+            size="icon-lg"
+            className="cursor-pointer"
             onClick={() => navigate(-1)}
           >
-            Cancel
+            <ArrowLeft className="size-6" />
           </Button>
+          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+            Edit Expense
+          </h1>
         </div>
       }
     >
-      <Form id="new-expense" method="post" onSubmit={handleSubmit}>
+      <Form
+        id="edit-expense"
+        method="post"
+        onSubmit={handleSubmit}
+        className="p-4"
+      >
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -182,7 +179,6 @@ export default function NewExpense() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
-                placeholder="e.g., Hotel booking"
               />
             </Field>
 
@@ -277,9 +273,35 @@ export default function NewExpense() {
               </div>
               <input type="hidden" name="shares" />
             </Field>
+            <div className="flex flex-col sm:flex-row gap-2 justify-between">
+              <Button
+                type="submit"
+                form="edit-expense"
+                size="xl"
+                disabled={!isValid}
+                className="cursor-pointer"
+              >
+                Save
+              </Button>
+              <Button
+                render={
+                  <Link
+                    to={`/${group.id}/expenses/${expense.id}/delete`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    Delete Expense
+                  </Link>
+                }
+                variant="ghost"
+                size="xl"
+                className="cursor-pointer text-destructive"
+              />
+            </div>
           </FieldGroup>
         </FieldSet>
       </Form>
-    </DialogOrDrawer>
+      <Outlet />
+    </PageLayout>
   );
 }

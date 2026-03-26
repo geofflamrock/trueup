@@ -57,13 +57,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return (
-    <main className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-4xl p-4">
-        <Outlet />
-      </div>
-    </main>
-  );
+  return <Outlet />;
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

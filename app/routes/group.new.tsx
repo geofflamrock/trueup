@@ -1,7 +1,6 @@
-import { data, redirect, useFetcher, useNavigate } from "react-router";
-import type { Route } from "./+types/groups.new";
+import { Link, data, redirect, useFetcher, useNavigate } from "react-router";
+import type { Route } from "./+types/group.new";
 import { createGroup, addPerson } from "../storage";
-import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
@@ -13,7 +12,18 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "~/components/ui/input-group";
-import { Trash2, UserPlus } from "lucide-react";
+import { ArrowLeft, Trash2, UserPlus } from "lucide-react";
+import { PageLayout } from "~/components/app/PageLayout";
+
+export function meta() {
+  return [
+    { title: "True Up" },
+    {
+      name: "description",
+      content: "Track expenses for your group and who owes what",
+    },
+  ];
+}
 
 export type NewGroupRequest = {
   name: string;
@@ -43,7 +53,6 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 }
 
 export default function NewGroup() {
-  const navigate = useNavigate();
   const [people, setPeople] = useState<string[]>([""]);
   const fetcher = useFetcher();
   const isDesktop = useIsDesktop();
@@ -61,34 +70,25 @@ export default function NewGroup() {
   };
 
   return (
-    <DialogOrDrawer
-      title="Create New Group"
-      open={true}
-      onClose={() => navigate(-1)}
-      footer={
-        <div className="flex flex-row gap-2">
+    <PageLayout
+      header={
+        <div className="flex gap-4 items-center p-4">
           <Button
-            type="submit"
-            size="lg"
-            form="new-group"
-            className="flex-1 cursor-pointer"
-            disabled={fetcher.state !== "idle"}
-          >
-            {fetcher.state !== "idle" ? "Saving..." : "Save"}
-          </Button>
-          <Button
-            type="button"
-            size="lg"
-            variant="outline"
-            className="flex-1 cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            Cancel
-          </Button>
+            variant="muted"
+            size="icon-lg"
+            render={
+              <Link to={`/`} prefetch="viewport" className="cursor-pointer">
+                <ArrowLeft className="size-6" />
+              </Link>
+            }
+          />
+          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+            New Group
+          </h1>
         </div>
       }
     >
-      <fetcher.Form id="new-group" method="post">
+      <fetcher.Form id="new-group" method="post" className="p-4">
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -143,9 +143,20 @@ export default function NewGroup() {
                 </Button>
               </div>
             </Field>
+            <div className="flex">
+              <Button
+                type="submit"
+                size="xl"
+                form="new-group"
+                className="flex-1 sm:flex-initial cursor-pointer"
+                disabled={fetcher.state !== "idle"}
+              >
+                {fetcher.state !== "idle" ? "Saving..." : "Save"}
+              </Button>
+            </div>
           </FieldGroup>
         </FieldSet>
       </fetcher.Form>
-    </DialogOrDrawer>
+    </PageLayout>
   );
 }

@@ -1,48 +1,28 @@
-import { Link, Outlet, useLoaderData } from "react-router";
+import { Link, Outlet, useLoaderData, useMatch } from "react-router";
 import type { Route } from "./+types/group";
 import { getGroup } from "../storage";
-import { calculateBalances } from "../balances";
 import { Button } from "~/components/ui/button";
 import {
-  PeopleAvatarGroup,
-  PersonAvatar,
-} from "~/components/app/PeopleAvatarGroup";
-import {
-  Popover,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from "~/components/ui/popover";
-import {
+  ActivitySquareIcon,
   ArrowLeft,
-  BadgeCheck,
   Banknote,
-  ChartPie,
-  ChevronRight,
-  Coins,
+  CoinsIcon,
+  EllipsisVerticalIcon,
   HandCoins,
-  MoreVertical,
-  Pencil,
-  Trash2,
+  SettingsIcon,
 } from "lucide-react";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "~/components/ui/item";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
-import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { parseDateToYYYYMMDD } from "~/lib/date-utils";
+import type { Group } from "~/types";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Drawer, DrawerContent, DrawerFooter } from "~/components/ui/drawer";
+import { useState } from "react";
+import { PageLayout } from "../components/app/PageLayout";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -59,314 +39,192 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   if (!group) {
     throw new Response("Group not found", { status: 404 });
   }
-  const balances = calculateBalances(group);
-  return { group, balances };
+  return { group };
 }
 
 export default function GroupPage() {
-  const { group, balances } = useLoaderData<typeof clientLoader>();
-  const isDesktop = useIsDesktop();
-
-  // Combine expenses and transfers into a timeline
-  // Keep track of insertion order using array index
-  const timeline = [
-    ...group.expenses.map((e, idx) => ({
-      type: "expense" as const,
-      insertionOrder: idx,
-      dateString: parseDateToYYYYMMDD(e.date),
-      ...e,
-    })),
-    ...group.transfers.map((t, idx) => ({
-      type: "transfer" as const,
-      insertionOrder: group.expenses.length + idx,
-      dateString: parseDateToYYYYMMDD(t.date),
-      ...t,
-    })),
-  ].sort((a, b) => {
-    // Sort by date descending (newest first) using string comparison
-    // YYYY-MM-DD format allows lexicographic comparison
-    const dateCompare = b.dateString.localeCompare(a.dateString);
-
-    // If dates are the same, maintain insertion order
-    if (dateCompare === 0) {
-      return a.insertionOrder - b.insertionOrder;
-    }
-    return dateCompare;
-  });
-
-  const timelineGroupedByDate = timeline.reduce(
-    (acc, item) => {
-      const dateKey = format(new Date(item.dateString + "T00:00:00"), "PP");
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      acc[dateKey].push(item);
-      return acc;
-    },
-    {} as Record<string, typeof timeline>,
-  );
-
-  const getPersonName = (id: number) =>
-    group.people.find((p) => p.id === id)?.name || "Unknown";
+  const { group } = useLoaderData<typeof clientLoader>();
+  const match = useMatch("/:groupId/*");
+  const subPage = match?.params["*"] || "";
+  const tab = subPage === "" ? "group" : subPage;
 
   return (
-    <div className="flex flex-col gap-6 pb-8">
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2 items-center">
-          <Button
-            variant="ghost"
-            size="icon-lg"
+    <PageLayout
+      header={<GroupHeader group={group} />}
+      footer={
+        <Tabs value={tab} className="flex items-center justify-center p-4">
+          <TabsList className="group-data-horizontal/tabs:h-14 sm:group-data-horizontal/tabs:h-12 rounded-full p-1">
+            <TabsTrigger
+              value="group"
+              className="rounded-full min-w-16 sm:min-w-32 cursor-pointer"
+              render={
+                <Link
+                  to={`/${group.id}`}
+                  prefetch="viewport"
+                  className="cursor-pointer"
+                />
+              }
+            >
+              <CoinsIcon className="size-6" />
+              <span className="hidden sm:inline">Group</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="activity"
+              className="rounded-full min-w-16 sm:min-w-32 cursor-pointer"
+              render={
+                <Link
+                  to={`/${group.id}/activity`}
+                  prefetch="viewport"
+                  className="cursor-pointer"
+                />
+              }
+            >
+              <ActivitySquareIcon className="size-6" />
+              <span className="hidden sm:inline">Activity</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="settings"
+              className="rounded-full min-w-16 sm:min-w-32 cursor-pointer"
+              render={
+                <Link
+                  to={`/${group.id}/settings`}
+                  prefetch="viewport"
+                  className="cursor-pointer"
+                />
+              }
+            >
+              <SettingsIcon className="size-6" />
+              <span className="hidden sm:inline">Settings</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      }
+    >
+      <Outlet />
+    </PageLayout>
+  );
+}
+
+type GroupHeaderMenuProps = {
+  group: Group;
+};
+
+function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
+  const isDesktop = useIsDesktop();
+  const [drawerOpen, setDrawerOpen] = useState(false); // For mobile drawer state
+
+  if (isDesktop) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="muted" size="icon-lg" className="cursor-pointer">
+              <EllipsisVerticalIcon />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
             render={
-              <Link to={`/`} prefetch="viewport">
-                <ArrowLeft className="size-6" />
+              <Link
+                to={`/${group.id}/expenses/new`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <Banknote /> New Expense
               </Link>
             }
           />
-
-          <div className="flex gap-3 items-center">
-            <Popover>
-              <PopoverTrigger className="flex gap-2 items-center">
-                <PeopleAvatarGroup
-                  people={group.people}
-                  max={2}
-                  size="default"
-                />
-              </PopoverTrigger>
-              <PopoverContent align="start">
-                {group.people.map((person) => (
-                  <div key={person.id} className="flex items-center gap-2">
-                    <PersonAvatar person={person} />
-                    <span>{person.name}</span>
-                  </div>
-                ))}
-              </PopoverContent>
-            </Popover>
-            <Link to={`/${group.id}/edit`} prefetch="viewport">
-              <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-                {group.name}
-              </h1>
-            </Link>
-          </div>
-        </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
+          <DropdownMenuItem
             render={
-              <Button variant="ghost" size="icon-lg" className="cursor-pointer">
-                <MoreVertical size={24} />
-              </Button>
+              <Link
+                to={`/${group.id}/transfers/new`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <HandCoins /> New Transfer
+              </Link>
             }
           />
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              render={
-                <Link to={`/${group.id}/edit`} prefetch="viewport">
-                  <Pencil /> Edit
-                </Link>
-              }
-            />
-            <DropdownMenuItem
-              variant="destructive"
-              render={
-                <Link to={`/${group.id}/delete`} prefetch="viewport">
-                  <Trash2 /> Delete
-                </Link>
-              }
-            />
-          </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  return (
+    <Drawer open={drawerOpen} onOpenChange={() => setDrawerOpen(false)}>
+      <Button
+        variant="muted"
+        size="icon-lg"
+        className="cursor-pointer"
+        onClick={() => setDrawerOpen(true)}
+      >
+        <EllipsisVerticalIcon className="size-6" />
+      </Button>
+      <DrawerContent>
+        <DrawerFooter className="flex flex-col gap-2">
+          <Button
+            variant="muted"
+            size="xl"
+            onClick={() => setDrawerOpen(false)}
+            render={
+              <Link
+                to={`/${group.id}/expenses/new`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <Banknote /> New Expense
+              </Link>
+            }
+          />
+          <Button
+            variant="muted"
+            size="xl"
+            onClick={() => setDrawerOpen(false)}
+            render={
+              <Link
+                to={`/${group.id}/transfers/new`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <HandCoins /> New Transfer
+              </Link>
+            }
+          />
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+type GroupHeaderProps = {
+  group: Group;
+};
+
+function GroupHeader({ group }: GroupHeaderProps) {
+  return (
+    <div className="flex justify-between items-center p-4">
+      <div className="flex gap-4 items-center">
+        <Button
+          variant="muted"
+          size="icon-lg"
+          render={
+            <Link to={`/`} prefetch="viewport" className="cursor-pointer">
+              <ArrowLeft className="size-6" />
+            </Link>
+          }
+        />
+        <Link
+          to={`/${group.id}/edit`}
+          prefetch="viewport"
+          className="cursor-pointer"
+        >
+          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+            {group.name}
+          </h1>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {timeline.length === 0 && (
-          <Item variant="muted" className="p-4">
-            <h2 className="text-lg text-muted-foreground">
-              No expenses or transfers yet.
-            </h2>
-          </Item>
-        )}
-        {timeline.length !== 0 && (
-          <div>
-            {balances.length === 0 ? (
-              <Item className="p-4 bg-success text-foreground">
-                <ItemContent className="flex flex-row gap-3 items-center text-xl">
-                  <BadgeCheck size={36} /> All balanced!
-                </ItemContent>
-              </Item>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {balances.map((balance, idx) => {
-                  const fromPerson = group.people.find(
-                    (p) => p.id === balance.fromPersonId,
-                  )!;
-                  const toPerson = group.people.find(
-                    (p) => p.id === balance.toPersonId,
-                  )!;
-                  return (
-                    <Item
-                      variant="muted"
-                      size="default"
-                      key={idx}
-                      render={
-                        <Link
-                          to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
-                          prefetch="viewport"
-                        >
-                          <ItemMedia variant="icon">
-                            <Coins size={24} className="size-6" />
-                          </ItemMedia>
-                          <ItemContent>
-                            <ItemTitle className="text-lg">
-                              {fromPerson.name} owes {toPerson.name}
-                            </ItemTitle>
-                            <ItemDescription className="text-primary text-lg">
-                              ${balance.amount.toFixed(2)}
-                            </ItemDescription>
-                          </ItemContent>
-                          <ItemActions>
-                            Mark as paid <ChevronRight size={24} />
-                          </ItemActions>
-                        </Link>
-                      }
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-        <div className="flex flex-col gap-6">
-          <div className="flex gap-2 items-center justify-between sm:justify-start">
-            <Button
-              variant="default"
-              size="lg"
-              className="flex-1 sm:flex-initial"
-              render={
-                <Link to={`/${group.id}/expenses/new`} prefetch="viewport">
-                  <Banknote /> New Expense
-                </Link>
-              }
-            />
-            <Button
-              variant="outline"
-              size="lg"
-              className="flex-1 sm:flex-initial"
-              render={
-                <Link to={`/${group.id}/transfers/new`} prefetch="viewport">
-                  <HandCoins /> New Transfer
-                </Link>
-              }
-            />
-          </div>
-
-          <div className="flex flex-col gap-6">
-            {Object.entries(timelineGroupedByDate).map(([date, items]) => (
-              <div key={date} className="flex flex-col gap-2">
-                <h3 className="text-muted-foreground ml-1">{date}</h3>
-                <div className="flex flex-col -ml-3">
-                  {items.map((item) =>
-                    item.type === "expense" ? (
-                      <Item
-                        size="default"
-                        key={item.id}
-                        className="pr-0"
-                        render={
-                          <Link
-                            to={`/${group.id}/expenses/${item.id}/edit`}
-                            prefetch="viewport"
-                          >
-                            <ItemMedia variant="icon">
-                              <Banknote />
-                            </ItemMedia>
-                            <ItemContent>
-                              <ItemTitle>
-                                {getPersonName(item.paidById)} paid $
-                                {item.amount.toFixed(2)}
-                              </ItemTitle>
-                              <ItemDescription>
-                                {item.description}
-                              </ItemDescription>
-                            </ItemContent>
-                            <ItemActions>
-                              <Popover>
-                                <PopoverTrigger
-                                  render={
-                                    <Button
-                                      variant="ghost"
-                                      size="icon-lg"
-                                      className="cursor-pointer text-muted-foreground"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        e.preventDefault();
-                                      }}
-                                    >
-                                      <ChartPie size={16} />
-                                    </Button>
-                                  }
-                                ></PopoverTrigger>
-                                <PopoverContent
-                                  align="end"
-                                  side="top"
-                                  className="w-auto min-w-48"
-                                >
-                                  <PopoverHeader>
-                                    <PopoverTitle>Split</PopoverTitle>
-                                  </PopoverHeader>
-                                  <div className="flex flex-col gap-2">
-                                    {item.shares.map((share) => (
-                                      <div
-                                        key={share.personId}
-                                        className="flex justify-between gap-4"
-                                      >
-                                        <span>
-                                          {getPersonName(share.personId)}
-                                        </span>
-                                        <span>${share.amount.toFixed(2)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </PopoverContent>
-                              </Popover>
-                            </ItemActions>
-                          </Link>
-                        }
-                      />
-                    ) : (
-                      <Item
-                        size="default"
-                        key={item.id}
-                        render={
-                          <Link
-                            to={`/${group.id}/transfers/${item.id}/edit`}
-                            prefetch="viewport"
-                          >
-                            <ItemMedia variant="icon">
-                              <HandCoins />
-                            </ItemMedia>
-                            <ItemContent>
-                              <ItemTitle>
-                                {getPersonName(item.paidById)} sent $
-                                {item.amount.toFixed(2)} to{" "}
-                                {getPersonName(item.paidToId)}
-                              </ItemTitle>
-                              {item.description && (
-                                <ItemDescription>
-                                  {item.description}
-                                </ItemDescription>
-                              )}
-                            </ItemContent>
-                          </Link>
-                        }
-                      />
-                    ),
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <Outlet />
+      <GroupHeaderMenu group={group} />
     </div>
   );
 }

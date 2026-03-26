@@ -8,27 +8,24 @@ export function Header() {
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-background/30 backdrop-blur-xs">
-      <div className="container mx-auto p-4 max-w-4xl flex justify-between items-center">
-        <Link to="/" prefetch="viewport">
-          <div className="flex gap-2 items-center">
-            <Coins className="text-primary" size={24} />
-            <h1 className="text-2xl text-primary font-title">True Up</h1>
-          </div>
-        </Link>
+    <div className="p-4 flex justify-between items-center">
+      <Link to="/" prefetch="viewport" className="cursor-pointer">
         <div className="flex gap-2 items-center">
-          <InstallAppButton />
-          <Button
-            variant="ghost"
-            size="icon-lg"
-            aria-label="Toggle theme"
-            onClick={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
-            }
-          >
-            {resolvedTheme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
-          </Button>
+          <Coins className="text-primary" size={24} />
+          <h1 className="text-2xl text-primary font-title">True Up</h1>
         </div>
+      </Link>
+      <div className="flex gap-2 items-center">
+        <InstallAppButton />
+        <Button
+          variant="ghost"
+          size="icon-lg"
+          aria-label="Toggle theme"
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          className="cursor-pointer"
+        >
+          {resolvedTheme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+        </Button>
       </div>
     </div>
   );
