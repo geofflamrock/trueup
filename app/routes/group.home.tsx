@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import {
   BadgeCheckIcon,
   Banknote,
+  ChevronDownIcon,
   ChevronRight,
   Coins,
   HandCoins,
@@ -18,7 +19,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "~/components/ui/item";
-import type { Group } from "~/types";
+import type { Balance, Group } from "~/types";
 import {
   Empty,
   EmptyContent,
@@ -27,6 +28,16 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "~/components/ui/empty";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { Collapsible, CollapsibleContent } from "~/components/ui/collapsible";
+import { useState } from "react";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -55,47 +66,79 @@ export default function GroupHomePage() {
       {balances.length === 0 ? (
         <GroupBalancedEmptyState group={group} />
       ) : (
-        <div className="flex flex-col gap-4">
-          {balances.map((balance, idx) => {
-            const fromPerson = group.people.find(
-              (p) => p.id === balance.fromPersonId,
-            )!;
-            const toPerson = group.people.find(
-              (p) => p.id === balance.toPersonId,
-            )!;
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {balances.map((balance) => {
             return (
-              <Item
-                variant="muted"
-                size="default"
-                key={idx}
-                render={
-                  <Link
-                    to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
-                    prefetch="viewport"
-                    className="cursor-pointer"
-                  >
-                    <ItemMedia variant="icon">
-                      <Coins size={24} className="size-6" />
-                    </ItemMedia>
-                    <ItemContent>
-                      <ItemTitle className="text-lg">
-                        {fromPerson.name} owes {toPerson.name}
-                      </ItemTitle>
-                      <ItemDescription className="text-primary text-lg">
-                        ${balance.amount.toFixed(2)}
-                      </ItemDescription>
-                    </ItemContent>
-                    <ItemActions>
-                      Mark as paid <ChevronRight size={24} />
-                    </ItemActions>
-                  </Link>
-                }
+              <BalanceCard
+                key={`${balance.fromPersonId}-${balance.toPersonId}`}
+                group={group}
+                balance={balance}
               />
             );
           })}
         </div>
       )}
     </div>
+  );
+}
+
+type BalanceCardProps = {
+  group: Group;
+  balance: Balance;
+};
+
+function BalanceCard({ group, balance }: BalanceCardProps) {
+  const [open, setOpen] = useState(false);
+
+  const fromPerson = group.people.find((p) => p.id === balance.fromPersonId)!;
+  const toPerson = group.people.find((p) => p.id === balance.toPersonId)!;
+
+  return (
+    <Card size="sm">
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CardHeader className="items-center" onClick={() => setOpen(!open)}>
+          <CardTitle className="flex items-center gap-2 justify-between -mr-1">
+            <div className="flex items-center gap-2">
+              <Coins size={24} className="size-6" />
+              <span>
+                {fromPerson.name} owes {toPerson.name}{" "}
+                <span className="text-primary">
+                  ${balance.amount.toFixed(2)}
+                </span>
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              title="Details"
+              className="cursor-pointer"
+            >
+              <ChevronDownIcon
+                size={16}
+                className={`transition-transform ${open ? "rotate-180" : ""}`}
+              />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardFooter className="pt-4">
+            <Button
+              render={
+                <Link
+                  to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
+                  prefetch="viewport"
+                  className="cursor-pointer"
+                />
+              }
+              variant="muted"
+              size="lg"
+            >
+              Mark as paid
+            </Button>
+          </CardFooter>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
   );
 }
 
