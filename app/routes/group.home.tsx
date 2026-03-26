@@ -38,6 +38,7 @@ import {
 } from "~/components/ui/card";
 import { Collapsible, CollapsibleContent } from "~/components/ui/collapsible";
 import { useState } from "react";
+import { cn } from "~/lib/utils";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -96,7 +97,10 @@ function BalanceCard({ group, balance }: BalanceCardProps) {
   return (
     <Card size="sm">
       <Collapsible open={open} onOpenChange={setOpen}>
-        <CardHeader className="items-center" onClick={() => setOpen(!open)}>
+        <CardHeader
+          className="items-center cursor-pointer"
+          onClick={() => setOpen(!open)}
+        >
           <CardTitle className="flex items-center gap-2 justify-between -mr-1">
             <div className="flex items-center gap-2">
               <Coins size={24} className="size-6" />
@@ -107,15 +111,12 @@ function BalanceCard({ group, balance }: BalanceCardProps) {
                 </span>
               </span>
             </div>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              title="Details"
-              className="cursor-pointer"
-            >
+            <Button variant="ghost" size="icon-sm" title="Details">
               <ChevronDownIcon
-                size={16}
-                className={`transition-transform ${open ? "rotate-180" : ""}`}
+                size={24}
+                className={cn("size-6 transition-transform", {
+                  "rotate-180": open,
+                })}
               />
             </Button>
           </CardTitle>
