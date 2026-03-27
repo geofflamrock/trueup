@@ -83,7 +83,7 @@ export default function GroupBreakdownPage() {
   if (isDesktop) {
     return (
       <div className="p-4 flex flex-col gap-4">
-        <Table>
+        <Table className="text-base">
           <TableHeader>
             <TableRow>
               <TableHead>Person</TableHead>
@@ -131,7 +131,7 @@ export default function GroupBreakdownPage() {
 
   return (
     <div className="p-4 flex flex-col gap-4">
-      <Table>
+      <Table className="text-base">
         <TableBody>
           {tableRows.map((row, personIndex) =>
             breakdownTypes.map(({ key, label, sign }, index) => (

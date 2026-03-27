@@ -146,7 +146,7 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
                 prefetch="viewport"
                 className="cursor-pointer"
               >
-                <Banknote /> New Expense
+                <Banknote /> New expense
               </Link>
             }
           />
@@ -157,7 +157,7 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
                 prefetch="viewport"
                 className="cursor-pointer"
               >
-                <HandCoins /> New Transfer
+                <HandCoins /> New transfer
               </Link>
             }
           />
@@ -188,7 +188,7 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
                 prefetch="viewport"
                 className="cursor-pointer"
               >
-                <Banknote /> New Expense
+                <Banknote /> New expense
               </Link>
             }
           />
@@ -202,7 +202,7 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
                 prefetch="viewport"
                 className="cursor-pointer"
               >
-                <HandCoins /> New Transfer
+                <HandCoins /> New transfer
               </Link>
             }
           />

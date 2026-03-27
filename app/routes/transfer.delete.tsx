@@ -45,7 +45,7 @@ export default function DeleteTransfer() {
 
   return (
     <DialogOrDrawer
-      title="Delete Transfer"
+      title="Delete transfer"
       description={
         <span>
           Are you sure you want to delete the transfer from{" "}

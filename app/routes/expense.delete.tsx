@@ -41,7 +41,7 @@ export default function DeleteExpense() {
 
   return (
     <DialogOrDrawer
-      title="Delete Expense"
+      title="Delete expense"
       description={
         <span>
           Are you sure you want to delete the expense{" "}

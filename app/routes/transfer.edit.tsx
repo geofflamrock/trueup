@@ -99,7 +99,7 @@ export default function EditTransfer() {
             <ArrowLeft className="size-6" />
           </Button>
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            Edit Transfer
+            Edit transfer
           </h1>
         </div>
       }
@@ -217,7 +217,7 @@ export default function EditTransfer() {
                     prefetch="viewport"
                     className="cursor-pointer"
                   >
-                    Delete Transfer
+                    Delete transfer
                   </Link>
                 }
               />

@@ -136,7 +136,7 @@ export default function NewGroup() {
                   type="button"
                   onClick={addPerson}
                   variant="outline"
-                  size={isDesktop ? "sm" : "default"}
+                  size="lg"
                   className="cursor-pointer"
                 >
                   <UserPlus /> Add Person
