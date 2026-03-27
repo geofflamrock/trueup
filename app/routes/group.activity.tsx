@@ -93,7 +93,7 @@ function GroupNoActivityEmptyState({ group }: GroupNoActivityEmptyStateProps) {
               prefetch="viewport"
               className="cursor-pointer"
             >
-              <Banknote /> New Expense
+              <Banknote className="size-5" /> New Expense
             </Link>
           }
         />
@@ -106,7 +106,7 @@ function GroupNoActivityEmptyState({ group }: GroupNoActivityEmptyStateProps) {
               prefetch="viewport"
               className="cursor-pointer"
             >
-              <HandCoins /> New Transfer
+              <HandCoins className="size-5" /> New Transfer
             </Link>
           }
         />
@@ -181,14 +181,16 @@ function Timeline({ group }: TimelineProps) {
                       className="cursor-pointer"
                     >
                       <ItemMedia variant="icon">
-                        <Banknote />
+                        <Banknote className="size-5" />
                       </ItemMedia>
                       <ItemContent>
-                        <ItemTitle>
+                        <ItemTitle className="text-base">
                           {getPersonName(item.paidById)} paid $
                           {item.amount.toFixed(2)}
                         </ItemTitle>
-                        <ItemDescription>{item.description}</ItemDescription>
+                        <ItemDescription className="text-base">
+                          {item.description}
+                        </ItemDescription>
                       </ItemContent>
                       <ItemActions>
                         <Popover>
@@ -203,7 +205,7 @@ function Timeline({ group }: TimelineProps) {
                                   e.preventDefault();
                                 }}
                               >
-                                <ChartPie size={16} />
+                                <ChartPie className="size-5" />
                               </Button>
                             }
                           ></PopoverTrigger>
@@ -243,16 +245,18 @@ function Timeline({ group }: TimelineProps) {
                       className="cursor-pointer"
                     >
                       <ItemMedia variant="icon">
-                        <HandCoins />
+                        <HandCoins className="size-5" />
                       </ItemMedia>
                       <ItemContent>
-                        <ItemTitle>
+                        <ItemTitle className="text-base">
                           {getPersonName(item.paidById)} sent $
                           {item.amount.toFixed(2)} to{" "}
                           {getPersonName(item.paidToId)}
                         </ItemTitle>
                         {item.description && (
-                          <ItemDescription>{item.description}</ItemDescription>
+                          <ItemDescription className="text-base">
+                            {item.description}
+                          </ItemDescription>
                         )}
                       </ItemContent>
                     </Link>
