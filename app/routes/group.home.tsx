@@ -19,7 +19,7 @@ import {
   ItemMedia,
   ItemTitle,
 } from "~/components/ui/item";
-import type { Balance, Group } from "~/types";
+import type { Balance, Group, Person } from "~/types";
 import {
   Empty,
   EmptyContent,
@@ -37,7 +37,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Collapsible, CollapsibleContent } from "~/components/ui/collapsible";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "~/lib/utils";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -88,11 +88,111 @@ type BalanceCardProps = {
   balance: Balance;
 };
 
+type BalanceBreakdown = {
+  totalExpenses: number;
+  fromPersonShare: number;
+  fromPersonPaid: number;
+  toPersonPaid: number;
+  fromPersonTransfers: number;
+};
+
+function getBalanceBreakdown(
+  group: Group,
+  fromPersonId: number,
+  toPersonId: number,
+): BalanceBreakdown {
+  const totalExpenses = group.expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  const fromPersonShare = group.expenses.reduce((sum, e) => {
+    const share = e.shares.find((s) => s.personId === fromPersonId);
+    return sum + (share?.amount ?? 0);
+  }, 0);
+
+  const fromPersonPaid = group.expenses
+    .filter((e) => e.paidById === fromPersonId)
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const toPersonPaid = group.expenses
+    .filter((e) => e.paidById === toPersonId)
+    .reduce((sum, e) => sum + e.amount, 0);
+
+  const fromPersonTransfers = group.transfers
+    .filter((t) => t.paidById === fromPersonId)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  return {
+    totalExpenses,
+    fromPersonShare,
+    fromPersonPaid,
+    toPersonPaid,
+    fromPersonTransfers,
+  };
+}
+
+type BalanceBreakdownViewProps = {
+  breakdown: BalanceBreakdown;
+  balance: Balance;
+  fromPerson: Person;
+  toPerson: Person;
+};
+
+function BalanceBreakdownView({
+  breakdown,
+  balance,
+  fromPerson,
+  toPerson,
+}: BalanceBreakdownViewProps) {
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">Total expenses</span>
+        <span>${breakdown.totalExpenses.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">
+          {fromPerson.name}&apos;s share
+        </span>
+        <span>${breakdown.fromPersonShare.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">{fromPerson.name} paid</span>
+        <span>${breakdown.fromPersonPaid.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">{toPerson.name} paid</span>
+        <span>${breakdown.toPersonPaid.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">
+          {fromPerson.name}&apos;s transfers
+        </span>
+        <span>${breakdown.fromPersonTransfers.toFixed(2)}</span>
+      </div>
+      <div className="border-t pt-2 flex justify-between gap-4 font-medium">
+        <span>
+          {fromPerson.name} owes {toPerson.name}
+        </span>
+        <span className="text-primary">${balance.amount.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+}
+
 function BalanceCard({ group, balance }: BalanceCardProps) {
   const [open, setOpen] = useState(false);
 
-  const fromPerson = group.people.find((p) => p.id === balance.fromPersonId)!;
-  const toPerson = group.people.find((p) => p.id === balance.toPersonId)!;
+  const fromPerson = useMemo(
+    () => group.people.find((p) => p.id === balance.fromPersonId)!,
+    [group.people, balance.fromPersonId],
+  );
+  const toPerson = useMemo(
+    () => group.people.find((p) => p.id === balance.toPersonId)!,
+    [group.people, balance.toPersonId],
+  );
+  const breakdown = useMemo(
+    () => getBalanceBreakdown(group, balance.fromPersonId, balance.toPersonId),
+    [group, balance.fromPersonId, balance.toPersonId],
+  );
 
   return (
     <Card size="sm">
@@ -122,6 +222,14 @@ function BalanceCard({ group, balance }: BalanceCardProps) {
           </CardTitle>
         </CardHeader>
         <CollapsibleContent>
+          <CardContent>
+            <BalanceBreakdownView
+              breakdown={breakdown}
+              balance={balance}
+              fromPerson={fromPerson}
+              toPerson={toPerson}
+            />
+          </CardContent>
           <CardFooter className="pt-4">
             <Button
               render={
