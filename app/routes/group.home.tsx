@@ -7,18 +7,9 @@ import {
   BadgeCheckIcon,
   Banknote,
   ChevronDownIcon,
-  ChevronRight,
   Coins,
   HandCoins,
 } from "lucide-react";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "~/components/ui/item";
 import type { Balance, Group, Person } from "~/types";
 import {
   Empty,
@@ -30,7 +21,6 @@ import {
 } from "~/components/ui/empty";
 import {
   Card,
-  CardAction,
   CardContent,
   CardFooter,
   CardHeader,
@@ -222,7 +212,7 @@ function BalanceCard({ group, balance }: BalanceCardProps) {
           </CardTitle>
         </CardHeader>
         <CollapsibleContent>
-          <CardContent>
+          <CardContent className="p-4">
             <BalanceBreakdownView
               breakdown={breakdown}
               balance={balance}
@@ -230,7 +220,7 @@ function BalanceCard({ group, balance }: BalanceCardProps) {
               toPerson={toPerson}
             />
           </CardContent>
-          <CardFooter className="pt-4">
+          <CardFooter className="pt-2">
             <Button
               render={
                 <Link
