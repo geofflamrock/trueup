@@ -52,171 +52,72 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 export default function GroupHomePage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
 
+  const personBalances = useMemo(() => {
+    const map = new Map<number, Balance[]>();
+    for (const balance of balances) {
+      if (!map.has(balance.fromPersonId)) map.set(balance.fromPersonId, []);
+      map.get(balance.fromPersonId)!.push(balance);
+    }
+    return Array.from(map.entries()).map(([personId, bals]) => ({
+      person: group.people.find((p) => p.id === personId)!,
+      balances: bals,
+    }));
+  }, [group.people, balances]);
+
   return (
     <div className="p-4">
       {balances.length === 0 ? (
         <GroupBalancedEmptyState group={group} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {balances.map((balance) => {
-            return (
-              <BalanceCard
-                key={`${balance.fromPersonId}-${balance.toPersonId}`}
-                group={group}
-                balance={balance}
-              />
-            );
-          })}
+          {personBalances.map(({ person, balances: pBalances }) => (
+            <PersonBalanceCard
+              key={person.id}
+              group={group}
+              person={person}
+              balances={pBalances}
+            />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-type BalanceCardProps = {
+type PersonBalanceCardProps = {
   group: Group;
-  balance: Balance;
+  person: Person;
+  balances: Balance[];
 };
 
-type BalanceBreakdown = {
-  fromPersonShare: number;
-  fromPersonPaid: number;
-  fromPersonTransfersSent: number;
-  fromPersonTotalDebt: number;
-  toPersonPaid: number;
-  toPersonShare: number;
-  toPersonTransfersReceived: number;
-};
-
-function getBalanceBreakdown(
-  group: Group,
-  fromPersonId: number,
-  toPersonId: number,
-): BalanceBreakdown {
-  const fromPersonShare = group.expenses.reduce((sum, e) => {
-    const share = e.shares.find((s) => s.personId === fromPersonId);
-    return sum + (share?.amount ?? 0);
-  }, 0);
-
-  const fromPersonPaid = group.expenses
-    .filter((e) => e.paidById === fromPersonId)
-    .reduce((sum, e) => sum + e.amount, 0);
-
-  const fromPersonTransfersSent = group.transfers
-    .filter((t) => t.paidById === fromPersonId)
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const fromPersonTransfersReceived = group.transfers
-    .filter((t) => t.paidToId === fromPersonId)
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  // fromPerson is always a debtor (net balance < 0) so this value is always > 0
-  const fromPersonTotalDebt =
-    fromPersonShare -
-    fromPersonPaid -
-    fromPersonTransfersSent +
-    fromPersonTransfersReceived;
-
-  const toPersonPaid = group.expenses
-    .filter((e) => e.paidById === toPersonId)
-    .reduce((sum, e) => sum + e.amount, 0);
-
-  const toPersonShare = group.expenses.reduce((sum, e) => {
-    const share = e.shares.find((s) => s.personId === toPersonId);
-    return sum + (share?.amount ?? 0);
-  }, 0);
-
-  const toPersonTransfersReceived = group.transfers
-    .filter((t) => t.paidToId === toPersonId)
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  return {
-    fromPersonShare,
-    fromPersonPaid,
-    fromPersonTransfersSent,
-    fromPersonTotalDebt,
-    toPersonPaid,
-    toPersonShare,
-    toPersonTransfersReceived,
-  };
-}
-
-type BalanceBreakdownViewProps = {
-  breakdown: BalanceBreakdown;
-  balance: Balance;
-  fromPerson: Person;
-  toPerson: Person;
-};
-
-function BalanceBreakdownView({
-  breakdown,
-  balance,
-  fromPerson,
-  toPerson,
-}: BalanceBreakdownViewProps) {
-  return (
-    <div className="flex flex-col gap-2 text-sm">
-      <div className="flex justify-between gap-4">
-        <span className="text-muted-foreground">
-          {fromPerson.name}&apos;s share
-        </span>
-        <span>${breakdown.fromPersonShare.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-muted-foreground">{fromPerson.name} paid</span>
-        <span>${breakdown.fromPersonPaid.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-muted-foreground">
-          {fromPerson.name}&apos;s transfers
-        </span>
-        <span>${breakdown.fromPersonTransfersSent.toFixed(2)}</span>
-      </div>
-      <div className="border-t pt-2 flex justify-between gap-4 font-medium">
-        <span>{fromPerson.name} owes in total</span>
-        <span>${breakdown.fromPersonTotalDebt.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between gap-4 pt-2">
-        <span className="text-muted-foreground">{toPerson.name} paid</span>
-        <span>${breakdown.toPersonPaid.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-muted-foreground">
-          {toPerson.name}&apos;s share
-        </span>
-        <span>${breakdown.toPersonShare.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between gap-4">
-        <span className="text-muted-foreground">
-          Transfers to {toPerson.name}
-        </span>
-        <span>${breakdown.toPersonTransfersReceived.toFixed(2)}</span>
-      </div>
-      <div className="border-t pt-2 flex justify-between gap-4 font-medium">
-        <span>
-          {fromPerson.name} owes {toPerson.name}
-        </span>
-        <span className="text-primary">${balance.amount.toFixed(2)}</span>
-      </div>
-    </div>
-  );
-}
-
-function BalanceCard({ group, balance }: BalanceCardProps) {
+function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) {
   const [open, setOpen] = useState(false);
 
-  const fromPerson = useMemo(
-    () => group.people.find((p) => p.id === balance.fromPersonId)!,
-    [group.people, balance.fromPersonId],
+  const creditors = useMemo(
+    () =>
+      balances.map((b) => ({
+        balance: b,
+        person: group.people.find((p) => p.id === b.toPersonId)!,
+      })),
+    [balances, group.people],
   );
-  const toPerson = useMemo(
-    () => group.people.find((p) => p.id === balance.toPersonId)!,
-    [group.people, balance.toPersonId],
-  );
-  const breakdown = useMemo(
-    () => getBalanceBreakdown(group, balance.fromPersonId, balance.toPersonId),
-    [group, balance.fromPersonId, balance.toPersonId],
-  );
+
+  const breakdown = useMemo(() => {
+    const share = group.expenses.reduce((sum, e) => {
+      const s = e.shares.find((s) => s.personId === person.id);
+      return sum + (s?.amount ?? 0);
+    }, 0);
+    const paid = group.expenses
+      .filter((e) => e.paidById === person.id)
+      .reduce((sum, e) => sum + e.amount, 0);
+    const transfersSent = group.transfers
+      .filter((t) => t.paidById === person.id)
+      .reduce((sum, t) => sum + t.amount, 0);
+    const transfersReceived = group.transfers
+      .filter((t) => t.paidToId === person.id)
+      .reduce((sum, t) => sum + t.amount, 0);
+    return { share, paidAndTransferred: paid + transfersSent - transfersReceived };
+  }, [group.expenses, group.transfers, person.id]);
 
   return (
     <Card size="sm">
@@ -229,10 +130,17 @@ function BalanceCard({ group, balance }: BalanceCardProps) {
             <div className="flex items-center gap-2">
               <Coins size={24} className="size-6" />
               <span>
-                {fromPerson.name} owes {toPerson.name}{" "}
-                <span className="text-primary">
-                  ${balance.amount.toFixed(2)}
-                </span>
+                {person.name} owes{" "}
+                {creditors.map(({ balance, person: creditor }, i) => (
+                  <span key={creditor.id}>
+                    {i > 0 &&
+                      (i === creditors.length - 1 ? " and " : ", ")}
+                    {creditor.name}{" "}
+                    <span className="text-primary">
+                      ${balance.amount.toFixed(2)}
+                    </span>
+                  </span>
+                ))}
               </span>
             </div>
             <Button variant="ghost" size="icon-sm" title="Details">
@@ -247,27 +155,53 @@ function BalanceCard({ group, balance }: BalanceCardProps) {
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="p-4">
-            <BalanceBreakdownView
-              breakdown={breakdown}
-              balance={balance}
-              fromPerson={fromPerson}
-              toPerson={toPerson}
-            />
+            <div className="flex flex-col gap-2 text-sm">
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">
+                  {person.name}&apos;s share
+                </span>
+                <span>${breakdown.share.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-muted-foreground">
+                  Paid + transferred
+                </span>
+                <span>${breakdown.paidAndTransferred.toFixed(2)}</span>
+              </div>
+              <div className="border-t pt-2 flex flex-col gap-1">
+                {creditors.map(({ balance, person: creditor }) => (
+                  <div
+                    key={creditor.id}
+                    className="flex justify-between gap-4 font-medium"
+                  >
+                    <span>Owes {creditor.name}</span>
+                    <span className="text-primary">
+                      ${balance.amount.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CardContent>
-          <CardFooter className="pt-2">
-            <Button
-              render={
-                <Link
-                  to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
-                  prefetch="viewport"
-                  className="cursor-pointer"
-                />
-              }
-              variant="muted"
-              size="lg"
-            >
-              Mark as paid
-            </Button>
+          <CardFooter className="pt-2 flex gap-2 flex-wrap">
+            {creditors.map(({ balance, person: creditor }) => (
+              <Button
+                key={creditor.id}
+                render={
+                  <Link
+                    to={`/${group.id}/transfers/new?from=${person.id}&to=${creditor.id}&amount=${balance.amount.toFixed(2)}`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  />
+                }
+                variant="muted"
+                size="lg"
+              >
+                {creditors.length === 1
+                  ? "Mark as paid"
+                  : `Pay ${creditor.name}`}
+              </Button>
+            ))}
           </CardFooter>
         </CollapsibleContent>
       </Collapsible>
