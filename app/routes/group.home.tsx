@@ -79,11 +79,13 @@ type BalanceCardProps = {
 };
 
 type BalanceBreakdown = {
-  totalExpenses: number;
   fromPersonShare: number;
   fromPersonPaid: number;
+  fromPersonTransfersSent: number;
+  fromPersonTotalDebt: number;
   toPersonPaid: number;
-  fromPersonTransfers: number;
+  toPersonShare: number;
+  toPersonTransfersReceived: number;
 };
 
 function getBalanceBreakdown(
@@ -91,8 +93,6 @@ function getBalanceBreakdown(
   fromPersonId: number,
   toPersonId: number,
 ): BalanceBreakdown {
-  const totalExpenses = group.expenses.reduce((sum, e) => sum + e.amount, 0);
-
   const fromPersonShare = group.expenses.reduce((sum, e) => {
     const share = e.shares.find((s) => s.personId === fromPersonId);
     return sum + (share?.amount ?? 0);
@@ -102,20 +102,42 @@ function getBalanceBreakdown(
     .filter((e) => e.paidById === fromPersonId)
     .reduce((sum, e) => sum + e.amount, 0);
 
+  const fromPersonTransfersSent = group.transfers
+    .filter((t) => t.paidById === fromPersonId)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const fromPersonTransfersReceived = group.transfers
+    .filter((t) => t.paidToId === fromPersonId)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // fromPerson is always a debtor (net balance < 0) so this value is always > 0
+  const fromPersonTotalDebt =
+    fromPersonShare -
+    fromPersonPaid -
+    fromPersonTransfersSent +
+    fromPersonTransfersReceived;
+
   const toPersonPaid = group.expenses
     .filter((e) => e.paidById === toPersonId)
     .reduce((sum, e) => sum + e.amount, 0);
 
-  const fromPersonTransfers = group.transfers
-    .filter((t) => t.paidById === fromPersonId)
+  const toPersonShare = group.expenses.reduce((sum, e) => {
+    const share = e.shares.find((s) => s.personId === toPersonId);
+    return sum + (share?.amount ?? 0);
+  }, 0);
+
+  const toPersonTransfersReceived = group.transfers
+    .filter((t) => t.paidToId === toPersonId)
     .reduce((sum, t) => sum + t.amount, 0);
 
   return {
-    totalExpenses,
     fromPersonShare,
     fromPersonPaid,
+    fromPersonTransfersSent,
+    fromPersonTotalDebt,
     toPersonPaid,
-    fromPersonTransfers,
+    toPersonShare,
+    toPersonTransfersReceived,
   };
 }
 
@@ -135,10 +157,6 @@ function BalanceBreakdownView({
   return (
     <div className="flex flex-col gap-2 text-sm">
       <div className="flex justify-between gap-4">
-        <span className="text-muted-foreground">Total expenses</span>
-        <span>${breakdown.totalExpenses.toFixed(2)}</span>
-      </div>
-      <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">
           {fromPerson.name}&apos;s share
         </span>
@@ -149,14 +167,30 @@ function BalanceBreakdownView({
         <span>${breakdown.fromPersonPaid.toFixed(2)}</span>
       </div>
       <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">
+          {fromPerson.name}&apos;s transfers
+        </span>
+        <span>${breakdown.fromPersonTransfersSent.toFixed(2)}</span>
+      </div>
+      <div className="border-t pt-2 flex justify-between gap-4 font-medium">
+        <span>{fromPerson.name} owes in total</span>
+        <span>${breakdown.fromPersonTotalDebt.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between gap-4 pt-2">
         <span className="text-muted-foreground">{toPerson.name} paid</span>
         <span>${breakdown.toPersonPaid.toFixed(2)}</span>
       </div>
       <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">
-          {fromPerson.name}&apos;s transfers
+          {toPerson.name}&apos;s share
         </span>
-        <span>${breakdown.fromPersonTransfers.toFixed(2)}</span>
+        <span>${breakdown.toPersonShare.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between gap-4">
+        <span className="text-muted-foreground">
+          Transfers to {toPerson.name}
+        </span>
+        <span>${breakdown.toPersonTransfersReceived.toFixed(2)}</span>
       </div>
       <div className="border-t pt-2 flex justify-between gap-4 font-medium">
         <span>
