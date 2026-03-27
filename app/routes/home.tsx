@@ -65,7 +65,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       <PeopleAvatarGroup people={group.people} max={2} />
                     </ItemMedia>
                     <ItemContent>
-                      <ItemTitle className="text-lg">{group.name}</ItemTitle>
+                      <ItemTitle className="text-xl">{group.name}</ItemTitle>
                     </ItemContent>
                     <ItemActions>
                       <ChevronRight size={24} />

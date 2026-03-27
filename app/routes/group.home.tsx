@@ -101,7 +101,7 @@ function BalanceCard({ group, balance }: BalanceCardProps) {
           className="items-center cursor-pointer"
           onClick={() => setOpen(!open)}
         >
-          <CardTitle className="flex items-center gap-2 justify-between -mr-1">
+          <CardTitle className="flex items-center gap-2 justify-between -mr-1 text-lg">
             <div className="flex items-center gap-2">
               <Coins size={24} className="size-6" />
               <span>
@@ -167,7 +167,7 @@ function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
               prefetch="viewport"
               className="cursor-pointer"
             >
-              <Banknote /> New Expense
+              <Banknote className="size-5" /> New Expense
             </Link>
           }
         />
@@ -180,7 +180,7 @@ function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
               prefetch="viewport"
               className="cursor-pointer"
             >
-              <HandCoins /> New Transfer
+              <HandCoins className="size-5" /> New Transfer
             </Link>
           }
         />
