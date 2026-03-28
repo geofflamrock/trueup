@@ -6,6 +6,7 @@ import { Button } from "~/components/ui/button";
 import {
   BadgeCheckIcon,
   Banknote,
+  ChartNoAxesCombined,
   ChevronDownIcon,
   Coins,
   HandCoins,
@@ -87,6 +88,9 @@ export default function GroupHomePage() {
               balances={pBalances}
             />
           ))}
+          <div className="md:col-span-2">
+            <BreakdownCard group={group} />
+          </div>
         </div>
       )}
     </div>
@@ -100,12 +104,11 @@ type PersonBalanceCardProps = {
 };
 
 function formatBalance(value: number): string {
-  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+  if (value === 0) return `$0.00`;
+  return `${value > 0 ? "+" : "-"}$${Math.abs(value).toFixed(2)}`;
 }
 
 function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) {
-  const [open, setOpen] = useState(false);
-
   const creditors = useMemo(
     () =>
       balances.map((b) => ({
@@ -115,7 +118,55 @@ function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) 
     [balances, group.people],
   );
 
-  // Compute per-person row data for the breakdown table
+  return (
+    <Card size="sm">
+      <CardHeader className="items-center">
+        <CardTitle className="flex items-center gap-2">
+          <Coins size={24} className="size-6" />
+          <span>
+            {person.name} owes{" "}
+            {creditors.map(({ balance, person: creditor }, i) => (
+              <span key={creditor.id}>
+                {i > 0 &&
+                  (i === creditors.length - 1 ? " and " : ", ")}
+                {creditor.name}{" "}
+                <span className="text-primary">
+                  ${balance.amount.toFixed(2)}
+                </span>
+              </span>
+            ))}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardFooter className="pt-2 flex gap-2 flex-wrap">
+        {creditors.map(({ balance, person: creditor }) => (
+          <Button
+            key={creditor.id}
+            render={
+              <Link
+                to={`/${group.id}/transfers/new?from=${person.id}&to=${creditor.id}&amount=${balance.amount.toFixed(2)}`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              />
+            }
+            variant="muted"
+            size="lg"
+          >
+            Pay {creditor.name}
+          </Button>
+        ))}
+      </CardFooter>
+    </Card>
+  );
+}
+
+type BreakdownCardProps = {
+  group: Group;
+};
+
+function BreakdownCard({ group }: BreakdownCardProps) {
+  const [open, setOpen] = useState(false);
+
   const tableRows = useMemo(() => {
     return group.people.map((p) => {
       const expenses = group.expenses.reduce((sum, e) => {
@@ -161,22 +212,10 @@ function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) 
         >
           <CardTitle className="flex items-center gap-2 justify-between -mr-1">
             <div className="flex items-center gap-2">
-              <Coins size={24} className="size-6" />
-              <span>
-                {person.name} owes{" "}
-                {creditors.map(({ balance, person: creditor }, i) => (
-                  <span key={creditor.id}>
-                    {i > 0 &&
-                      (i === creditors.length - 1 ? " and " : ", ")}
-                    {creditor.name}{" "}
-                    <span className="text-primary">
-                      ${balance.amount.toFixed(2)}
-                    </span>
-                  </span>
-                ))}
-              </span>
+              <ChartNoAxesCombined size={24} className="size-6" />
+              <span>Breakdown</span>
             </div>
-            <Button variant="ghost" size="icon-sm" title="Details">
+            <Button variant="ghost" size="icon-sm" title="Toggle breakdown">
               <ChevronDownIcon
                 size={24}
                 className={cn("size-6 transition-transform", {
@@ -200,39 +239,33 @@ function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tableRows.map((row) => {
-                  const isSubject = row.person.id === person.id;
-                  return (
-                    <TableRow
-                      key={row.person.id}
-                      className={cn(isSubject && "bg-muted/60 font-medium")}
+                {tableRows.map((row) => (
+                  <TableRow key={row.person.id}>
+                    <TableCell className="pl-0">{row.person.name}</TableCell>
+                    <TableCell className="text-right">
+                      ${row.expenses.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      ${row.paid.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      ${row.sent.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      ${row.received.toFixed(2)}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right pr-0",
+                        row.balance >= 0
+                          ? "text-primary"
+                          : "text-destructive",
+                      )}
                     >
-                      <TableCell className="pl-0">{row.person.name}</TableCell>
-                      <TableCell className="text-right">
-                        ${row.expenses.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        ${row.paid.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        ${row.sent.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        ${row.received.toFixed(2)}
-                      </TableCell>
-                      <TableCell
-                        className={cn(
-                          "text-right pr-0",
-                          row.balance >= 0
-                            ? "text-primary"
-                            : "text-destructive",
-                        )}
-                      >
-                        {formatBalance(row.balance)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      {formatBalance(row.balance)}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
               <TableFooter>
                 <TableRow>
@@ -256,26 +289,6 @@ function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) 
               </TableFooter>
             </Table>
           </CardContent>
-          <CardFooter className="pt-2 flex gap-2 flex-wrap">
-            {creditors.map(({ balance, person: creditor }) => (
-              <Button
-                key={creditor.id}
-                render={
-                  <Link
-                    to={`/${group.id}/transfers/new?from=${person.id}&to=${creditor.id}&amount=${balance.amount.toFixed(2)}`}
-                    prefetch="viewport"
-                    className="cursor-pointer"
-                  />
-                }
-                variant="muted"
-                size="lg"
-              >
-                {creditors.length === 1
-                  ? "Mark as paid"
-                  : `Pay ${creditor.name}`}
-              </Button>
-            ))}
-          </CardFooter>
         </CollapsibleContent>
       </Collapsible>
     </Card>
