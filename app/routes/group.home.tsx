@@ -27,6 +27,15 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { Collapsible, CollapsibleContent } from "~/components/ui/collapsible";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
 import { useMemo, useState } from "react";
 import { cn } from "~/lib/utils";
 
@@ -90,6 +99,10 @@ type PersonBalanceCardProps = {
   balances: Balance[];
 };
 
+function formatBalance(value: number): string {
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}`;
+}
+
 function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) {
   const [open, setOpen] = useState(false);
 
@@ -102,22 +115,42 @@ function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) 
     [balances, group.people],
   );
 
-  const breakdown = useMemo(() => {
-    const share = group.expenses.reduce((sum, e) => {
-      const s = e.shares.find((s) => s.personId === person.id);
-      return sum + (s?.amount ?? 0);
-    }, 0);
-    const paid = group.expenses
-      .filter((e) => e.paidById === person.id)
-      .reduce((sum, e) => sum + e.amount, 0);
-    const transfersSent = group.transfers
-      .filter((t) => t.paidById === person.id)
-      .reduce((sum, t) => sum + t.amount, 0);
-    const transfersReceived = group.transfers
-      .filter((t) => t.paidToId === person.id)
-      .reduce((sum, t) => sum + t.amount, 0);
-    return { share, paidAndTransferred: paid + transfersSent - transfersReceived };
-  }, [group.expenses, group.transfers, person.id]);
+  // Compute per-person row data for the breakdown table
+  const tableRows = useMemo(() => {
+    return group.people.map((p) => {
+      const expenses = group.expenses.reduce((sum, e) => {
+        const share = e.shares.find((s) => s.personId === p.id);
+        return sum + (share?.amount ?? 0);
+      }, 0);
+      const paid = group.expenses
+        .filter((e) => e.paidById === p.id)
+        .reduce((sum, e) => sum + e.amount, 0);
+      const sent = group.transfers
+        .filter((t) => t.paidById === p.id)
+        .reduce((sum, t) => sum + t.amount, 0);
+      const received = group.transfers
+        .filter((t) => t.paidToId === p.id)
+        .reduce((sum, t) => sum + t.amount, 0);
+      // Positive = owed money, negative = owes money
+      const balance = paid - expenses + sent - received;
+      return { person: p, expenses, paid, sent, received, balance };
+    });
+  }, [group.people, group.expenses, group.transfers]);
+
+  const totals = useMemo(
+    () =>
+      tableRows.reduce(
+        (acc, r) => ({
+          expenses: acc.expenses + r.expenses,
+          paid: acc.paid + r.paid,
+          sent: acc.sent + r.sent,
+          received: acc.received + r.received,
+          balance: acc.balance + r.balance,
+        }),
+        { expenses: 0, paid: 0, sent: 0, received: 0, balance: 0 },
+      ),
+    [tableRows],
+  );
 
   return (
     <Card size="sm">
@@ -154,34 +187,74 @@ function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) 
           </CardTitle>
         </CardHeader>
         <CollapsibleContent>
-          <CardContent className="p-4">
-            <div className="flex flex-col gap-2 text-sm">
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">
-                  {person.name}&apos;s share
-                </span>
-                <span>${breakdown.share.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between gap-4">
-                <span className="text-muted-foreground">
-                  Paid + transferred
-                </span>
-                <span>${breakdown.paidAndTransferred.toFixed(2)}</span>
-              </div>
-              <div className="border-t pt-2 flex flex-col gap-1">
-                {creditors.map(({ balance, person: creditor }) => (
-                  <div
-                    key={creditor.id}
-                    className="flex justify-between gap-4 font-medium"
-                  >
-                    <span>Owes {creditor.name}</span>
-                    <span className="text-primary">
-                      ${balance.amount.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <CardContent className="px-4 pb-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-0">Person</TableHead>
+                  <TableHead className="text-right">Expenses</TableHead>
+                  <TableHead className="text-right">Paid</TableHead>
+                  <TableHead className="text-right">Sent</TableHead>
+                  <TableHead className="text-right">Received</TableHead>
+                  <TableHead className="text-right pr-0">Balance</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tableRows.map((row) => {
+                  const isSubject = row.person.id === person.id;
+                  return (
+                    <TableRow
+                      key={row.person.id}
+                      className={cn(isSubject && "bg-muted/60 font-medium")}
+                    >
+                      <TableCell className="pl-0">{row.person.name}</TableCell>
+                      <TableCell className="text-right">
+                        ${row.expenses.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${row.paid.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${row.sent.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${row.received.toFixed(2)}
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          "text-right pr-0",
+                          row.balance >= 0
+                            ? "text-primary"
+                            : "text-destructive",
+                        )}
+                      >
+                        {formatBalance(row.balance)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell className="pl-0 font-medium">Total</TableCell>
+                  <TableCell className="text-right">
+                    ${totals.expenses.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    ${totals.paid.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    ${totals.sent.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    ${totals.received.toFixed(2)}
+                  </TableCell>
+                  <TableCell className="text-right pr-0">
+                    {formatBalance(totals.balance)}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
           </CardContent>
           <CardFooter className="pt-2 flex gap-2 flex-wrap">
             {creditors.map(({ balance, person: creditor }) => (
