@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { cn } from "~/lib/utils";
+import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -32,8 +33,19 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   return { group };
 }
 
+const ROW_TYPES = [
+  { key: "paid", label: "Expenses paid", sign: "" },
+  { key: "received", label: "Transfers received", sign: "+" },
+  { key: "expenses", label: "Share of expenses", sign: "-" },
+  { key: "sent", label: "Transfers sent", sign: "-" },
+  { key: "balance", label: "Balance", sign: "=" },
+] as const;
+
+type RowType = (typeof ROW_TYPES)[number]["key"];
+
 export default function GroupBreakdownPage() {
   const { group } = useLoaderData<typeof clientLoader>();
+  const isDesktop = useIsDesktop();
 
   const tableRows = useMemo(() => {
     return group.people.map((person) => {
@@ -73,9 +85,9 @@ export default function GroupBreakdownPage() {
     [tableRows],
   );
 
-  return (
-    <div className="p-4 flex flex-col gap-4">
-      <div className="overflow-x-auto">
+  if (isDesktop) {
+    return (
+      <div className="p-4 flex flex-col gap-4">
         <Table>
           <TableHeader>
             <TableRow>
@@ -136,11 +148,43 @@ export default function GroupBreakdownPage() {
           </TableFooter>
         </Table>
       </div>
+    );
+  }
+
+  return (
+    <div className="p-4 flex flex-col gap-4">
+      <Table>
+        <TableBody>
+          {tableRows.map((row) =>
+            ROW_TYPES.map(({ key, label, sign }, index) => (
+              <TableRow key={`${row.person.id}-${key}`}>
+                {index === 0 && (
+                  <TableCell rowSpan={ROW_TYPES.length} className="align-top">
+                    {row.person.name}
+                  </TableCell>
+                )}
+                <TableCell>{label}</TableCell>
+                <TableCell className="w-2 text-center">{sign}</TableCell>
+                <TableCell
+                  className={cn("w-6 text-right", {
+                    "text-primary": key === "balance" && row.balance > 0,
+                    "text-destructive": key === "balance" && row.balance < 0,
+                  })}
+                >
+                  {key === "balance"
+                    ? formatBalance(row.balance)
+                    : `$${row[key as Exclude<RowType, "balance">].toFixed(2)}`}
+                </TableCell>
+              </TableRow>
+            )),
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }
 
 function formatBalance(value: number): string {
   if (value === 0) return "$0.00";
-  return `${value > 0 ? "+" : "-"}$${Math.abs(value).toFixed(2)}`;
+  return `${value > 0 ? "" : "-"}$${Math.abs(value).toFixed(2)}`;
 }
