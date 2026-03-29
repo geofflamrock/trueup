@@ -35,9 +35,9 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 const ROW_TYPES = [
   { key: "paid", label: "Expenses paid", sign: "" },
-  { key: "received", label: "Transfers received", sign: "+" },
   { key: "expenses", label: "Share of expenses", sign: "-" },
   { key: "sent", label: "Transfers sent", sign: "-" },
+  { key: "received", label: "Transfers received", sign: "+" },
   { key: "balance", label: "Balance", sign: "=" },
 ] as const;
 
