@@ -162,8 +162,6 @@ type BreakdownCardProps = {
 };
 
 function BreakdownCard({ group }: BreakdownCardProps) {
-  // const [open, setOpen] = useState(false);
-
   const tableRows = useMemo(() => {
     return group.people.map((p) => {
       const expenses = group.expenses.reduce((sum, e) => {
@@ -210,22 +208,22 @@ function BreakdownCard({ group }: BreakdownCardProps) {
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-0">
+      <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-0">Person</TableHead>
+              <TableHead>Person</TableHead>
               <TableHead className="text-right">Expenses</TableHead>
               <TableHead className="text-right">Paid</TableHead>
               <TableHead className="text-right">Sent</TableHead>
               <TableHead className="text-right">Received</TableHead>
-              <TableHead className="text-right pr-0">Balance</TableHead>
+              <TableHead className="text-right">Balance</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tableRows.map((row) => (
               <TableRow key={row.person.id}>
-                <TableCell className="pl-0">{row.person.name}</TableCell>
+                <TableCell>{row.person.name}</TableCell>
                 <TableCell className="text-right">
                   ${row.expenses.toFixed(2)}
                 </TableCell>
@@ -240,7 +238,7 @@ function BreakdownCard({ group }: BreakdownCardProps) {
                 </TableCell>
                 <TableCell
                   className={cn(
-                    "text-right pr-0",
+                    "text-right",
                     row.balance >= 0 ? "text-primary" : "text-destructive",
                   )}
                 >
@@ -251,7 +249,7 @@ function BreakdownCard({ group }: BreakdownCardProps) {
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell className="pl-0 font-medium">Total</TableCell>
+              <TableCell>Total</TableCell>
               <TableCell className="text-right">
                 ${totals.expenses.toFixed(2)}
               </TableCell>
@@ -264,7 +262,7 @@ function BreakdownCard({ group }: BreakdownCardProps) {
               <TableCell className="text-right">
                 ${totals.received.toFixed(2)}
               </TableCell>
-              <TableCell className="text-right pr-0">
+              <TableCell className="text-right">
                 {formatBalance(totals.balance)}
               </TableCell>
             </TableRow>
