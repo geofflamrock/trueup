@@ -155,27 +155,33 @@ export default function GroupBreakdownPage() {
     <div className="p-4 flex flex-col gap-4">
       <Table>
         <TableBody>
-          {tableRows.map((row) =>
+          {tableRows.map((row, personIndex) =>
             ROW_TYPES.map(({ key, label, sign }, index) => (
               <TableRow key={`${row.person.id}-${key}`} className="border-0">
                 {index === 0 && (
                   <TableCell
                     rowSpan={ROW_TYPES.length}
-                    className="align-top p-2 border-b"
+                    className={cn("align-top p-2", {
+                      "border-b": personIndex < tableRows.length - 1,
+                    })}
                   >
                     {row.person.name}
                   </TableCell>
                 )}
                 <TableCell
                   className={cn("w-2 text-center p-2", {
-                    "border-b": index === ROW_TYPES.length - 1,
+                    "border-b":
+                      index === ROW_TYPES.length - 1 &&
+                      personIndex < tableRows.length - 1,
                   })}
                 >
                   {sign}
                 </TableCell>
                 <TableCell
                   className={cn("p-2", {
-                    "border-b": index === ROW_TYPES.length - 1,
+                    "border-b":
+                      index === ROW_TYPES.length - 1 &&
+                      personIndex < tableRows.length - 1,
                   })}
                 >
                   {label}:
@@ -185,7 +191,9 @@ export default function GroupBreakdownPage() {
                   className={cn("text-right p-2", {
                     "text-primary": key === "balance" && row.balance > 0,
                     "text-destructive": key === "balance" && row.balance < 0,
-                    "border-b": index === ROW_TYPES.length - 1,
+                    "border-b":
+                      index === ROW_TYPES.length - 1 &&
+                      personIndex < tableRows.length - 1,
                   })}
                 >
                   {key === "balance"
