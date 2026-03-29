@@ -6,6 +6,7 @@ import {
   ActivitySquareIcon,
   ArrowLeft,
   Banknote,
+  ChartNoAxesCombined,
   CoinsIcon,
   EllipsisVerticalIcon,
   HandCoins,
@@ -46,7 +47,7 @@ export default function GroupPage() {
   const { group } = useLoaderData<typeof clientLoader>();
   const match = useMatch("/:groupId/*");
   const subPage = match?.params["*"] || "";
-  const tab = subPage === "" ? "group" : subPage;
+  const tab = subPage === "" ? "group" : subPage.split("/")[0];
 
   return (
     <PageLayout
@@ -67,6 +68,20 @@ export default function GroupPage() {
             >
               <CoinsIcon className="size-6" />
               <span className="hidden sm:inline">Group</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="breakdown"
+              className="rounded-full min-w-16 sm:min-w-32 cursor-pointer"
+              render={
+                <Link
+                  to={`/${group.id}/breakdown`}
+                  prefetch="viewport"
+                  className="cursor-pointer"
+                />
+              }
+            >
+              <ChartNoAxesCombined className="size-6" />
+              <span className="hidden sm:inline">Breakdown</span>
             </TabsTrigger>
             <TabsTrigger
               value="activity"
