@@ -7,7 +7,6 @@ import {
   BadgeCheckIcon,
   Banknote,
   ChartNoAxesCombined,
-  ChevronDownIcon,
   Coins,
   HandCoins,
 } from "lucide-react";
@@ -27,7 +26,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import { Collapsible, CollapsibleContent } from "~/components/ui/collapsible";
 import {
   Table,
   TableBody,
@@ -37,7 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { cn } from "~/lib/utils";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -81,7 +79,7 @@ export default function GroupHomePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {personBalances.map(({ person, balances: pBalances }) => (
-            <PersonBalanceCard
+            <BalanceCard
               key={person.id}
               group={group}
               person={person}
@@ -97,7 +95,7 @@ export default function GroupHomePage() {
   );
 }
 
-type PersonBalanceCardProps = {
+type BalanceCardProps = {
   group: Group;
   person: Person;
   balances: Balance[];
@@ -108,7 +106,7 @@ function formatBalance(value: number): string {
   return `${value > 0 ? "+" : "-"}$${Math.abs(value).toFixed(2)}`;
 }
 
-function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) {
+function BalanceCard({ group, person, balances }: BalanceCardProps) {
   const creditors = useMemo(
     () =>
       balances.map((b) => ({
@@ -127,8 +125,7 @@ function PersonBalanceCard({ group, person, balances }: PersonBalanceCardProps) 
             {person.name} owes{" "}
             {creditors.map(({ balance, person: creditor }, i) => (
               <span key={creditor.id}>
-                {i > 0 &&
-                  (i === creditors.length - 1 ? " and " : ", ")}
+                {i > 0 && (i === creditors.length - 1 ? " and " : ", ")}
                 {creditor.name}{" "}
                 <span className="text-primary">
                   ${balance.amount.toFixed(2)}
@@ -165,7 +162,7 @@ type BreakdownCardProps = {
 };
 
 function BreakdownCard({ group }: BreakdownCardProps) {
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
 
   const tableRows = useMemo(() => {
     return group.people.map((p) => {
@@ -205,92 +202,75 @@ function BreakdownCard({ group }: BreakdownCardProps) {
 
   return (
     <Card size="sm">
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CardHeader
-          className="items-center cursor-pointer"
-          onClick={() => setOpen(!open)}
-        >
-          <CardTitle className="flex items-center gap-2 justify-between -mr-1">
-            <div className="flex items-center gap-2">
-              <ChartNoAxesCombined size={24} className="size-6" />
-              <span>Breakdown</span>
-            </div>
-            <Button variant="ghost" size="icon-sm" title="Toggle breakdown">
-              <ChevronDownIcon
-                size={24}
-                className={cn("size-6 transition-transform", {
-                  "rotate-180": open,
-                })}
-              />
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardContent className="px-4 pb-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-0">Person</TableHead>
-                  <TableHead className="text-right">Expenses</TableHead>
-                  <TableHead className="text-right">Paid</TableHead>
-                  <TableHead className="text-right">Sent</TableHead>
-                  <TableHead className="text-right">Received</TableHead>
-                  <TableHead className="text-right pr-0">Balance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tableRows.map((row) => (
-                  <TableRow key={row.person.id}>
-                    <TableCell className="pl-0">{row.person.name}</TableCell>
-                    <TableCell className="text-right">
-                      ${row.expenses.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ${row.paid.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ${row.sent.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ${row.received.toFixed(2)}
-                    </TableCell>
-                    <TableCell
-                      className={cn(
-                        "text-right pr-0",
-                        row.balance >= 0
-                          ? "text-primary"
-                          : "text-destructive",
-                      )}
-                    >
-                      {formatBalance(row.balance)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell className="pl-0 font-medium">Total</TableCell>
-                  <TableCell className="text-right">
-                    ${totals.expenses.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    ${totals.paid.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    ${totals.sent.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    ${totals.received.toFixed(2)}
-                  </TableCell>
-                  <TableCell className="text-right pr-0">
-                    {formatBalance(totals.balance)}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 justify-between -mr-1">
+          <div className="flex items-center gap-2">
+            <ChartNoAxesCombined size={24} className="size-6" />
+            <span>Breakdown</span>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="pl-0">Person</TableHead>
+              <TableHead className="text-right">Expenses</TableHead>
+              <TableHead className="text-right">Paid</TableHead>
+              <TableHead className="text-right">Sent</TableHead>
+              <TableHead className="text-right">Received</TableHead>
+              <TableHead className="text-right pr-0">Balance</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tableRows.map((row) => (
+              <TableRow key={row.person.id}>
+                <TableCell className="pl-0">{row.person.name}</TableCell>
+                <TableCell className="text-right">
+                  ${row.expenses.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  ${row.paid.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  ${row.sent.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right">
+                  ${row.received.toFixed(2)}
+                </TableCell>
+                <TableCell
+                  className={cn(
+                    "text-right pr-0",
+                    row.balance >= 0 ? "text-primary" : "text-destructive",
+                  )}
+                >
+                  {formatBalance(row.balance)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell className="pl-0 font-medium">Total</TableCell>
+              <TableCell className="text-right">
+                ${totals.expenses.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-right">
+                ${totals.paid.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-right">
+                ${totals.sent.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-right">
+                ${totals.received.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-right pr-0">
+                {formatBalance(totals.balance)}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </CardContent>
     </Card>
   );
 }
