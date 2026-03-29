@@ -3,23 +3,8 @@ import type { Route } from "./+types/group.home";
 import { getGroup } from "../storage";
 import { calculateBalances } from "../balances";
 import { Button } from "~/components/ui/button";
-import {
-  BadgeCheckIcon,
-  Banknote,
-  ChevronDownIcon,
-  ChevronRight,
-  Coins,
-  HandCoins,
-} from "lucide-react";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "~/components/ui/item";
-import type { Balance, Group } from "~/types";
+import { BadgeCheckIcon, Banknote, Coins, HandCoins } from "lucide-react";
+import type { Balance, Group, Person } from "~/types";
 import {
   Empty,
   EmptyContent,
@@ -28,17 +13,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "~/components/ui/empty";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
-import { Collapsible, CollapsibleContent } from "~/components/ui/collapsible";
-import { useState } from "react";
-import { cn } from "~/lib/utils";
+import { Card, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
+import { useMemo } from "react";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -62,21 +38,32 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 export default function GroupHomePage() {
   const { group, balances } = useLoaderData<typeof clientLoader>();
 
+  const personBalances = useMemo(() => {
+    const map = new Map<number, Balance[]>();
+    for (const balance of balances) {
+      if (!map.has(balance.fromPersonId)) map.set(balance.fromPersonId, []);
+      map.get(balance.fromPersonId)!.push(balance);
+    }
+    return Array.from(map.entries()).map(([personId, bals]) => ({
+      person: group.people.find((p) => p.id === personId)!,
+      balances: bals,
+    }));
+  }, [group.people, balances]);
+
   return (
     <div className="p-4">
       {balances.length === 0 ? (
         <GroupBalancedEmptyState group={group} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {balances.map((balance) => {
-            return (
-              <BalanceCard
-                key={`${balance.fromPersonId}-${balance.toPersonId}`}
-                group={group}
-                balance={balance}
-              />
-            );
-          })}
+          {personBalances.map(({ person, balances: pBalances }) => (
+            <BalanceCard
+              key={person.id}
+              group={group}
+              person={person}
+              balances={pBalances}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -85,60 +72,57 @@ export default function GroupHomePage() {
 
 type BalanceCardProps = {
   group: Group;
-  balance: Balance;
+  person: Person;
+  balances: Balance[];
 };
 
-function BalanceCard({ group, balance }: BalanceCardProps) {
-  const [open, setOpen] = useState(false);
-
-  const fromPerson = group.people.find((p) => p.id === balance.fromPersonId)!;
-  const toPerson = group.people.find((p) => p.id === balance.toPersonId)!;
+function BalanceCard({ group, person, balances }: BalanceCardProps) {
+  const creditors = useMemo(
+    () =>
+      balances.map((b) => ({
+        balance: b,
+        person: group.people.find((p) => p.id === b.toPersonId)!,
+      })),
+    [balances, group.people],
+  );
 
   return (
     <Card size="sm">
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CardHeader
-          className="items-center cursor-pointer"
-          onClick={() => setOpen(!open)}
-        >
-          <CardTitle className="flex items-center gap-2 justify-between -mr-1">
-            <div className="flex items-center gap-2">
-              <Coins size={24} className="size-6" />
-              <span>
-                {fromPerson.name} owes {toPerson.name}{" "}
+      <CardHeader className="items-center">
+        <CardTitle className="flex items-center gap-2">
+          <Coins size={24} className="size-6" />
+          <span>
+            {person.name} owes{" "}
+            {creditors.map(({ balance, person: creditor }, i) => (
+              <span key={creditor.id}>
+                {i > 0 && (i === creditors.length - 1 ? " and " : ", ")}
+                {creditor.name}{" "}
                 <span className="text-primary">
                   ${balance.amount.toFixed(2)}
                 </span>
               </span>
-            </div>
-            <Button variant="ghost" size="icon-sm" title="Details">
-              <ChevronDownIcon
-                size={24}
-                className={cn("size-6 transition-transform", {
-                  "rotate-180": open,
-                })}
+            ))}
+          </span>
+        </CardTitle>
+      </CardHeader>
+      <CardFooter className="pt-2 flex gap-2 flex-wrap">
+        {creditors.map(({ balance, person: creditor }) => (
+          <Button
+            key={creditor.id}
+            render={
+              <Link
+                to={`/${group.id}/transfers/new?from=${person.id}&to=${creditor.id}&amount=${balance.amount.toFixed(2)}`}
+                prefetch="viewport"
+                className="cursor-pointer"
               />
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CollapsibleContent>
-          <CardFooter className="pt-4">
-            <Button
-              render={
-                <Link
-                  to={`/${group.id}/transfers/new?from=${fromPerson.id}&to=${toPerson.id}&amount=${balance.amount.toFixed(2)}`}
-                  prefetch="viewport"
-                  className="cursor-pointer"
-                />
-              }
-              variant="muted"
-              size="lg"
-            >
-              Mark as paid
-            </Button>
-          </CardFooter>
-        </CollapsibleContent>
-      </Collapsible>
+            }
+            variant="muted"
+            size="lg"
+          >
+            Pay {creditor.name}
+          </Button>
+        ))}
+      </CardFooter>
     </Card>
   );
 }
