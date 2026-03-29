@@ -57,7 +57,7 @@ export default function GroupPage() {
           <TabsList className="group-data-horizontal/tabs:h-14 sm:group-data-horizontal/tabs:h-12 rounded-full p-1">
             <TabsTrigger
               value="group"
-              className="rounded-full min-w-16 sm:min-w-36 cursor-pointer"
+              className="rounded-full min-w-16 sm:min-w-32 cursor-pointer"
               render={
                 <Link
                   to={`/${group.id}`}
@@ -71,7 +71,7 @@ export default function GroupPage() {
             </TabsTrigger>
             <TabsTrigger
               value="breakdown"
-              className="rounded-full min-w-16 sm:min-w-36 cursor-pointer"
+              className="rounded-full min-w-16 sm:min-w-32 cursor-pointer"
               render={
                 <Link
                   to={`/${group.id}/breakdown`}
@@ -85,7 +85,7 @@ export default function GroupPage() {
             </TabsTrigger>
             <TabsTrigger
               value="activity"
-              className="rounded-full min-w-16 sm:min-w-36 cursor-pointer"
+              className="rounded-full min-w-16 sm:min-w-32 cursor-pointer"
               render={
                 <Link
                   to={`/${group.id}/activity`}
@@ -99,7 +99,7 @@ export default function GroupPage() {
             </TabsTrigger>
             <TabsTrigger
               value="settings"
-              className="rounded-full min-w-16 sm:min-w-36 cursor-pointer"
+              className="rounded-full min-w-16 sm:min-w-32 cursor-pointer"
               render={
                 <Link
                   to={`/${group.id}/settings`}
