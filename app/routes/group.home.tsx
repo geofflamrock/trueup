@@ -237,10 +237,10 @@ function BreakdownCard({ group }: BreakdownCardProps) {
                   ${row.received.toFixed(2)}
                 </TableCell>
                 <TableCell
-                  className={cn(
-                    "text-right",
-                    row.balance >= 0 ? "text-primary" : "text-destructive",
-                  )}
+                  className={cn("text-right", {
+                    "text-primary": row.balance > 0,
+                    "text-destructive": row.balance < 0,
+                  })}
                 >
                   {formatBalance(row.balance)}
                 </TableCell>
