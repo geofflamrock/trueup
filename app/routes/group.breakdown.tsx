@@ -157,18 +157,35 @@ export default function GroupBreakdownPage() {
         <TableBody>
           {tableRows.map((row) =>
             ROW_TYPES.map(({ key, label, sign }, index) => (
-              <TableRow key={`${row.person.id}-${key}`}>
+              <TableRow key={`${row.person.id}-${key}`} className="border-0">
                 {index === 0 && (
-                  <TableCell rowSpan={ROW_TYPES.length} className="align-top">
+                  <TableCell
+                    rowSpan={ROW_TYPES.length}
+                    className="align-top p-2 border-b"
+                  >
                     {row.person.name}
                   </TableCell>
                 )}
-                <TableCell>{label}</TableCell>
-                <TableCell className="w-2 text-center">{sign}</TableCell>
                 <TableCell
-                  className={cn("w-6 text-right", {
+                  className={cn("w-2 text-center p-2", {
+                    "border-b": index === ROW_TYPES.length - 1,
+                  })}
+                >
+                  {sign}
+                </TableCell>
+                <TableCell
+                  className={cn("p-2", {
+                    "border-b": index === ROW_TYPES.length - 1,
+                  })}
+                >
+                  {label}:
+                </TableCell>
+
+                <TableCell
+                  className={cn("text-right p-2", {
                     "text-primary": key === "balance" && row.balance > 0,
                     "text-destructive": key === "balance" && row.balance < 0,
+                    "border-b": index === ROW_TYPES.length - 1,
                   })}
                 >
                   {key === "balance"
