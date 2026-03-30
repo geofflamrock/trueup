@@ -3,17 +3,11 @@ import type { Route } from "./+types/home";
 import { getAllGroups } from "../storage";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemMedia,
-  ItemTitle,
-} from "~/components/ui/item";
-import { PeopleAvatarGroup } from "~/components/app/PeopleAvatarGroup";
+import { Card, CardHeader, CardTitle } from "~/components/ui/card";
 import { Header } from "~/components/app/Header";
-import { ChevronRight } from "lucide-react";
+import { BadgeCheckIcon, Coins } from "lucide-react";
 import { PageLayout } from "~/components/app/PageLayout";
+import { calculateBalances } from "~/balances";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -50,30 +44,30 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         )}
         {groups.length > 0 && (
           <div className="flex flex-col gap-4">
-            {groups.map((group) => (
-              <Item
-                variant="muted"
-                size="default"
-                render={
-                  <Link
-                    key={group.id}
-                    to={`/${group.id}`}
-                    prefetch="viewport"
-                    className="cursor-pointer"
-                  >
-                    <ItemMedia>
-                      <PeopleAvatarGroup people={group.people} max={2} />
-                    </ItemMedia>
-                    <ItemContent>
-                      <ItemTitle className="text-lg">{group.name}</ItemTitle>
-                    </ItemContent>
-                    <ItemActions>
-                      <ChevronRight size={24} />
-                    </ItemActions>
-                  </Link>
-                }
-              />
-            ))}
+            {groups.map((group) => {
+              const isBalanced = calculateBalances(group).length === 0;
+              return (
+                <Link
+                  key={group.id}
+                  to={`/${group.id}`}
+                  prefetch="viewport"
+                  className="cursor-pointer"
+                >
+                  <Card size="sm">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center justify-between">
+                        <span>{group.name}</span>
+                        {isBalanced ? (
+                          <BadgeCheckIcon size={20} className="text-primary" />
+                        ) : (
+                          <Coins size={20} />
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
         <div>
