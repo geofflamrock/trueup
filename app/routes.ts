@@ -5,6 +5,7 @@ export default [
   route("groups/new", "routes/group.new.tsx"),
   route(":groupId", "routes/group.tsx", [
     index("routes/group.home.tsx"),
+    route("breakdown", "routes/group.breakdown.tsx"),
     route("activity", "routes/group.activity.tsx"),
     route("settings", "routes/group.settings.tsx", [
       route("delete", "routes/group.delete.tsx"),
