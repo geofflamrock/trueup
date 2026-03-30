@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { useLoaderData } from "react-router";
 import { ChartNoAxesCombined } from "lucide-react";
 import type { Route } from "./+types/group.breakdown";
@@ -33,15 +33,25 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   return { group };
 }
 
-const ROW_TYPES = [
-  { key: "paid", label: "Expenses paid for", sign: "" },
-  { key: "expenses", label: "Share of expenses", sign: "-" },
-  { key: "sent", label: "Transfers sent", sign: "+" },
-  { key: "received", label: "Transfers received", sign: "-" },
-  { key: "balance", label: "Balance", sign: "=" },
+const breakdownTypes = [
+  { key: "paid", label: "Expenses paid for", shortLabel: "Paid", sign: "" },
+  {
+    key: "expenses",
+    label: "Share of expenses",
+    shortLabel: "Expenses",
+    sign: "-",
+  },
+  { key: "sent", label: "Transfers sent", shortLabel: "Sent", sign: "+" },
+  {
+    key: "received",
+    label: "Transfers received",
+    shortLabel: "Received",
+    sign: "-",
+  },
+  { key: "balance", label: "Balance", shortLabel: "Balance", sign: "=" },
 ] as const;
 
-type RowType = (typeof ROW_TYPES)[number]["key"];
+type RowType = (typeof breakdownTypes)[number]["key"];
 
 export default function GroupBreakdownPage() {
   const { group } = useLoaderData<typeof clientLoader>();
@@ -92,58 +102,66 @@ export default function GroupBreakdownPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Person</TableHead>
-              <TableHead className="text-right">Expenses</TableHead>
-              <TableHead className="text-right">Paid</TableHead>
-              <TableHead className="text-right">Sent</TableHead>
-              <TableHead className="text-right">Received</TableHead>
-              <TableHead className="text-right">Balance</TableHead>
+              {breakdownTypes.map(({ key, shortLabel }, index) => (
+                <Fragment key={key}>
+                  {index > 0 && (
+                    <TableHead className="w-2 p-0" aria-hidden="true" />
+                  )}
+                  <TableHead className="text-right">{shortLabel}</TableHead>
+                </Fragment>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {tableRows.map((row) => (
               <TableRow key={row.person.id}>
                 <TableCell>{row.person.name}</TableCell>
-                <TableCell className="text-right">
-                  ${row.expenses.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  ${row.paid.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  ${row.sent.toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  ${row.received.toFixed(2)}
-                </TableCell>
-                <TableCell
-                  className={cn("text-right", {
-                    "text-primary": row.balance > 0,
-                    "text-destructive": row.balance < 0,
-                  })}
-                >
-                  {formatBalance(row.balance)}
-                </TableCell>
+                {breakdownTypes.map(({ key, sign }, index) => (
+                  <Fragment key={`${row.person.id}-${key}`}>
+                    {index > 0 && (
+                      <TableCell className="w-2 pl-12 text-right text-muted-foreground">
+                        {sign}
+                      </TableCell>
+                    )}
+                    <TableCell
+                      className={cn("text-right", {
+                        "text-primary": key === "balance" && row.balance > 0,
+                        "text-destructive":
+                          key === "balance" && row.balance < 0,
+                      })}
+                    >
+                      {key === "balance"
+                        ? formatBalance(row.balance)
+                        : `$${row[key as Exclude<RowType, "balance">].toFixed(2)}`}
+                    </TableCell>
+                  </Fragment>
+                ))}
               </TableRow>
             ))}
           </TableBody>
           <TableFooter>
             <TableRow>
               <TableCell>Total</TableCell>
-              <TableCell className="text-right">
-                ${totals.expenses.toFixed(2)}
-              </TableCell>
-              <TableCell className="text-right">
-                ${totals.paid.toFixed(2)}
-              </TableCell>
-              <TableCell className="text-right">
-                ${totals.sent.toFixed(2)}
-              </TableCell>
-              <TableCell className="text-right">
-                ${totals.received.toFixed(2)}
-              </TableCell>
-              <TableCell className="text-right">
-                {formatBalance(totals.balance)}
-              </TableCell>
+              {breakdownTypes.map(({ key, sign }, index) => (
+                <Fragment key={`totals-${key}`}>
+                  {index > 0 && (
+                    <TableCell className="w-2 pl-12 text-right text-muted-foreground">
+                      {sign}
+                    </TableCell>
+                  )}
+                  <TableCell
+                    className={cn("text-right", {
+                      "text-primary": key === "balance" && totals.balance > 0,
+                      "text-destructive":
+                        key === "balance" && totals.balance < 0,
+                    })}
+                  >
+                    {key === "balance"
+                      ? formatBalance(totals.balance)
+                      : `$${totals[key as Exclude<RowType, "balance">].toFixed(2)}`}
+                  </TableCell>
+                </Fragment>
+              ))}
             </TableRow>
           </TableFooter>
         </Table>
@@ -156,11 +174,11 @@ export default function GroupBreakdownPage() {
       <Table>
         <TableBody>
           {tableRows.map((row, personIndex) =>
-            ROW_TYPES.map(({ key, label, sign }, index) => (
+            breakdownTypes.map(({ key, label, sign }, index) => (
               <TableRow key={`${row.person.id}-${key}`} className="border-0">
                 {index === 0 && (
                   <TableCell
-                    rowSpan={ROW_TYPES.length}
+                    rowSpan={breakdownTypes.length}
                     className={cn("align-top p-2", {
                       "border-b": personIndex < tableRows.length - 1,
                     })}
@@ -171,7 +189,7 @@ export default function GroupBreakdownPage() {
                 <TableCell
                   className={cn("w-2 text-center p-2", {
                     "border-b":
-                      index === ROW_TYPES.length - 1 &&
+                      index === breakdownTypes.length - 1 &&
                       personIndex < tableRows.length - 1,
                   })}
                 >
@@ -180,7 +198,7 @@ export default function GroupBreakdownPage() {
                 <TableCell
                   className={cn("p-2", {
                     "border-b":
-                      index === ROW_TYPES.length - 1 &&
+                      index === breakdownTypes.length - 1 &&
                       personIndex < tableRows.length - 1,
                   })}
                 >
@@ -192,7 +210,7 @@ export default function GroupBreakdownPage() {
                     "text-primary": key === "balance" && row.balance > 0,
                     "text-destructive": key === "balance" && row.balance < 0,
                     "border-b":
-                      index === ROW_TYPES.length - 1 &&
+                      index === breakdownTypes.length - 1 &&
                       personIndex < tableRows.length - 1,
                   })}
                 >
