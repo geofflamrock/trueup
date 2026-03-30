@@ -58,9 +58,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                       <CardTitle className="text-lg flex items-center justify-between">
                         <span>{group.name}</span>
                         {isBalanced ? (
-                          <BadgeCheckIcon size={24} className="text-primary" />
+                          <BadgeCheckIcon size={20} className="text-primary" />
                         ) : (
-                          <Coins size={24} />
+                          <Coins size={20} />
                         )}
                       </CardTitle>
                     </CardHeader>
