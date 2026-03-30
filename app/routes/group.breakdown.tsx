@@ -139,31 +139,6 @@ export default function GroupBreakdownPage() {
               </TableRow>
             ))}
           </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell>Total</TableCell>
-              {breakdownTypes.map(({ key, sign }, index) => (
-                <Fragment key={`totals-${key}`}>
-                  {index > 0 && (
-                    <TableCell className="w-2 sm:pl-3 md:pl-8 lg:pl-12 text-right text-muted-foreground">
-                      {sign}
-                    </TableCell>
-                  )}
-                  <TableCell
-                    className={cn("text-right", {
-                      "text-primary": key === "balance" && totals.balance > 0,
-                      "text-destructive":
-                        key === "balance" && totals.balance < 0,
-                    })}
-                  >
-                    {key === "balance"
-                      ? formatBalance(totals.balance)
-                      : `$${totals[key as Exclude<RowType, "balance">].toFixed(2)}`}
-                  </TableCell>
-                </Fragment>
-              ))}
-            </TableRow>
-          </TableFooter>
         </Table>
       </div>
     );
