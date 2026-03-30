@@ -3,7 +3,7 @@ import type { Route } from "./+types/home";
 import { getAllGroups } from "../storage";
 import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
-import { Card, CardAction, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardHeader, CardTitle } from "~/components/ui/card";
 import { Header } from "~/components/app/Header";
 import { BadgeCheckIcon, Coins } from "lucide-react";
 import { PageLayout } from "~/components/app/PageLayout";
@@ -47,25 +47,28 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             {groups.map((group) => {
               const isBalanced = calculateBalances(group).length === 0;
               return (
-                <Link
+                <Card
                   key={group.id}
-                  to={`/${group.id}`}
-                  prefetch="viewport"
-                  className="cursor-pointer"
+                  size="sm"
+                  render={
+                    <Link
+                      to={`/${group.id}`}
+                      prefetch="viewport"
+                      className="cursor-pointer"
+                    />
+                  }
                 >
-                  <Card size="sm">
-                    <CardHeader>
-                      <CardTitle className="text-lg">{group.name}</CardTitle>
-                      <CardAction>
-                        {isBalanced ? (
-                          <BadgeCheckIcon size={24} className="text-primary" />
-                        ) : (
-                          <Coins size={24} />
-                        )}
-                      </CardAction>
-                    </CardHeader>
-                  </Card>
-                </Link>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center justify-between">
+                      <span>{group.name}</span>
+                      {isBalanced ? (
+                        <BadgeCheckIcon size={24} className="text-primary" />
+                      ) : (
+                        <Coins size={24} />
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
               );
             })}
           </div>
