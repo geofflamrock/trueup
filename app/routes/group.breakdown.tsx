@@ -80,21 +80,6 @@ export default function GroupBreakdownPage() {
     });
   }, [group.people, group.expenses, group.transfers]);
 
-  const totals = useMemo(
-    () =>
-      tableRows.reduce(
-        (acc, row) => ({
-          expenses: acc.expenses + row.expenses,
-          paid: acc.paid + row.paid,
-          sent: acc.sent + row.sent,
-          received: acc.received + row.received,
-          balance: acc.balance + row.balance,
-        }),
-        { expenses: 0, paid: 0, sent: 0, received: 0, balance: 0 },
-      ),
-    [tableRows],
-  );
-
   if (isDesktop) {
     return (
       <div className="p-4 flex flex-col gap-4">
