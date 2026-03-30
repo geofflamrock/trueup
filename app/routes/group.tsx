@@ -47,7 +47,7 @@ export default function GroupPage() {
   const { group } = useLoaderData<typeof clientLoader>();
   const match = useMatch("/:groupId/*");
   const subPage = match?.params["*"] || "";
-  const tab = subPage === "" ? "group" : subPage.split("/")[0];
+  const tab = subPage === "" ? "group" : subPage;
 
   return (
     <PageLayout
