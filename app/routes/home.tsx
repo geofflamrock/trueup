@@ -47,28 +47,25 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             {groups.map((group) => {
               const isBalanced = calculateBalances(group).length === 0;
               return (
-                <Card
+                <Link
                   key={group.id}
-                  size="sm"
-                  render={
-                    <Link
-                      to={`/${group.id}`}
-                      prefetch="viewport"
-                      className="cursor-pointer"
-                    />
-                  }
+                  to={`/${group.id}`}
+                  prefetch="viewport"
+                  className="cursor-pointer"
                 >
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center justify-between">
-                      <span>{group.name}</span>
-                      {isBalanced ? (
-                        <BadgeCheckIcon size={24} className="text-primary" />
-                      ) : (
-                        <Coins size={24} />
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
+                  <Card size="sm">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center justify-between">
+                        <span>{group.name}</span>
+                        {isBalanced ? (
+                          <BadgeCheckIcon size={24} className="text-primary" />
+                        ) : (
+                          <Coins size={24} />
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                </Link>
               );
             })}
           </div>
