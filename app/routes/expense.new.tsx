@@ -246,9 +246,9 @@ export default function NewExpense() {
                   <FieldContent>
                     <FieldTitle>Equal</FieldTitle>
                     <FieldDescription>
-                      Split the expense equally among all group members.
+                      Split the expense equally between everyone in the group.
                       {amount &&
-                        ` Each member owes $${(parseFloat(amount) / group.people.length).toFixed(2)}.`}
+                        ` Each person owes $${(parseFloat(amount) / group.people.length).toFixed(2)}.`}
                     </FieldDescription>
                   </FieldContent>
                   <RadioGroupItem value="equal" id="split-equal" />
@@ -259,7 +259,7 @@ export default function NewExpense() {
                   <FieldContent>
                     <FieldTitle>Custom</FieldTitle>
                     <FieldDescription>
-                      Split the expense based on custom amounts for each member.
+                      Split the expense using custom amounts for each person.
                     </FieldDescription>
                   </FieldContent>
                   <RadioGroupItem value="custom" id="split-custom" />
