@@ -147,7 +147,7 @@ export default function NewExpense() {
             }
           />
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            New Expense
+            New expense
           </h1>
         </div>
       }
@@ -225,6 +225,7 @@ export default function NewExpense() {
                 <FieldLabel>Split</FieldLabel>
                 <ToggleGroup
                   variant="outline"
+                  size="lg"
                   value={[splitType]}
                   onValueChange={(value) =>
                     handleSplitTypeChange(value[0] as SplitType)

@@ -101,7 +101,7 @@ export default function NewTransfer() {
               }
             />
             <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-              Add Transfer
+              New transfer
             </h1>
           </div>
         }
@@ -145,7 +145,7 @@ export default function NewTransfer() {
             }
           />
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            Add Transfer
+            New transfer
           </h1>
         </div>
       }

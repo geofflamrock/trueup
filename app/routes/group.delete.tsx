@@ -38,7 +38,7 @@ export default function DeleteGroup({ loaderData }: Route.ComponentProps) {
 
   return (
     <DialogOrDrawer
-      title="Delete Group"
+      title="Delete group"
       description={
         <span>
           Are you sure you want to delete <strong>{group.name}</strong>? This

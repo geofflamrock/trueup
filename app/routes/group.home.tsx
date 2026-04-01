@@ -89,7 +89,7 @@ function BalanceCard({ group, person, balances }: BalanceCardProps) {
   return (
     <Card size="sm">
       <CardHeader className="items-center">
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Coins size={24} className="size-6" />
           <span>
             {person.name} owes{" "}
@@ -144,27 +144,27 @@ function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
       <EmptyContent className="flex flex-row gap-2 justify-center">
         <Button
           variant="default"
-          size="xl"
+          size="lg"
           render={
             <Link
               to={`/${group.id}/expenses/new`}
               prefetch="viewport"
               className="cursor-pointer"
             >
-              <Banknote /> New Expense
+              <Banknote /> New expense
             </Link>
           }
         />
         <Button
           variant="muted"
-          size="xl"
+          size="lg"
           render={
             <Link
               to={`/${group.id}/transfers/new`}
               prefetch="viewport"
               className="cursor-pointer"
             >
-              <HandCoins /> New Transfer
+              <HandCoins /> New transfer
             </Link>
           }
         />

@@ -170,7 +170,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                   type="button"
                   onClick={addPerson}
                   variant="outline"
-                  size={isDesktop ? "sm" : "default"}
+                  size="lg"
                   className="cursor-pointer"
                 >
                   <UserPlus /> Add Person
@@ -198,7 +198,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                     prefetch="viewport"
                     className="cursor-pointer"
                   >
-                    Delete Group
+                    Delete group
                   </Link>
                 }
               />

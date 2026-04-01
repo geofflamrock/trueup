@@ -81,7 +81,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                 prefetch="viewport"
                 className="cursor-pointer"
               >
-                {groups.length === 0 ? "Get Started" : "Create Group"}
+                {groups.length === 0 ? "Get started" : "Create group"}
               </Link>
             }
           />
