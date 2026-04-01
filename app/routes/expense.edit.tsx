@@ -12,7 +12,15 @@ import { useState } from "react";
 import type { ExpenseShare } from "../types";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+  FieldTitle,
+} from "~/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -25,6 +33,13 @@ import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "~/components/ui/input-group";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -230,50 +245,80 @@ export default function EditExpense() {
               </Select>
             </Field>
 
-            <Field>
-              <div className="flex justify-between items-center">
-                <FieldLabel>Split</FieldLabel>
-                <ToggleGroup
-                  variant="outline"
-                  size="lg"
-                  value={[splitType]}
-                  onValueChange={(value) =>
-                    handleSplitTypeChange(value[0] as SplitType)
-                  }
-                >
-                  <ToggleGroupItem value="equal">Equally</ToggleGroupItem>
-                  <ToggleGroupItem value="custom">Custom</ToggleGroupItem>
-                </ToggleGroup>
-              </div>
-              <div className="space-y-2">
-                {group.people.map((person) => {
-                  const share = shares.find((s) => s.personId === person.id);
-                  return (
-                    <div key={person.id} className="flex items-center gap-2">
-                      <p className="flex-1">{person.name}</p>
-                      <Input
-                        type="number"
-                        value={share?.amount || 0}
-                        onChange={(e) => updateShare(person.id, e.target.value)}
-                        step="0.01"
-                        min="0"
-                        disabled={splitType === "equal"}
-                        className="w-32"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-2 text-sm text-muted-foreground">
-                Total: ${totalShares.toFixed(2)}
-                {!isValid && amount && (
-                  <span className="text-destructive ml-2">
-                    (must equal ${parseFloat(amount).toFixed(2)})
-                  </span>
-                )}
-              </div>
+            <RadioGroup
+              value={splitType}
+              onValueChange={(value) =>
+                handleSplitTypeChange(value as SplitType)
+              }
+            >
+              <FieldLabel>Split</FieldLabel>
+              <FieldLabel htmlFor="split-equal">
+                <Field orientation="horizontal">
+                  <FieldContent>
+                    <FieldTitle>Equal</FieldTitle>
+                    <FieldDescription>
+                      Split the expense equally among all group members.
+                      {amount &&
+                        ` Each member owes $${(parseFloat(amount) / group.people.length).toFixed(2)}.`}
+                    </FieldDescription>
+                  </FieldContent>
+                  <RadioGroupItem value="equal" id="split-equal" />
+                </Field>
+              </FieldLabel>
+              <FieldLabel htmlFor="split-custom">
+                <Field orientation="horizontal">
+                  <FieldContent>
+                    <FieldTitle>Custom</FieldTitle>
+                    <FieldDescription>
+                      Split the expense based on custom amounts for each member.
+                    </FieldDescription>
+                  </FieldContent>
+                  <RadioGroupItem value="custom" id="split-custom" />
+                </Field>
+              </FieldLabel>
+              {splitType === "custom" && (
+                <>
+                  <div className="space-y-2">
+                    {group.people.map((person) => {
+                      const share = shares.find(
+                        (s) => s.personId === person.id,
+                      );
+                      return (
+                        <div
+                          key={person.id}
+                          className="flex items-center gap-2"
+                        >
+                          <p className="flex-1">{person.name}</p>
+                          <InputGroup className="w-32">
+                            <InputGroupAddon>
+                              <InputGroupText>$</InputGroupText>
+                            </InputGroupAddon>
+                            <InputGroupInput
+                              type="number"
+                              value={share?.amount || 0}
+                              onChange={(e) =>
+                                updateShare(person.id, e.target.value)
+                              }
+                              step="0.01"
+                              min="0"
+                            />
+                          </InputGroup>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Total: ${totalShares.toFixed(2)}
+                    {!isValid && amount && (
+                      <span className="text-destructive ml-2">
+                        (must equal ${parseFloat(amount).toFixed(2)})
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
               <input type="hidden" name="shares" />
-            </Field>
+            </RadioGroup>
             <div className="flex flex-col sm:flex-row gap-2 justify-between">
               <Button
                 type="submit"
