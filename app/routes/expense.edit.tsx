@@ -29,17 +29,11 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import type { SplitType } from "./expense.new";
-import { ToggleGroup, ToggleGroupItem } from "~/components/ui/toggle-group";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "~/components/ui/input-group";
+import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -278,43 +272,12 @@ export default function EditExpense() {
               </FieldLabel>
               {splitType === "custom" && (
                 <>
-                  <div className="space-y-2">
-                    {group.people.map((person) => {
-                      const share = shares.find(
-                        (s) => s.personId === person.id,
-                      );
-                      return (
-                        <div
-                          key={person.id}
-                          className="flex items-center gap-2"
-                        >
-                          <p className="flex-1">{person.name}</p>
-                          <InputGroup className="w-32">
-                            <InputGroupAddon>
-                              <InputGroupText>$</InputGroupText>
-                            </InputGroupAddon>
-                            <InputGroupInput
-                              type="number"
-                              value={share?.amount || 0}
-                              onChange={(e) =>
-                                updateShare(person.id, e.target.value)
-                              }
-                              step="0.01"
-                              min="0"
-                            />
-                          </InputGroup>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    Total: ${totalShares.toFixed(2)}
-                    {!isValid && amount && (
-                      <span className="text-destructive ml-2">
-                        (must equal ${parseFloat(amount).toFixed(2)})
-                      </span>
-                    )}
-                  </div>
+                  <CustomSplitEditor
+                    amount={amount}
+                    people={group.people}
+                    shares={shares}
+                    onUpdateShare={updateShare}
+                  />
                 </>
               )}
               <input type="hidden" name="shares" />

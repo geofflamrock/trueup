@@ -33,10 +33,15 @@ export function DialogOrDrawer({
   footer,
 }: DialogOrDrawerProps) {
   const isDesktop = useIsDesktop();
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      onClose();
+    }
+  };
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={onClose}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
@@ -54,7 +59,7 @@ export function DialogOrDrawer({
   }
 
   return (
-    <Drawer open={open} onOpenChange={onClose}>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent className="p-4">
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
