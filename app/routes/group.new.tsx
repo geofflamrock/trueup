@@ -1,11 +1,10 @@
-import { Link, data, redirect, useFetcher, useNavigate } from "react-router";
+import { Link, data, redirect, useFetcher } from "react-router";
 import type { Route } from "./+types/group.new";
 import { createGroup, addPerson } from "../storage";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
 import {
   InputGroup,
   InputGroupAddon,
@@ -54,11 +53,25 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 
 export default function NewGroup() {
   const [people, setPeople] = useState<string[]>([""]);
+  const [pendingFocusIndex, setPendingFocusIndex] = useState<number | null>(
+    null,
+  );
+  const personInputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const fetcher = useFetcher();
-  const isDesktop = useIsDesktop();
+
+  useEffect(() => {
+    if (pendingFocusIndex !== null) {
+      personInputRefs.current[pendingFocusIndex]?.focus();
+      setPendingFocusIndex(null);
+    }
+  }, [pendingFocusIndex, people.length]);
 
   const addPerson = () => {
-    setPeople((prev) => [...prev, ""]);
+    setPeople((prev) => {
+      const nextPeople = [...prev, ""];
+      setPendingFocusIndex(nextPeople.length - 1);
+      return nextPeople;
+    });
   };
 
   const removePerson = (index: number) => {
@@ -99,13 +112,14 @@ export default function NewGroup() {
                 name="name"
                 required
                 placeholder="e.g., Trip to Paris"
+                autoFocus
               />
             </Field>
             <Field>
               <FieldLabel htmlFor="people">People</FieldLabel>
               <div className="flex flex-col gap-2">
                 {people.map((person, index) => (
-                  <InputGroup>
+                  <InputGroup key={index}>
                     <InputGroupInput
                       type="text"
                       placeholder="Person name"
@@ -114,6 +128,9 @@ export default function NewGroup() {
                       onChange={(e) => updatePersonName(index, e.target.value)}
                       required
                       name="people"
+                      ref={(element) => {
+                        personInputRefs.current[index] = element;
+                      }}
                     />
                     {people.length > 1 && (
                       <InputGroupAddon align="inline-end">
@@ -139,7 +156,7 @@ export default function NewGroup() {
                   size="lg"
                   className="cursor-pointer"
                 >
-                  <UserPlus /> Add Person
+                  <UserPlus /> Add person
                 </Button>
               </div>
             </Field>
