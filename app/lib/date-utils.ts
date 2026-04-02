@@ -16,6 +16,19 @@ export function parseDateToYYYYMMDD(date: string): string {
 }
 
 /**
+ * Parses a date string that may be in ISO 8601 format (with time) or YYYY-MM-DD format
+ * and returns just the date portion in YYYY-MM-DD format
+ */
+export function parseYYYYMMDDDate(date: string): Date {
+  // If it's already in YYYY-MM-DD format, return as-is
+  if (!date.includes("T")) {
+    return new Date(date);
+  }
+  // Parse ISO string and format as YYYY-MM-DD
+  return parseISO(date);
+}
+
+/**
  * Returns today's date in YYYY-MM-DD format using local timezone
  */
 export function getTodayYYYYMMDD(): string {

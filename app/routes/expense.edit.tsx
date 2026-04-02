@@ -29,11 +29,18 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import type { SplitType } from "./expense.new";
-import { parseDateToYYYYMMDD } from "~/lib/date-utils";
+import { parseDateToYYYYMMDD, parseYYYYMMDDDate } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronDownIcon } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "~/components/ui/popover";
+import { format } from "date-fns";
+import { Calendar } from "~/components/ui/calendar";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -84,13 +91,49 @@ export async function clientAction({
   return redirect(`/${params.groupId}`);
 }
 
+type DatePickerProps = {
+  date: Date;
+  onSelect: (date: Date) => void;
+  id?: string;
+};
+
+function DatePicker({ date, onSelect, id }: DatePickerProps) {
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            size="xl"
+            data-empty={!date}
+            className="justify-between text-left font-normal data-[empty=true]:text-muted-foreground"
+          >
+            {date ? format(date, "PPP") : <span>Pick a date</span>}
+            <ChevronDownIcon data-icon="inline-end" />
+          </Button>
+        }
+      />
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={onSelect}
+          defaultMonth={date}
+          required
+          id={id}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function EditExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());
-  const [date, setDate] = useState(parseDateToYYYYMMDD(expense.date));
+  const [date, setDate] = useState(parseYYYYMMDDDate(expense.date));
   const [splitType, setSplitType] = useState<SplitType>(() => {
     if (!expense.shares || expense.shares.length === 0) return "custom";
     const first = expense.shares[0].amount;
@@ -207,14 +250,7 @@ export default function EditExpense() {
 
             <Field>
               <FieldLabel htmlFor="date">Date</FieldLabel>
-              <Input
-                type="date"
-                id="date"
-                name="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
+              <DatePicker id="date" date={date} onSelect={setDate} />
             </Field>
 
             <Field>
