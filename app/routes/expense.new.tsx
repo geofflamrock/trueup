@@ -1,7 +1,9 @@
-import { Form, Link, redirect, useLoaderData } from "react-router";
+import { Link, redirect, useLoaderData, useSubmit } from "react-router";
 import type { Route } from "./+types/expense.new";
 import { getGroup, addExpense } from "../storage";
 import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
 import type { ExpenseShare } from "../types";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -9,6 +11,7 @@ import {
   Field,
   FieldContent,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSet,
@@ -26,6 +29,19 @@ import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
+
+const expenseSchema = z.object({
+  description: z.string().min(1, "Description is required"),
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine(
+      (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+      "Amount must be greater than 0",
+    ),
+  date: z.string().min(1, "Date is required"),
+  paidById: z.string().min(1, "Paid by is required"),
+});
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -74,19 +90,34 @@ export type SplitType = "equal" | "custom";
 
 export default function NewExpense() {
   const { group } = useLoaderData<typeof clientLoader>();
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [paidById, setPaidById] = useState(
-    group.people[0]?.id.toString() || "",
-  );
-  const [date, setDate] = useState(getTodayYYYYMMDD());
+  const submit = useSubmit();
   const [splitType, setSplitType] = useState<SplitType>("equal");
   const [shares, setShares] = useState<ExpenseShare[]>(
     group.people.map((p) => ({ personId: p.id, amount: 0 })),
   );
 
+  const form = useForm({
+    defaultValues: {
+      description: "",
+      amount: "",
+      date: getTodayYYYYMMDD(),
+      paidById: group.people[0]?.id.toString() || "",
+    },
+    validators: {
+      onSubmit: expenseSchema,
+    },
+    onSubmit: async ({ value }) => {
+      const formData = new FormData();
+      formData.set("description", value.description);
+      formData.set("amount", value.amount);
+      formData.set("date", value.date);
+      formData.set("paidById", value.paidById);
+      formData.set("shares", JSON.stringify(shares));
+      submit(formData, { method: "post" });
+    },
+  });
+
   const handleAmountChange = (value: string) => {
-    setAmount(value);
     if (splitType === "equal" && value) {
       const amountNum = parseFloat(value);
       if (!isNaN(amountNum)) {
@@ -98,10 +129,10 @@ export default function NewExpense() {
     }
   };
 
-  const handleSplitTypeChange = (type: SplitType) => {
+  const handleSplitTypeChange = (type: SplitType, currentAmount: string) => {
     setSplitType(type);
-    if (type === "equal" && amount) {
-      const amountNum = parseFloat(amount);
+    if (type === "equal" && currentAmount) {
+      const amountNum = parseFloat(currentAmount);
       if (!isNaN(amountNum)) {
         const equalShare = amountNum / group.people.length;
         setShares(
@@ -120,22 +151,10 @@ export default function NewExpense() {
     );
   };
 
-  const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
-  const isValid = amount && Math.abs(totalShares - parseFloat(amount)) < 0.01;
   const peopleItems = group.people.map((person) => ({
     label: person.name,
     value: person.id.toString(),
   }));
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const form = e.currentTarget;
-    const sharesInput = form.querySelector(
-      'input[name="shares"]',
-    ) as HTMLInputElement;
-    if (sharesInput) {
-      sharesInput.value = JSON.stringify(shares);
-    }
-  };
 
   return (
     <PageLayout
@@ -160,131 +179,208 @@ export default function NewExpense() {
         </div>
       }
     >
-      <Form
+      <form
         id="new-expense"
-        method="post"
-        onSubmit={handleSubmit}
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
         className="p-4"
       >
         <FieldSet>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="description">Description</FieldLabel>
-              <Input
-                type="text"
-                id="description"
-                name="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                placeholder="e.g., Hotel booking"
-              />
-            </Field>
+            <form.Field name="description">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                    <Input
+                      type="text"
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="e.g., Hotel booking"
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
 
-            <Field>
-              <FieldLabel htmlFor="amount">Amount</FieldLabel>
-              <Input
-                type="number"
-                id="amount"
-                name="amount"
-                value={amount}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                step="0.01"
-                min="0"
-                required
-              />
-            </Field>
+            <form.Field name="amount">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
+                    <Input
+                      type="number"
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => {
+                        field.handleChange(e.target.value);
+                        handleAmountChange(e.target.value);
+                      }}
+                      step="0.01"
+                      min="0"
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
 
-            <Field>
-              <FieldLabel htmlFor="date">Date</FieldLabel>
-              <Input
-                type="date"
-                id="date"
-                name="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </Field>
+            <form.Field name="date">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Date</FieldLabel>
+                    <Input
+                      type="date"
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
 
-            <Field>
-              <FieldLabel htmlFor="paidById">Paid By</FieldLabel>
-              <Select
-                name="paidById"
-                items={peopleItems}
-                required
-                defaultValue={group.people[0]?.id.toString() || ""}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select person" />
-                </SelectTrigger>
-                <SelectContent>
-                  {group.people.map((person) => (
-                    <SelectItem key={person.id} value={person.id.toString()}>
-                      {person.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+            <form.Field name="paidById">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel>Paid By</FieldLabel>
+                    <Select
+                      name={field.name}
+                      items={peopleItems}
+                      value={field.state.value}
+                      onValueChange={(value) => field.handleChange(value!)}
+                    >
+                      <SelectTrigger
+                        aria-invalid={isInvalid}
+                        onBlur={field.handleBlur}
+                      >
+                        <SelectValue placeholder="Select person" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {group.people.map((person) => (
+                          <SelectItem
+                            key={person.id}
+                            value={person.id.toString()}
+                          >
+                            {person.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
 
-            <RadioGroup
-              value={splitType}
-              onValueChange={(value) =>
-                handleSplitTypeChange(value as SplitType)
-              }
-            >
-              <FieldLabel>Split</FieldLabel>
-              <FieldLabel htmlFor="split-equal">
-                <Field orientation="horizontal">
-                  <FieldContent>
-                    <FieldTitle>Equal</FieldTitle>
-                    <FieldDescription>
-                      Split the expense equally between everyone in the group.
-                      {amount &&
-                        ` Each person owes $${(parseFloat(amount) / group.people.length).toFixed(2)}.`}
-                    </FieldDescription>
-                  </FieldContent>
-                  <RadioGroupItem value="equal" id="split-equal" />
-                </Field>
-              </FieldLabel>
-              <FieldLabel htmlFor="split-custom">
-                <Field orientation="horizontal">
-                  <FieldContent>
-                    <FieldTitle>Custom</FieldTitle>
-                    <FieldDescription>
-                      Split the expense using custom amounts for each person.
-                    </FieldDescription>
-                  </FieldContent>
-                  <RadioGroupItem value="custom" id="split-custom" />
-                </Field>
-              </FieldLabel>
-              {splitType === "custom" && (
-                <>
-                  <CustomSplitEditor
-                    amount={amount}
-                    people={group.people}
-                    shares={shares}
-                    onUpdateShare={updateShare}
-                  />
-                </>
+            <form.Subscribe selector={(state) => state.values.amount}>
+              {(amount) => (
+                <RadioGroup
+                  value={splitType}
+                  onValueChange={(value) =>
+                    handleSplitTypeChange(value as SplitType, amount)
+                  }
+                >
+                  <FieldLabel>Split</FieldLabel>
+                  <FieldLabel htmlFor="split-equal">
+                    <Field orientation="horizontal">
+                      <FieldContent>
+                        <FieldTitle>Equal</FieldTitle>
+                        <FieldDescription>
+                          Split the expense equally between everyone in the
+                          group.
+                          {amount &&
+                            ` Each person owes $${(parseFloat(amount) / group.people.length).toFixed(2)}.`}
+                        </FieldDescription>
+                      </FieldContent>
+                      <RadioGroupItem value="equal" id="split-equal" />
+                    </Field>
+                  </FieldLabel>
+                  <FieldLabel htmlFor="split-custom">
+                    <Field orientation="horizontal">
+                      <FieldContent>
+                        <FieldTitle>Custom</FieldTitle>
+                        <FieldDescription>
+                          Split the expense using custom amounts for each
+                          person.
+                        </FieldDescription>
+                      </FieldContent>
+                      <RadioGroupItem value="custom" id="split-custom" />
+                    </Field>
+                  </FieldLabel>
+                  {splitType === "custom" && (
+                    <CustomSplitEditor
+                      amount={amount}
+                      people={group.people}
+                      shares={shares}
+                      onUpdateShare={updateShare}
+                    />
+                  )}
+                </RadioGroup>
               )}
-              <input type="hidden" name="shares" />
-            </RadioGroup>
-            <div className="flex">
-              <Button
-                type="submit"
-                form="new-expense"
-                size="xl"
-                disabled={!isValid}
-                className="flex-1 sm:flex-initial cursor-pointer"
-              >
-                Save
-              </Button>
-            </div>
+            </form.Subscribe>
+
+            <form.Subscribe
+              selector={(state) => state.values.amount}
+            >
+              {(amount) => {
+                const totalShares = shares.reduce(
+                  (sum, s) => sum + s.amount,
+                  0,
+                );
+                const sharesValid =
+                  amount !== "" &&
+                  !isNaN(parseFloat(amount)) &&
+                  Math.abs(totalShares - parseFloat(amount)) < 0.01;
+                return (
+                  <div className="flex">
+                    <Button
+                      type="submit"
+                      size="xl"
+                      disabled={!sharesValid}
+                      className="flex-1 sm:flex-initial cursor-pointer"
+                    >
+                      Save
+                    </Button>
+                  </div>
+                );
+              }}
+            </form.Subscribe>
           </FieldGroup>
         </FieldSet>
-      </Form>
+      </form>
     </PageLayout>
   );
 }
