@@ -44,7 +44,7 @@ const expenseSchema = z.object({
     .string()
     .min(1, "Amount is required")
     .refine(
-      (val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0,
+      (val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) > 0),
       "Amount must be greater than 0",
     ),
   date: z.string().min(1, "Date is required"),

@@ -56,8 +56,9 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   const group = createGroup(name);
 
   people.forEach((personName) => {
-    if (personName.toString().trim()) {
-      addPerson(group.id, personName.toString().trim());
+    const trimmed = personName.toString().trim();
+    if (trimmed) {
+      addPerson(group.id, trimmed);
     }
   });
 
