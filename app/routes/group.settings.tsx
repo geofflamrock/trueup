@@ -1,5 +1,6 @@
 import {
   redirect,
+  data,
   useFetcher,
   useNavigate,
   Link,
@@ -63,7 +64,7 @@ type EditGroupPerson = {
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
   if (!group) {
-    throw new Response("Group not found", { status: 404 });
+    throw data("Group not found", { status: 404 });
   }
 
   return { group };
@@ -82,7 +83,7 @@ export async function clientAction({
   const peopleUpdateResult = updateGroupPeople(params.groupId, people);
 
   if (!peopleUpdateResult.success) {
-    throw new Response(peopleUpdateResult.error, { status: 400 });
+    throw data(peopleUpdateResult.error, { status: 400 });
   }
 
   return redirect(`/${params.groupId}`);
