@@ -34,13 +34,11 @@ const transferSchema = z
   .object({
     description: z.string(),
     amount: z
-      .string()
-      .min(1, "Amount is required")
-      .refine(
-        (val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) > 0),
-        "Amount must be greater than 0",
-      ),
-    date: z.string().min(1, "Date is required"),
+      .number({
+        error: "Amount is required",
+      })
+      .gt(0, "Amount must be greater than 0"),
+    date: z.iso.date({ error: "Date is required" }),
     paidById: z.string().min(1, "From person is required"),
     paidToId: z.string().min(1, "To person is required"),
   })
@@ -105,7 +103,7 @@ export default function EditTransfer() {
   const form = useForm({
     defaultValues: {
       description: transfer.description || "",
-      amount: transfer.amount.toString(),
+      amount: transfer.amount,
       date: parseDateToYYYYMMDD(transfer.date),
       paidById: transfer.paidById.toString(),
       paidToId: transfer.paidToId.toString(),
@@ -116,7 +114,7 @@ export default function EditTransfer() {
     onSubmit: async ({ value }) => {
       const formData = new FormData();
       formData.set("description", value.description || "");
-      formData.set("amount", value.amount);
+      formData.set("amount", value.amount.toString());
       formData.set("date", value.date);
       formData.set("paidById", value.paidById);
       formData.set("paidToId", value.paidToId);
@@ -189,7 +187,10 @@ export default function EditTransfer() {
                       name={field.name}
                       value={field.state.value}
                       onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        field.handleChange(value);
+                      }}
                       step="0.01"
                       min="0"
                       aria-invalid={isInvalid}
@@ -303,11 +304,7 @@ export default function EditTransfer() {
             </form.Field>
 
             <div className="flex flex-col sm:flex-row gap-2 justify-between">
-              <Button
-                type="submit"
-                size="xl"
-                className="cursor-pointer"
-              >
+              <Button type="submit" size="xl" className="cursor-pointer">
                 Save
               </Button>
               <Button

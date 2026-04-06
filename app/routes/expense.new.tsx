@@ -4,7 +4,6 @@ import { getGroup, addExpense } from "../storage";
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
-import type { ExpenseShare } from "../types";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import {
@@ -30,18 +29,28 @@ import { ArrowLeft } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
 
-const expenseSchema = z.object({
-  description: z.string().min(1, "Description is required"),
-  amount: z
-    .string()
-    .min(1, "Amount is required")
-    .refine(
-      (val) => val === "" || (!isNaN(parseFloat(val)) && parseFloat(val) > 0),
-      "Amount must be greater than 0",
-    ),
-  date: z.string().min(1, "Date is required"),
-  paidById: z.string().min(1, "Paid by is required"),
-});
+const expenseSchema = z
+  .object({
+    description: z.string().min(1, "Description is required"),
+    amount: z
+      .number({
+        error: "Amount is required",
+      })
+      .gt(0, "Amount must be greater than 0"),
+    date: z.iso.date({ error: "Date is required" }),
+    paidById: z.string().min(1, "Paid by is required"),
+    shares: z
+      .array(z.object({ personId: z.number(), amount: z.number() }))
+      .min(1, "At least one share is required"),
+  })
+  .refine(
+    (data) => {
+      const totalShares = data.shares.reduce((sum, s) => sum + s.amount, 0);
+      const sharesValid = Math.abs(totalShares - data.amount) < 0.01;
+      return sharesValid;
+    },
+    { message: "Shares must add up to the total amount" },
+  );
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -92,16 +101,14 @@ export default function NewExpense() {
   const { group } = useLoaderData<typeof clientLoader>();
   const submit = useSubmit();
   const [splitType, setSplitType] = useState<SplitType>("equal");
-  const [shares, setShares] = useState<ExpenseShare[]>(
-    group.people.map((p) => ({ personId: p.id, amount: 0 })),
-  );
 
   const form = useForm({
     defaultValues: {
       description: "",
-      amount: "",
+      amount: 0,
       date: getTodayYYYYMMDD(),
       paidById: group.people[0]?.id.toString() || "",
+      shares: group.people.map((p) => ({ personId: p.id, amount: 0 })),
     },
     validators: {
       onSubmit: expenseSchema,
@@ -109,42 +116,37 @@ export default function NewExpense() {
     onSubmit: async ({ value }) => {
       const formData = new FormData();
       formData.set("description", value.description);
-      formData.set("amount", value.amount);
+      formData.set("amount", value.amount.toString());
       formData.set("date", value.date);
       formData.set("paidById", value.paidById);
-      formData.set("shares", JSON.stringify(shares));
+      formData.set("shares", JSON.stringify(value.shares));
       submit(formData, { method: "post" });
     },
   });
 
-  const handleAmountChange = (value: string) => {
+  const handleAmountChange = (value: number) => {
     if (splitType === "equal" && value) {
-      const amountNum = parseFloat(value);
-      if (!isNaN(amountNum)) {
-        const equalShare = amountNum / group.people.length;
-        setShares(
-          group.people.map((p) => ({ personId: p.id, amount: equalShare })),
-        );
-      }
+      const equalShare = value / group.people.length;
+      form.setFieldValue("shares", (shares) =>
+        group.people.map((p) => ({ personId: p.id, amount: equalShare })),
+      );
     }
   };
 
-  const handleSplitTypeChange = (type: SplitType, currentAmount: string) => {
+  const handleSplitTypeChange = (type: SplitType, currentAmount: number) => {
     setSplitType(type);
     if (type === "equal" && currentAmount) {
-      const amountNum = parseFloat(currentAmount);
-      if (!isNaN(amountNum)) {
-        const equalShare = amountNum / group.people.length;
-        setShares(
-          group.people.map((p) => ({ personId: p.id, amount: equalShare })),
-        );
-      }
+      const equalShare = currentAmount / group.people.length;
+      form.setFieldValue(
+        "shares",
+        group.people.map((p) => ({ personId: p.id, amount: equalShare })),
+      );
     }
   };
 
   const updateShare = (personId: number, value: string) => {
     const shareAmount = parseFloat(value) || 0;
-    setShares(
+    form.setFieldValue("shares", (shares) =>
       shares.map((s) =>
         s.personId === personId ? { ...s, amount: shareAmount } : s,
       ),
@@ -228,8 +230,9 @@ export default function NewExpense() {
                       value={field.state.value}
                       onBlur={field.handleBlur}
                       onChange={(e) => {
-                        field.handleChange(e.target.value);
-                        handleAmountChange(e.target.value);
+                        const value = parseFloat(e.target.value);
+                        field.handleChange(value);
+                        handleAmountChange(value);
                       }}
                       step="0.01"
                       min="0"
@@ -305,8 +308,13 @@ export default function NewExpense() {
               }}
             </form.Field>
 
-            <form.Subscribe selector={(state) => state.values.amount}>
-              {(amount) => (
+            <form.Subscribe
+              selector={(state) => ({
+                amount: state.values.amount,
+                shares: state.values.shares,
+              })}
+            >
+              {({ amount, shares }) => (
                 <RadioGroup
                   value={splitType}
                   onValueChange={(value) =>
@@ -321,8 +329,9 @@ export default function NewExpense() {
                         <FieldDescription>
                           Split the expense equally between everyone in the
                           group.
-                          {amount &&
-                            ` Each person owes $${(parseFloat(amount) / group.people.length).toFixed(2)}.`}
+                          {!isNaN(amount) &&
+                            amount > 0 &&
+                            ` Each person owes $${(amount / group.people.length).toFixed(2)}.`}
                         </FieldDescription>
                       </FieldContent>
                       <RadioGroupItem value="equal" id="split-equal" />
@@ -352,32 +361,15 @@ export default function NewExpense() {
               )}
             </form.Subscribe>
 
-            <form.Subscribe
-              selector={(state) => state.values.amount}
-            >
-              {(amount) => {
-                const totalShares = shares.reduce(
-                  (sum, s) => sum + s.amount,
-                  0,
-                );
-                const sharesValid =
-                  amount !== "" &&
-                  !isNaN(parseFloat(amount)) &&
-                  Math.abs(totalShares - parseFloat(amount)) < 0.01;
-                return (
-                  <div className="flex">
-                    <Button
-                      type="submit"
-                      size="xl"
-                      disabled={!sharesValid}
-                      className="flex-1 sm:flex-initial cursor-pointer"
-                    >
-                      Save
-                    </Button>
-                  </div>
-                );
-              }}
-            </form.Subscribe>
+            <div className="flex">
+              <Button
+                type="submit"
+                size="xl"
+                className="flex-1 sm:flex-initial cursor-pointer"
+              >
+                Save
+              </Button>
+            </div>
           </FieldGroup>
         </FieldSet>
       </form>
