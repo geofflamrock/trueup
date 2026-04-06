@@ -105,7 +105,7 @@ export default function NewExpense() {
   const form = useForm({
     defaultValues: {
       description: "",
-      amount: 0,
+      amount: undefined as unknown as number,
       date: getTodayYYYYMMDD(),
       paidById: group.people[0]?.id.toString() || "",
       shares: group.people.map((p) => ({ personId: p.id, amount: 0 })),

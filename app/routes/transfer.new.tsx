@@ -97,7 +97,9 @@ export default function NewTransfer() {
   const form = useForm({
     defaultValues: {
       description: "",
-      amount: Number.isNaN(queryAmount) ? 0 : queryAmount,
+      amount: Number.isNaN(queryAmount)
+        ? (undefined as unknown as number)
+        : queryAmount,
       date: getTodayYYYYMMDD(),
       paidById:
         searchParams.get("from") || group.people[0]?.id.toString() || "",
