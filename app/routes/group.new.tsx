@@ -34,10 +34,10 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   const name = formData.get("name") as string;
   const people = formData.getAll("people");
 
-  if (!name) throw data("Group name is required", { status: 400 });
+  if (!name) return data({ error: "Group name is required" }, { status: 400 });
 
-  if (people.length === 0) {
-    throw data("At least one person is required", { status: 400 });
+  if (people.length < 2) {
+    return data({ error: "At least two people are required" }, { status: 400 });
   }
 
   const group = createGroup(name);
@@ -57,7 +57,9 @@ export default function NewGroup() {
     null,
   );
   const personInputRefs = useRef<Array<HTMLInputElement | null>>([]);
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<typeof clientAction>();
+  const error =
+    fetcher.data && "error" in fetcher.data ? fetcher.data.error : null;
 
   useEffect(() => {
     if (pendingFocusIndex !== null) {
@@ -96,12 +98,17 @@ export default function NewGroup() {
             }
           />
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            New Group
+            New group
           </h1>
         </div>
       }
     >
       <fetcher.Form id="new-group" method="post" className="p-4">
+        {error && (
+          <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
         <FieldSet>
           <FieldGroup>
             <Field>
