@@ -1,7 +1,6 @@
 import { Link, redirect, useFetcher } from "react-router";
 import type { Route } from "./+types/group.new";
 import { createGroup, addPerson } from "../storage";
-import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { Input } from "~/components/ui/input";
@@ -25,12 +24,8 @@ import { PageLayout } from "~/components/app/PageLayout";
 const groupSchema = z.object({
   name: z.string().min(1, "Group name is required"),
   people: z
-    .array(z.string())
-    .min(1, "At least one person is required")
-    .refine(
-      (people) => people.some((p) => p.trim().length > 0),
-      "At least one person name is required",
-    ),
+    .array(z.string().min(1, "Person name cannot be empty"))
+    .min(2, "At least two people are required"),
 });
 
 export function meta() {
@@ -67,12 +62,11 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 
 export default function NewGroup() {
   const fetcher = useFetcher();
-  const [people, setPeople] = useState<string[]>([""]);
 
   const form = useForm({
     defaultValues: {
       name: "",
-      people: [""],
+      people: ["", ""],
     },
     validators: {
       onSubmit: groupSchema,
@@ -86,24 +80,6 @@ export default function NewGroup() {
       fetcher.submit(formData, { method: "post" });
     },
   });
-
-  const addPersonField = () => {
-    const newPeople = [...people, ""];
-    setPeople(newPeople);
-    form.setFieldValue("people", newPeople);
-  };
-
-  const removePersonField = (index: number) => {
-    const newPeople = people.filter((_, i) => i !== index);
-    setPeople(newPeople);
-    form.setFieldValue("people", newPeople);
-  };
-
-  const updatePersonField = (index: number, name: string) => {
-    const newPeople = people.map((p, i) => (i === index ? name : p));
-    setPeople(newPeople);
-    form.setFieldValue("people", newPeople);
-  };
 
   return (
     <PageLayout
@@ -119,7 +95,7 @@ export default function NewGroup() {
             }
           />
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            New Group
+            New group
           </h1>
         </div>
       }
@@ -150,6 +126,7 @@ export default function NewGroup() {
                       onChange={(e) => field.handleChange(e.target.value)}
                       placeholder="e.g., Trip to Paris"
                       aria-invalid={isInvalid}
+                      autoFocus
                     />
                     {isInvalid && (
                       <FieldError errors={field.state.meta.errors} />
@@ -159,55 +136,68 @@ export default function NewGroup() {
               }}
             </form.Field>
 
-            <form.Field name="people">
+            <form.Field name="people" mode="array">
               {(field) => {
-                const isInvalid =
-                  field.state.meta.isTouched && !field.state.meta.isValid;
                 return (
-                  <Field data-invalid={isInvalid}>
+                  <Field>
                     <FieldLabel>People</FieldLabel>
                     <div className="flex flex-col gap-2">
-                      {people.map((person, index) => (
-                        <InputGroup key={index}>
-                          <InputGroupInput
-                            type="text"
-                            placeholder="Person name"
-                            className="flex-1"
-                            value={person}
-                            onChange={(e) =>
-                              updatePersonField(index, e.target.value)
-                            }
-                            onBlur={field.handleBlur}
-                            name="people"
-                          />
-                          {people.length > 1 && (
-                            <InputGroupAddon align="inline-end">
-                              <InputGroupButton
-                                type="button"
-                                onClick={() => removePersonField(index)}
-                                variant="ghost"
-                                size="icon-xs"
-                                className="cursor-pointer"
-                              >
-                                <Trash2 />
-                              </InputGroupButton>
-                            </InputGroupAddon>
-                          )}
-                        </InputGroup>
+                      {field.state.value.map((_, index) => (
+                        <form.Field key={index} name={`people[${index}]`}>
+                          {(subField) => {
+                            const isSubFieldInvalid =
+                              subField.state.meta.isTouched &&
+                              !subField.state.meta.isValid;
+
+                            return (
+                              <Field data-invalid={isSubFieldInvalid}>
+                                <InputGroup>
+                                  <InputGroupInput
+                                    type="text"
+                                    placeholder={`Person ${index + 1}`}
+                                    className="flex-1"
+                                    value={subField.state.value}
+                                    onChange={(e) =>
+                                      subField.handleChange(e.target.value)
+                                    }
+                                    onBlur={subField.handleBlur}
+                                    name="people"
+                                    aria-invalid={isSubFieldInvalid}
+                                  />
+                                  {field.state.value.length > 2 && (
+                                    <InputGroupAddon align="inline-end">
+                                      <InputGroupButton
+                                        type="button"
+                                        onClick={() => field.removeValue(index)}
+                                        variant="ghost"
+                                        size="icon-xs"
+                                        className="cursor-pointer"
+                                      >
+                                        <Trash2 />
+                                      </InputGroupButton>
+                                    </InputGroupAddon>
+                                  )}
+                                </InputGroup>
+                                {isSubFieldInvalid && (
+                                  <FieldError
+                                    errors={subField.state.meta.errors}
+                                  />
+                                )}
+                              </Field>
+                            );
+                          }}
+                        </form.Field>
                       ))}
                     </div>
-                    {isInvalid && (
-                      <FieldError errors={field.state.meta.errors} />
-                    )}
                     <div>
                       <Button
                         type="button"
-                        onClick={addPersonField}
+                        onClick={() => field.pushValue("")}
                         variant="outline"
                         size="lg"
                         className="cursor-pointer"
                       >
-                        <UserPlus /> Add Person
+                        <UserPlus /> Add person
                       </Button>
                     </div>
                   </Field>
