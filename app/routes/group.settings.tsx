@@ -1,14 +1,7 @@
-import {
-  redirect,
-  data,
-  useFetcher,
-  useNavigate,
-  Link,
-  Outlet,
-} from "react-router";
+import { redirect, data, useFetcher, Link, Outlet } from "react-router";
 import type { Route } from "./+types/group.settings";
 import { getGroup, updateGroupName, updateGroupPeople } from "../storage";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
@@ -19,7 +12,6 @@ import {
   InputGroupInput,
 } from "~/components/ui/input-group";
 import { Trash2, UserPlus } from "lucide-react";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -63,8 +55,8 @@ export async function clientAction({
 
   if (!name) throw data("Group name is required", { status: 400 });
 
-  if (people.length === 0) {
-    throw data("At least one person is required", { status: 400 });
+  if (people.length < 2) {
+    throw data("At least two people are required", { status: 400 });
   }
 
   updateGroupName(params.groupId, name);
@@ -79,16 +71,29 @@ export async function clientAction({
 
 export default function EditGroup({ loaderData }: Route.ComponentProps) {
   const { group } = loaderData;
-  const navigate = useNavigate();
   const [name, setName] = useState<string>(group.name);
   const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
     group.people,
   );
+  const [pendingFocusIndex, setPendingFocusIndex] = useState<number | null>(
+    null,
+  );
+  const personInputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const fetcher = useFetcher();
-  const isDesktop = useIsDesktop();
+
+  useEffect(() => {
+    if (pendingFocusIndex !== null) {
+      personInputRefs.current[pendingFocusIndex]?.focus();
+      setPendingFocusIndex(null);
+    }
+  }, [pendingFocusIndex, people.length]);
 
   const addPerson = () => {
-    setPeople([...people, { name: "" }]);
+    setPeople((prev) => {
+      const nextPeople = [...prev, { name: "" }];
+      setPendingFocusIndex(nextPeople.length - 1);
+      return nextPeople;
+    });
   };
 
   const removePerson = (index: number) => {
@@ -139,7 +144,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
               <FieldLabel htmlFor="people">People</FieldLabel>
               <div className="flex flex-col gap-2">
                 {people.map((person, index) => (
-                  <InputGroup>
+                  <InputGroup key={person.id ?? index}>
                     <InputGroupInput
                       type="text"
                       value={person.name}
@@ -147,6 +152,9 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                       placeholder="Person name"
                       className="flex-1"
                       required
+                      ref={(element) => {
+                        personInputRefs.current[index] = element;
+                      }}
                     />
                     {people.length > 1 && (
                       <InputGroupAddon align="inline-end">
@@ -173,7 +181,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                   size="lg"
                   className="cursor-pointer"
                 >
-                  <UserPlus /> Add Person
+                  <UserPlus /> Add person
                 </Button>
               </div>
             </Field>

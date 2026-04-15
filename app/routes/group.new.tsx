@@ -1,11 +1,10 @@
-import { Link, data, redirect, useFetcher, useNavigate } from "react-router";
+import { Link, data, redirect, useFetcher } from "react-router";
 import type { Route } from "./+types/group.new";
 import { createGroup, addPerson } from "../storage";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
 import {
   InputGroup,
   InputGroupAddon,
@@ -35,10 +34,10 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
   const name = formData.get("name") as string;
   const people = formData.getAll("people");
 
-  if (!name) throw data("Group name is required", { status: 400 });
+  if (!name) return data({ error: "Group name is required" }, { status: 400 });
 
-  if (people.length === 0) {
-    throw data("At least one person is required", { status: 400 });
+  if (people.length < 2) {
+    return data({ error: "At least two people are required" }, { status: 400 });
   }
 
   const group = createGroup(name);
@@ -54,11 +53,27 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 
 export default function NewGroup() {
   const [people, setPeople] = useState<string[]>([""]);
-  const fetcher = useFetcher();
-  const isDesktop = useIsDesktop();
+  const [pendingFocusIndex, setPendingFocusIndex] = useState<number | null>(
+    null,
+  );
+  const personInputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const fetcher = useFetcher<typeof clientAction>();
+  const error =
+    fetcher.data && "error" in fetcher.data ? fetcher.data.error : null;
+
+  useEffect(() => {
+    if (pendingFocusIndex !== null) {
+      personInputRefs.current[pendingFocusIndex]?.focus();
+      setPendingFocusIndex(null);
+    }
+  }, [pendingFocusIndex, people.length]);
 
   const addPerson = () => {
-    setPeople((prev) => [...prev, ""]);
+    setPeople((prev) => {
+      const nextPeople = [...prev, ""];
+      setPendingFocusIndex(nextPeople.length - 1);
+      return nextPeople;
+    });
   };
 
   const removePerson = (index: number) => {
@@ -83,12 +98,17 @@ export default function NewGroup() {
             }
           />
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            New Group
+            New group
           </h1>
         </div>
       }
     >
       <fetcher.Form id="new-group" method="post" className="p-4">
+        {error && (
+          <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
         <FieldSet>
           <FieldGroup>
             <Field>
@@ -99,13 +119,14 @@ export default function NewGroup() {
                 name="name"
                 required
                 placeholder="e.g., Trip to Paris"
+                autoFocus
               />
             </Field>
             <Field>
               <FieldLabel htmlFor="people">People</FieldLabel>
               <div className="flex flex-col gap-2">
                 {people.map((person, index) => (
-                  <InputGroup>
+                  <InputGroup key={index}>
                     <InputGroupInput
                       type="text"
                       placeholder="Person name"
@@ -114,6 +135,9 @@ export default function NewGroup() {
                       onChange={(e) => updatePersonName(index, e.target.value)}
                       required
                       name="people"
+                      ref={(element) => {
+                        personInputRefs.current[index] = element;
+                      }}
                     />
                     {people.length > 1 && (
                       <InputGroupAddon align="inline-end">
@@ -139,7 +163,7 @@ export default function NewGroup() {
                   size="lg"
                   className="cursor-pointer"
                 >
-                  <UserPlus /> Add Person
+                  <UserPlus /> Add person
                 </Button>
               </div>
             </Field>
