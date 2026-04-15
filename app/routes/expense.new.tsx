@@ -1,31 +1,11 @@
-import { Form, Link, redirect, useLoaderData } from "react-router";
+import { Link, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/expense.new";
 import { getGroup, addExpense } from "../storage";
-import { useState } from "react";
-import type { ExpenseShare } from "../types";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldSet,
-  FieldTitle,
-} from "~/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { getTodayYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
-import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
+import { ExpenseForm } from "~/components/app/ExpenseForm";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -70,72 +50,10 @@ export async function clientAction({
   return redirect(`/${params.groupId}`);
 }
 
-export type SplitType = "equal" | "custom";
+export type { SplitType } from "~/components/app/ExpenseForm";
 
 export default function NewExpense() {
   const { group } = useLoaderData<typeof clientLoader>();
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [paidById, setPaidById] = useState(
-    group.people[0]?.id.toString() || "",
-  );
-  const [date, setDate] = useState(getTodayYYYYMMDD());
-  const [splitType, setSplitType] = useState<SplitType>("equal");
-  const [shares, setShares] = useState<ExpenseShare[]>(
-    group.people.map((p) => ({ personId: p.id, amount: 0 })),
-  );
-
-  const handleAmountChange = (value: string) => {
-    setAmount(value);
-    if (splitType === "equal" && value) {
-      const amountNum = parseFloat(value);
-      if (!isNaN(amountNum)) {
-        const equalShare = amountNum / group.people.length;
-        setShares(
-          group.people.map((p) => ({ personId: p.id, amount: equalShare })),
-        );
-      }
-    }
-  };
-
-  const handleSplitTypeChange = (type: SplitType) => {
-    setSplitType(type);
-    if (type === "equal" && amount) {
-      const amountNum = parseFloat(amount);
-      if (!isNaN(amountNum)) {
-        const equalShare = amountNum / group.people.length;
-        setShares(
-          group.people.map((p) => ({ personId: p.id, amount: equalShare })),
-        );
-      }
-    }
-  };
-
-  const updateShare = (personId: number, value: string) => {
-    const shareAmount = parseFloat(value) || 0;
-    setShares(
-      shares.map((s) =>
-        s.personId === personId ? { ...s, amount: shareAmount } : s,
-      ),
-    );
-  };
-
-  const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
-  const isValid = amount && Math.abs(totalShares - parseFloat(amount)) < 0.01;
-  const peopleItems = group.people.map((person) => ({
-    label: person.name,
-    value: person.id.toString(),
-  }));
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const form = e.currentTarget;
-    const sharesInput = form.querySelector(
-      'input[name="shares"]',
-    ) as HTMLInputElement;
-    if (sharesInput) {
-      sharesInput.value = JSON.stringify(shares);
-    }
-  };
 
   return (
     <PageLayout
@@ -160,131 +78,24 @@ export default function NewExpense() {
         </div>
       }
     >
-      <Form
-        id="new-expense"
-        method="post"
-        onSubmit={handleSubmit}
-        className="p-4"
-      >
-        <FieldSet>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="description">Description</FieldLabel>
-              <Input
-                type="text"
-                id="description"
-                name="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                placeholder="e.g., Hotel booking"
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="amount">Amount</FieldLabel>
-              <Input
-                type="number"
-                id="amount"
-                name="amount"
-                value={amount}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                step="0.01"
-                min="0"
-                required
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="date">Date</FieldLabel>
-              <Input
-                type="date"
-                id="date"
-                name="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="paidById">Paid By</FieldLabel>
-              <Select
-                name="paidById"
-                items={peopleItems}
-                required
-                defaultValue={group.people[0]?.id.toString() || ""}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select person" />
-                </SelectTrigger>
-                <SelectContent>
-                  {group.people.map((person) => (
-                    <SelectItem key={person.id} value={person.id.toString()}>
-                      {person.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <RadioGroup
-              value={splitType}
-              onValueChange={(value) =>
-                handleSplitTypeChange(value as SplitType)
-              }
+      <ExpenseForm
+        formId="new-expense"
+        people={group.people}
+        initialDate={getTodayYYYYMMDD()}
+        actions={(isValid) => (
+          <div className="flex">
+            <Button
+              type="submit"
+              form="new-expense"
+              size="xl"
+              disabled={!isValid}
+              className="flex-1 sm:flex-initial cursor-pointer"
             >
-              <FieldLabel>Split</FieldLabel>
-              <FieldLabel htmlFor="split-equal">
-                <Field orientation="horizontal">
-                  <FieldContent>
-                    <FieldTitle>Equal</FieldTitle>
-                    <FieldDescription>
-                      Split the expense equally between everyone in the group.
-                      {amount &&
-                        ` Each person owes $${(parseFloat(amount) / group.people.length).toFixed(2)}.`}
-                    </FieldDescription>
-                  </FieldContent>
-                  <RadioGroupItem value="equal" id="split-equal" />
-                </Field>
-              </FieldLabel>
-              <FieldLabel htmlFor="split-custom">
-                <Field orientation="horizontal">
-                  <FieldContent>
-                    <FieldTitle>Custom</FieldTitle>
-                    <FieldDescription>
-                      Split the expense using custom amounts for each person.
-                    </FieldDescription>
-                  </FieldContent>
-                  <RadioGroupItem value="custom" id="split-custom" />
-                </Field>
-              </FieldLabel>
-              {splitType === "custom" && (
-                <>
-                  <CustomSplitEditor
-                    amount={amount}
-                    people={group.people}
-                    shares={shares}
-                    onUpdateShare={updateShare}
-                  />
-                </>
-              )}
-              <input type="hidden" name="shares" />
-            </RadioGroup>
-            <div className="flex">
-              <Button
-                type="submit"
-                form="new-expense"
-                size="xl"
-                disabled={!isValid}
-                className="flex-1 sm:flex-initial cursor-pointer"
-              >
-                Save
-              </Button>
-            </div>
-          </FieldGroup>
-        </FieldSet>
-      </Form>
+              Save
+            </Button>
+          </div>
+        )}
+      />
     </PageLayout>
   );
 }
