@@ -30,7 +30,7 @@ const operatorPrecedence: Record<string, number> = {
 };
 
 type CustomSplitEditorProps = {
-  amount: string;
+  amount: number;
   people: Person[];
   shares: ExpenseShare[];
   onUpdateShare: (personId: number, value: string) => void;
@@ -569,9 +569,7 @@ export function CustomSplitEditor({
       : (shares.find((share) => share.personId === activePerson.id) ?? null);
 
   const totalShares = shares.reduce((sum, share) => sum + share.amount, 0);
-  const parsedAmount = Number.parseFloat(amount);
-  const hasAmount = amount.length > 0 && !Number.isNaN(parsedAmount);
-  const isValid = hasAmount && Math.abs(totalShares - parsedAmount) < 0.01;
+  const isValid = Math.abs(totalShares - amount) < 0.01;
 
   return (
     <>
@@ -615,9 +613,9 @@ export function CustomSplitEditor({
 
       <div className="mt-2 text-sm text-muted-foreground">
         Total: ${totalShares.toFixed(2)}
-        {!isValid && hasAmount && (
+        {!isValid && (
           <span className="ml-2 text-destructive">
-            (must equal ${parsedAmount.toFixed(2)})
+            (must equal ${amount.toFixed(2)})
           </span>
         )}
       </div>

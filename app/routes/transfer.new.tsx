@@ -1,16 +1,23 @@
 import {
-  Form,
   Link,
   redirect,
   useLoaderData,
   useSearchParams,
+  useSubmit,
 } from "react-router";
 import type { Route } from "./+types/transfer.new";
 import { getGroup, addTransfer } from "../storage";
-import { useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { z } from "zod";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldSet,
+} from "~/components/ui/field";
 import {
   Select,
   SelectContent,
@@ -21,6 +28,23 @@ import {
 import { getTodayYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
+
+const transferSchema = z
+  .object({
+    description: z.string(),
+    amount: z
+      .number({
+        error: "Amount is required",
+      })
+      .gt(0, "Amount must be greater than 0"),
+    date: z.iso.date({ error: "Date is required" }),
+    paidById: z.string().min(1, "From person is required"),
+    paidToId: z.string().min(1, "To person is required"),
+  })
+  .refine((data) => data.paidById !== data.paidToId, {
+    message: "Cannot transfer to the same person",
+    path: ["paidToId"],
+  });
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -67,20 +91,38 @@ export async function clientAction({
 export default function NewTransfer() {
   const { group } = useLoaderData<typeof clientLoader>();
   const [searchParams] = useSearchParams();
-  const [amount, setAmount] = useState(searchParams.get("amount") || "");
-  const [description, setDescription] = useState("");
-  const [date, setDate] = useState(getTodayYYYYMMDD());
-  const [paidById, setPaidById] = useState(
-    searchParams.get("from") || group.people[0]?.id.toString() || "",
-  );
-  const [paidToId, setPaidToId] = useState(
-    searchParams.get("to") ||
-      group.people[1]?.id.toString() ||
-      group.people[0]?.id.toString() ||
-      "",
-  );
+  const submit = useSubmit();
+  const queryAmount = parseFloat(searchParams.get("amount") ?? "");
 
-  const isValid = amount && paidById && paidToId && paidById !== paidToId;
+  const form = useForm({
+    defaultValues: {
+      description: "",
+      amount: Number.isNaN(queryAmount)
+        ? (undefined as unknown as number)
+        : queryAmount,
+      date: getTodayYYYYMMDD(),
+      paidById:
+        searchParams.get("from") || group.people[0]?.id.toString() || "",
+      paidToId:
+        searchParams.get("to") ||
+        group.people[1]?.id.toString() ||
+        group.people[0]?.id.toString() ||
+        "",
+    },
+    validators: {
+      onSubmit: transferSchema,
+    },
+    onSubmit: async ({ value }) => {
+      const formData = new FormData();
+      formData.set("description", value.description || "");
+      formData.set("amount", value.amount.toString());
+      formData.set("date", value.date);
+      formData.set("paidById", value.paidById);
+      formData.set("paidToId", value.paidToId);
+      submit(formData, { method: "post" });
+    },
+  });
+
   const peopleItems = group.people.map((person) => ({
     label: person.name,
     value: person.id.toString(),
@@ -150,105 +192,168 @@ export default function NewTransfer() {
         </div>
       }
     >
-      <Form id="new-transfer" method="post" className="p-4">
+      <form
+        id="new-transfer"
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        className="p-4"
+      >
         <FieldSet>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="description">
-                Description (optional)
-              </FieldLabel>
-              <Input
-                type="text"
-                id="description"
-                name="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="e.g., Payment for dinner"
-              />
-            </Field>
+            <form.Field name="description">
+              {(field) => (
+                <Field>
+                  <FieldLabel htmlFor={field.name}>
+                    Description (optional)
+                  </FieldLabel>
+                  <Input
+                    type="text"
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="e.g., Payment for dinner"
+                  />
+                </Field>
+              )}
+            </form.Field>
 
-            <Field>
-              <FieldLabel htmlFor="amount">Amount</FieldLabel>
-              <Input
-                type="number"
-                id="amount"
-                name="amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                step="0.01"
-                min="0"
-                required
-              />
-            </Field>
+            <form.Field name="amount">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Amount</FieldLabel>
+                    <Input
+                      type="number"
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        field.handleChange(value);
+                      }}
+                      step="0.01"
+                      min="0"
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
 
-            <Field>
-              <FieldLabel htmlFor="date">Date</FieldLabel>
-              <Input
-                type="date"
-                id="date"
-                name="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
-            </Field>
+            <form.Field name="date">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel htmlFor={field.name}>Date</FieldLabel>
+                    <Input
+                      type="date"
+                      id={field.name}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      aria-invalid={isInvalid}
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
 
-            <Field>
-              <FieldLabel htmlFor="paidById">From</FieldLabel>
-              <Select
-                name="paidById"
-                items={peopleItems}
-                value={paidById}
-                onValueChange={(value) => setPaidById(value!)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select person" />
-                </SelectTrigger>
-                <SelectContent>
-                  {group.people.map((person) => (
-                    <SelectItem key={person.id} value={person.id.toString()}>
-                      {person.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+            <form.Field name="paidById">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel>From</FieldLabel>
+                    <Select
+                      name={field.name}
+                      items={peopleItems}
+                      value={field.state.value}
+                      onValueChange={(value) => field.handleChange(value!)}
+                    >
+                      <SelectTrigger
+                        aria-invalid={isInvalid}
+                        onBlur={field.handleBlur}
+                      >
+                        <SelectValue placeholder="Select person" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {group.people.map((person) => (
+                          <SelectItem
+                            key={person.id}
+                            value={person.id.toString()}
+                          >
+                            {person.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
 
-            <Field>
-              <FieldLabel htmlFor="paidToId">To</FieldLabel>
-              <Select
-                name="paidToId"
-                items={peopleItems}
-                value={paidToId}
-                onValueChange={(value) => setPaidToId(value!)}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select person" />
-                </SelectTrigger>
-                <SelectContent>
-                  {group.people.map((person) => (
-                    <SelectItem key={person.id} value={person.id.toString()}>
-                      {person.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            {paidById === paidToId && (
-              <div className="px-4 py-2 bg-destructive/10 text-destructive rounded-lg">
-                Cannot transfer to the same person
-              </div>
-            )}
+            <form.Field name="paidToId">
+              {(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid}>
+                    <FieldLabel>To</FieldLabel>
+                    <Select
+                      name={field.name}
+                      items={peopleItems}
+                      value={field.state.value}
+                      onValueChange={(value) => field.handleChange(value!)}
+                    >
+                      <SelectTrigger
+                        aria-invalid={isInvalid}
+                        onBlur={field.handleBlur}
+                      >
+                        <SelectValue placeholder="Select person" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {group.people.map((person) => (
+                          <SelectItem
+                            key={person.id}
+                            value={person.id.toString()}
+                          >
+                            {person.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            </form.Field>
 
             <div className="flex">
               <Button
                 type="submit"
-                form="new-transfer"
                 size="xl"
-                disabled={!isValid}
                 className="flex-1 sm:flex-initial cursor-pointer"
               >
                 Save
@@ -256,7 +361,7 @@ export default function NewTransfer() {
             </div>
           </FieldGroup>
         </FieldSet>
-      </Form>
+      </form>
     </PageLayout>
   );
 }
