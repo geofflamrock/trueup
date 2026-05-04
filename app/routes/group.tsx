@@ -1,4 +1,4 @@
-import { Link, Outlet, useLoaderData, useMatch } from "react-router";
+import { Link, Outlet, useLoaderData, useMatch, useRevalidator } from "react-router";
 import type { Route } from "./+types/group";
 import { getGroup } from "../storage";
 import { Button } from "~/components/ui/button";
@@ -11,6 +11,7 @@ import {
   EllipsisVerticalIcon,
   Eye,
   HandCoins,
+  RefreshCwIcon,
   SettingsIcon,
   Share2,
 } from "lucide-react";
@@ -26,6 +27,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Drawer, DrawerContent, DrawerFooter } from "~/components/ui/drawer";
 import { useState } from "react";
 import { PageLayout } from "../components/app/PageLayout";
+import { useReadOnlySync } from "~/hooks/useReadOnlySync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -47,9 +49,17 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export default function GroupPage() {
   const { group } = useLoaderData<typeof clientLoader>();
+  const { revalidate } = useRevalidator();
   const match = useMatch("/:groupId/*");
   const subPage = match?.params["*"] || "";
   const tab = subPage === "" ? "group" : subPage;
+
+  const { hasUpdates, isSyncing, syncNow } = useReadOnlySync(group);
+
+  const handleSync = async () => {
+    await syncNow();
+    revalidate();
+  };
 
   return (
     <PageLayout
@@ -117,6 +127,9 @@ export default function GroupPage() {
         </Tabs>
       }
     >
+      {group.isReadOnly && hasUpdates && (
+        <SyncBanner onSync={handleSync} isSyncing={isSyncing} />
+      )}
       <Outlet />
     </PageLayout>
   );
@@ -279,6 +292,29 @@ function GroupHeader({ group }: GroupHeaderProps) {
       ) : (
         <GroupHeaderMenu group={group} />
       )}
+    </div>
+  );
+}
+
+type SyncBannerProps = {
+  onSync: () => void;
+  isSyncing: boolean;
+};
+
+function SyncBanner({ onSync, isSyncing }: SyncBannerProps) {
+  return (
+    <div className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-lg bg-primary/10 px-4 py-3 text-sm">
+      <span className="text-foreground">Updates are available for this group.</span>
+      <Button
+        size="sm"
+        variant="default"
+        className="shrink-0 cursor-pointer"
+        onClick={onSync}
+        disabled={isSyncing}
+      >
+        <RefreshCwIcon className={isSyncing ? "animate-spin" : ""} />
+        {isSyncing ? "Updating..." : "Update"}
+      </Button>
     </div>
   );
 }

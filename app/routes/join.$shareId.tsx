@@ -50,9 +50,10 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
         setError("This share link is no longer active.");
         return;
       }
+      const etag = res.headers.get("ETag");
       const groupData: Group = await res.json();
-      // Save as read-only group
-      saveGroup({ ...groupData, isReadOnly: true, shareCode: trimmedCode });
+      // Save as read-only group, preserving the ETag for future sync
+      saveGroup({ ...groupData, isReadOnly: true, shareCode: trimmedCode, lastETag: etag ?? undefined });
       navigate(`/${groupData.id}`);
     } catch {
       setError("Failed to join group. Please try again.");

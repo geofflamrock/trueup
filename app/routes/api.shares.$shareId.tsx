@@ -21,8 +21,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  // Return Response with ETag header
+  // Return 304 if client already has the latest version
   const etag = metadata?.etag as string | undefined;
+  const ifNoneMatch = request.headers.get("If-None-Match");
+  if (etag && ifNoneMatch && ifNoneMatch === etag) {
+    return new Response(null, { status: 304 });
+  }
+
   return Response.json(data, {
     headers: etag ? { ETag: etag } : {},
   });
