@@ -1,9 +1,10 @@
+import { getGroup, markGroupShared } from "~/storage";
+
 /**
  * Uploads the current group data to the share blob.
  * Called after mutations when the group is shared.
  */
 export async function syncSharedGroup(groupId: string, shareCode: string, lastETag?: string): Promise<string | null> {
-  const { getGroup, markGroupShared } = await import("~/storage");
   const group = getGroup(groupId);
   if (!group) return null;
 
