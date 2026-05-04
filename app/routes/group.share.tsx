@@ -37,13 +37,18 @@ export async function action({ params, request }: Route.ActionArgs) {
     }
   }
   const shareCode = digits.join("");
-  const newEtag = crypto.randomUUID();
 
+  let etag: string;
   try {
     const store = getStore("shares");
-    await store.setJSON(groupId, groupToStore, {
-      metadata: { shareCode, etag: newEtag },
+    const result = await store.setJSON(groupId, groupToStore, {
+      onlyIfNew: true,
+      metadata: { shareCode },
     });
+    if (!result.modified) {
+      return { error: "A share for this group already exists. Stop sharing first and try again." };
+    }
+    etag = result.etag ?? crypto.randomUUID();
   } catch {
     return { error: "Failed to upload share data. Please try again." };
   }
@@ -52,7 +57,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   const groupName = (groupData.name as string) ?? "";
   const joinUrl = `${url.origin}/join/${groupId}?name=${encodeURIComponent(groupName)}`;
 
-  return { shareId: groupId, shareCode, etag: newEtag, joinUrl };
+  return { shareId: groupId, shareCode, etag, joinUrl };
 }
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {

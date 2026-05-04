@@ -6,25 +6,32 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const { shareId } = params;
   const authHeader = request.headers.get("Authorization");
   const code = authHeader?.replace("Bearer ", "");
+  const ifNoneMatch = request.headers.get("If-None-Match");
 
   const store = getStore("shares");
-  const blobResult = await store.getWithMetadata(shareId, { type: "json" }).catch(() => null);
+
+  // Pass the client's ETag so Netlify handles the conditional check:
+  //   null        → 404 (blob not found)
+  //   {data:null} → 304 (blob exists, etag matched)
+  //   {data}      → 200 (blob exists, newer version)
+  const blobResult = await store.getWithMetadata(shareId, {
+    type: "json",
+    etag: ifNoneMatch ?? undefined,
+  }).catch(() => null);
 
   if (!blobResult) {
     return new Response("Not found", { status: 404 });
   }
 
-  const { data, metadata } = blobResult;
+  const { data, metadata, etag } = blobResult;
   const storedCode = metadata?.shareCode as string | undefined;
 
   if (!storedCode || storedCode !== code) {
     return new Response("Unauthorized", { status: 401 });
   }
 
-  // Return 304 if client already has the latest version
-  const etag = metadata?.etag as string | undefined;
-  const ifNoneMatch = request.headers.get("If-None-Match");
-  if (etag && ifNoneMatch && ifNoneMatch === etag) {
+  // data is null when Netlify returned 304 (client already has the latest version)
+  if (data === null) {
     return new Response(null, { status: 304 });
   }
 
@@ -64,21 +71,23 @@ export async function action({ params, request }: Route.ActionArgs) {
     return new Response("Not found", { status: 404 });
   }
 
-  // Update: validate code matches and ETag matches
+  // Update: validate code matches
   const storedCode = existing.metadata?.shareCode as string | undefined;
   if (storedCode !== code) return new Response("Unauthorized", { status: 401 });
 
-  const storedEtag = existing.metadata?.etag as string | undefined;
-  if (ifMatch && storedEtag && ifMatch !== storedEtag) {
+  const body = await request.json();
+
+  // Use onlyIfMatch for conditional update; Netlify returns modified:false on ETag mismatch
+  const result = await store.setJSON(shareId, body, {
+    onlyIfMatch: ifMatch ?? undefined,
+    metadata: { shareCode: code },
+  });
+
+  if (!result.modified) {
     return new Response("Precondition Failed", { status: 412 });
   }
 
-  const body = await request.json();
-  const newEtag = crypto.randomUUID();
-
-  await store.setJSON(shareId, body, {
-    metadata: { shareCode: code, etag: newEtag },
-  });
+  const newEtag = result.etag ?? "";
 
   return Response.json({ etag: newEtag }, {
     status: 200,
