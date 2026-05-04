@@ -31,7 +31,16 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
   const handleStartSharing = async () => {
     setIsLoading(true);
     setError(null);
-    const code = (crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000).toString();
+    // Generate 6 unbiased random digits using rejection sampling.
+    // Only bytes 0–249 are used (250 = 25×10), giving uniform distribution over 0–9.
+    const digits: number[] = [];
+    while (digits.length < 6) {
+      const arr = crypto.getRandomValues(new Uint8Array(6 - digits.length));
+      for (const byte of arr) {
+        if (byte < 250 && digits.length < 6) digits.push(byte % 10);
+      }
+    }
+    const code = digits.join("").padStart(6, "0");
     try {
       const res = await fetch(`/api/shares/${group.id}`, {
         method: "POST",
