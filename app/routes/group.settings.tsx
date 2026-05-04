@@ -151,7 +151,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
               <FieldLabel htmlFor="people">People</FieldLabel>
               <div className="flex flex-col gap-2">
                 {people.map((person, index) => (
-                  <InputGroup key={index}>
+                  <InputGroup key={person.id ?? `new-${index}`}>
                     <InputGroupInput
                       type="text"
                       value={person.name}

@@ -31,7 +31,7 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
   const handleStartSharing = async () => {
     setIsLoading(true);
     setError(null);
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = (crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000).toString();
     try {
       const res = await fetch(`/api/shares/${group.id}`, {
         method: "POST",
