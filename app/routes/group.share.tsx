@@ -48,7 +48,10 @@ export async function action({ params, request }: Route.ActionArgs) {
     if (!result.modified) {
       return { error: "A share for this group already exists. Stop sharing first and try again." };
     }
-    etag = result.etag ?? crypto.randomUUID();
+    if (!result.etag) {
+      return { error: "Failed to retrieve share token. Please try again." };
+    }
+    etag = result.etag;
   } catch {
     return { error: "Failed to upload share data. Please try again." };
   }

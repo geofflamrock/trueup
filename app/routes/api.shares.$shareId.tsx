@@ -87,10 +87,12 @@ export async function action({ params, request }: Route.ActionArgs) {
     return new Response("Precondition Failed", { status: 412 });
   }
 
-  const newEtag = result.etag ?? "";
+  if (!result.etag) {
+    return new Response("Internal Server Error: missing ETag", { status: 500 });
+  }
 
-  return Response.json({ etag: newEtag }, {
+  return Response.json({ etag: result.etag }, {
     status: 200,
-    headers: { ETag: newEtag },
+    headers: { ETag: result.etag },
   });
 }
