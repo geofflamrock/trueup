@@ -32,11 +32,11 @@ export function useReadOnlySync(group: Group) {
       if (lastETag) headers["If-None-Match"] = lastETag;
 
       const res = await fetch(`/api/shares/${id}`, { headers });
-      // 304 → nothing changed; 200 → new data available; anything else → ignore
-      if (res.ok) {
+      // 200 → new data available; 304 → already up to date; anything else → ignore
+      if (res.status === 200) {
         setHasUpdates(true);
       }
-      // 304 Not Modified or error – no update available
+      // 304 Not Modified or non-2xx – no update flagged
     } catch {
       // Network error – silently ignore
     }

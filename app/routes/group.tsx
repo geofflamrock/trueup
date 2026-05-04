@@ -55,10 +55,16 @@ export default function GroupPage() {
   const tab = subPage === "" ? "group" : subPage;
 
   const { hasUpdates, isSyncing, syncNow } = useReadOnlySync(group);
+  const [syncError, setSyncError] = useState(false);
 
   const handleSync = async () => {
-    await syncNow();
-    revalidate();
+    setSyncError(false);
+    const result = await syncNow();
+    if (result) {
+      revalidate();
+    } else {
+      setSyncError(true);
+    }
   };
 
   return (
@@ -127,8 +133,8 @@ export default function GroupPage() {
         </Tabs>
       }
     >
-      {group.isReadOnly && hasUpdates && (
-        <SyncBanner onSync={handleSync} isSyncing={isSyncing} />
+      {group.isReadOnly && (hasUpdates || syncError) && (
+        <SyncBanner onSync={handleSync} isSyncing={isSyncing} error={syncError} />
       )}
       <Outlet />
     </PageLayout>
@@ -299,15 +305,20 @@ function GroupHeader({ group }: GroupHeaderProps) {
 type SyncBannerProps = {
   onSync: () => void;
   isSyncing: boolean;
+  error?: boolean;
 };
 
-function SyncBanner({ onSync, isSyncing }: SyncBannerProps) {
+function SyncBanner({ onSync, isSyncing, error }: SyncBannerProps) {
   return (
-    <div className="mx-4 mt-4 flex items-center justify-between gap-3 rounded-lg bg-primary/10 px-4 py-3 text-sm">
-      <span className="text-foreground">Updates are available for this group.</span>
+    <div className={`mx-4 mt-4 flex items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm ${error ? "bg-destructive/10" : "bg-primary/10"}`}>
+      <span className="text-foreground">
+        {error
+          ? "Failed to update. Check your connection and try again."
+          : "Updates are available for this group."}
+      </span>
       <Button
         size="sm"
-        variant="default"
+        variant={error ? "destructive" : "default"}
         className="shrink-0 cursor-pointer"
         onClick={onSync}
         disabled={isSyncing}
