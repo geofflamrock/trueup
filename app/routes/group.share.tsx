@@ -75,17 +75,17 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
     }
   }, [actionData, group.id]);
 
-  // Derive step: show shared view if we just created a share or already have one
-  const isSharedNow = !!(actionData && "shareCode" in actionData && actionData.shareCode);
-  const isAlreadyShared = group.shareMetadata?.isShared ?? false;
-  const showSharedStep = isSharedNow || isAlreadyShared;
+  // Extract values from the action result (if it was a successful share creation)
+  const newShareData = actionData && "shareCode" in actionData && actionData.shareCode
+    ? { shareCode: actionData.shareCode, joinUrl: actionData.joinUrl }
+    : null;
 
-  const currentCode = (isSharedNow && "shareCode" in actionData! ? actionData!.shareCode : null)
-    ?? group.shareMetadata?.shareCode
-    ?? "";
+  const showSharedStep = !!(newShareData ?? group.shareMetadata?.isShared);
+
+  const currentCode = newShareData?.shareCode ?? group.shareMetadata?.shareCode ?? "";
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const joinUrl = (isSharedNow && "joinUrl" in actionData! ? actionData!.joinUrl : null)
+  const joinUrl = newShareData?.joinUrl
     ?? `${origin}/join/${group.id}?name=${encodeURIComponent(group.name)}`;
 
   const formattedCode = currentCode.length === 6
