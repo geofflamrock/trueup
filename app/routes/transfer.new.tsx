@@ -21,6 +21,7 @@ import {
 import { getTodayYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
+import { syncSharedGroup } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -59,6 +60,11 @@ export async function clientAction({
       date,
       description: description || undefined,
     });
+  }
+
+  const updatedGroup = getGroup(params.groupId);
+  if (updatedGroup?.isShared && updatedGroup.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
   }
 
   return redirect(`/${params.groupId}`);

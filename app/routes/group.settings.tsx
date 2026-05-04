@@ -2,7 +2,6 @@ import {
   redirect,
   data,
   useFetcher,
-  useNavigate,
   Link,
   Outlet,
 } from "react-router";
@@ -19,7 +18,7 @@ import {
   InputGroupInput,
 } from "~/components/ui/input-group";
 import { Trash2, UserPlus } from "lucide-react";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
+import { syncSharedGroup } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -56,6 +55,9 @@ export async function clientAction({
   request,
   params,
 }: Route.ClientActionArgs) {
+  const group = getGroup(params.groupId);
+  if (group?.isReadOnly) return redirect(`/${params.groupId}`);
+
   const formData = await request.formData();
   const name = formData.get("name") as string;
   const peopleJson = formData.get("people") as string;
@@ -74,18 +76,22 @@ export async function clientAction({
     throw data(peopleUpdateResult.error, { status: 400 });
   }
 
+  const updatedGroup = getGroup(params.groupId);
+  if (updatedGroup?.isShared && updatedGroup.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
+  }
+
   return redirect(`/${params.groupId}`);
 }
 
 export default function EditGroup({ loaderData }: Route.ComponentProps) {
   const { group } = loaderData;
-  const navigate = useNavigate();
+  const isReadOnly = group.isReadOnly ?? false;
   const [name, setName] = useState<string>(group.name);
   const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
     group.people,
   );
   const fetcher = useFetcher();
-  const isDesktop = useIsDesktop();
 
   const addPerson = () => {
     setPeople([...people, { name: "" }]);
@@ -121,6 +127,11 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
       >
         <FieldSet>
           <FieldGroup>
+            {isReadOnly && (
+              <div className="text-sm text-muted-foreground bg-muted p-3 rounded-lg">
+                This group is read-only. Disconnect to stop syncing.
+              </div>
+            )}
             <Field>
               <FieldLabel htmlFor="name">Group Name</FieldLabel>
               <Input
@@ -132,6 +143,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                 className="mt-2"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                disabled={isReadOnly}
               />
             </Field>
 
@@ -139,7 +151,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
               <FieldLabel htmlFor="people">People</FieldLabel>
               <div className="flex flex-col gap-2">
                 {people.map((person, index) => (
-                  <InputGroup>
+                  <InputGroup key={index}>
                     <InputGroupInput
                       type="text"
                       value={person.name}
@@ -147,8 +159,9 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                       placeholder="Person name"
                       className="flex-1"
                       required
+                      disabled={isReadOnly}
                     />
-                    {people.length > 1 && (
+                    {!isReadOnly && people.length > 1 && (
                       <InputGroupAddon align="inline-end">
                         <InputGroupButton
                           type="button"
@@ -165,43 +178,84 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                 ))}
               </div>
               <input type="hidden" name="people" />
-              <div>
-                <Button
-                  type="button"
-                  onClick={addPerson}
-                  variant="outline"
-                  size="lg"
-                  className="cursor-pointer"
-                >
-                  <UserPlus /> Add Person
-                </Button>
-              </div>
-            </Field>
-            <div className="flex flex-col sm:flex-row gap-2 justify-between">
-              <Button
-                type="submit"
-                size="xl"
-                form="edit-group"
-                className="cursor-pointer"
-                disabled={fetcher.state !== "idle"}
-              >
-                {fetcher.state !== "idle" ? "Saving..." : "Save"}
-              </Button>
-              <Button
-                type="button"
-                size="xl"
-                variant="ghost"
-                className="text-destructive cursor-pointer"
-                render={
-                  <Link
-                    to={`/${group.id}/settings/delete`}
-                    prefetch="viewport"
+              {!isReadOnly && (
+                <div>
+                  <Button
+                    type="button"
+                    onClick={addPerson}
+                    variant="outline"
+                    size="lg"
                     className="cursor-pointer"
                   >
-                    Delete group
-                  </Link>
-                }
-              />
+                    <UserPlus /> Add Person
+                  </Button>
+                </div>
+              )}
+            </Field>
+            <div className="flex flex-col sm:flex-row gap-2 justify-between">
+              {!isReadOnly && (
+                <Button
+                  type="submit"
+                  size="xl"
+                  form="edit-group"
+                  className="cursor-pointer"
+                  disabled={fetcher.state !== "idle"}
+                >
+                  {fetcher.state !== "idle" ? "Saving..." : "Save"}
+                </Button>
+              )}
+              {isReadOnly ? (
+                <Button
+                  type="button"
+                  size="xl"
+                  variant="ghost"
+                  className="text-destructive cursor-pointer"
+                  render={
+                    <Link
+                      to={`/${group.id}/disconnect`}
+                      prefetch="viewport"
+                      className="cursor-pointer"
+                    >
+                      Disconnect from share
+                    </Link>
+                  }
+                />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    size="xl"
+                    variant="ghost"
+                    className="text-destructive cursor-pointer"
+                    render={
+                      <Link
+                        to={`/${group.id}/settings/delete`}
+                        prefetch="viewport"
+                        className="cursor-pointer"
+                      >
+                        Delete group
+                      </Link>
+                    }
+                  />
+                  {group.isShared && (
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="text-destructive cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/share/stop`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          Stop sharing
+                        </Link>
+                      }
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </FieldGroup>
         </FieldSet>

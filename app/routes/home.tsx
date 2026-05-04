@@ -5,7 +5,7 @@ import { Button } from "~/components/ui/button";
 import { cn } from "~/lib/utils";
 import { Card, CardHeader, CardTitle } from "~/components/ui/card";
 import { Header } from "~/components/app/Header";
-import { BadgeCheckIcon, Coins } from "lucide-react";
+import { BadgeCheckIcon, Coins, Eye, Share2 } from "lucide-react";
 import { PageLayout } from "~/components/app/PageLayout";
 import { calculateBalances } from "~/balances";
 
@@ -57,11 +57,15 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center justify-between">
                         <span>{group.name}</span>
-                        {isBalanced ? (
-                          <BadgeCheckIcon size={20} className="text-primary" />
-                        ) : (
-                          <Coins size={20} />
-                        )}
+                        <div className="flex items-center gap-1">
+                          {group.isReadOnly && <Eye size={18} className="text-muted-foreground" />}
+                          {group.isShared && !group.isReadOnly && <Share2 size={18} className="text-primary" />}
+                          {isBalanced ? (
+                            <BadgeCheckIcon size={20} className="text-primary" />
+                          ) : (
+                            <Coins size={20} />
+                          )}
+                        </div>
                       </CardTitle>
                     </CardHeader>
                   </Card>

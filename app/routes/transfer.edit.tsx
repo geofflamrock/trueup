@@ -22,6 +22,7 @@ import {
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
+import { syncSharedGroup } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -51,6 +52,9 @@ export async function clientAction({
   request,
   params,
 }: Route.ClientActionArgs) {
+  const group = getGroup(params.groupId);
+  if (group?.isReadOnly) return redirect(`/${params.groupId}`);
+
   const formData = await request.formData();
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
@@ -68,12 +72,18 @@ export async function clientAction({
     });
   }
 
+  const updatedGroup = getGroup(params.groupId);
+  if (updatedGroup?.isShared && updatedGroup.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
+  }
+
   return redirect(`/${params.groupId}`);
 }
 
 export default function EditTransfer() {
   const { group, transfer } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
+  const isReadOnly = group.isReadOnly ?? false;
   const [amount, setAmount] = useState(transfer.amount.toString());
   const [description, setDescription] = useState(transfer.description || "");
   const [date, setDate] = useState(parseDateToYYYYMMDD(transfer.date));
@@ -118,6 +128,7 @@ export default function EditTransfer() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g., Payment for dinner"
+                disabled={isReadOnly}
               />
             </Field>
 
@@ -132,6 +143,7 @@ export default function EditTransfer() {
                 step="0.01"
                 min="0"
                 required
+                disabled={isReadOnly}
               />
             </Field>
 
@@ -144,6 +156,7 @@ export default function EditTransfer() {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
+                disabled={isReadOnly}
               />
             </Field>
 
@@ -155,6 +168,7 @@ export default function EditTransfer() {
                 value={paidById}
                 onValueChange={(value) => setPaidById(value!)}
                 required
+                disabled={isReadOnly}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select person" />
@@ -177,6 +191,7 @@ export default function EditTransfer() {
                 value={paidToId}
                 onValueChange={(value) => setPaidToId(value!)}
                 required
+                disabled={isReadOnly}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select person" />
@@ -198,29 +213,33 @@ export default function EditTransfer() {
             )}
 
             <div className="flex flex-col sm:flex-row gap-2 justify-between">
-              <Button
-                type="submit"
-                form="edit-transfer"
-                size="xl"
-                disabled={!isValid}
-                className="cursor-pointer"
-              >
-                Save
-              </Button>
-              <Button
-                variant="ghost"
-                size="xl"
-                className="text-destructive cursor-pointer"
-                render={
-                  <Link
-                    to={`/${group.id}/transfers/${transfer.id}/delete`}
-                    prefetch="viewport"
-                    className="cursor-pointer"
-                  >
-                    Delete transfer
-                  </Link>
-                }
-              />
+              {!isReadOnly && (
+                <Button
+                  type="submit"
+                  form="edit-transfer"
+                  size="xl"
+                  disabled={!isValid}
+                  className="cursor-pointer"
+                >
+                  Save
+                </Button>
+              )}
+              {!isReadOnly && (
+                <Button
+                  variant="ghost"
+                  size="xl"
+                  className="text-destructive cursor-pointer"
+                  render={
+                    <Link
+                      to={`/${group.id}/transfers/${transfer.id}/delete`}
+                      prefetch="viewport"
+                      className="cursor-pointer"
+                    >
+                      Delete transfer
+                    </Link>
+                  }
+                />
+              )}
             </div>
           </FieldGroup>
         </FieldSet>

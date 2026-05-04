@@ -9,8 +9,10 @@ import {
   ChartNoAxesCombined,
   CoinsIcon,
   EllipsisVerticalIcon,
+  Eye,
   HandCoins,
   SettingsIcon,
+  Share2,
 } from "lucide-react";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
 import {
@@ -142,6 +144,17 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
           <DropdownMenuItem
             render={
               <Link
+                to={`/${group.id}/share`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <Share2 /> Share group
+              </Link>
+            }
+          />
+          <DropdownMenuItem
+            render={
+              <Link
                 to={`/${group.id}/expenses/new`}
                 prefetch="viewport"
                 className="cursor-pointer"
@@ -178,6 +191,20 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
       </Button>
       <DrawerContent>
         <DrawerFooter className="flex flex-col gap-2">
+          <Button
+            variant="muted"
+            size="xl"
+            onClick={() => setDrawerOpen(false)}
+            render={
+              <Link
+                to={`/${group.id}/share`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <Share2 /> Share group
+              </Link>
+            }
+          />
           <Button
             variant="muted"
             size="xl"
@@ -228,18 +255,30 @@ function GroupHeader({ group }: GroupHeaderProps) {
             </Link>
           }
         />
-        <Link
-          to={`/${group.id}/edit`}
-          prefetch="viewport"
-          className="cursor-pointer"
-        >
+        {group.isReadOnly ? (
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
             {group.name}
           </h1>
-        </Link>
+        ) : (
+          <Link
+            to={`/${group.id}/edit`}
+            prefetch="viewport"
+            className="cursor-pointer"
+          >
+            <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+              {group.name}
+            </h1>
+          </Link>
+        )}
       </div>
 
-      <GroupHeaderMenu group={group} />
+      {group.isReadOnly ? (
+        <Button variant="muted" size="icon-lg" disabled aria-label="Read-only group">
+          <Eye className="size-6 text-muted-foreground" />
+        </Button>
+      ) : (
+        <GroupHeaderMenu group={group} />
+      )}
     </div>
   );
 }

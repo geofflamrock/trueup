@@ -26,6 +26,7 @@ import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
+import { syncSharedGroup } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -65,6 +66,11 @@ export async function clientAction({
       shares,
       date,
     });
+  }
+
+  const updatedGroup = getGroup(params.groupId);
+  if (updatedGroup?.isShared && updatedGroup.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
   }
 
   return redirect(`/${params.groupId}`);

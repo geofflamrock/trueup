@@ -34,6 +34,7 @@ import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
+import { syncSharedGroup } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -63,6 +64,9 @@ export async function clientAction({
   request,
   params,
 }: Route.ClientActionArgs) {
+  const group = getGroup(params.groupId);
+  if (group?.isReadOnly) return redirect(`/${params.groupId}`);
+
   const formData = await request.formData();
   const description = formData.get("description") as string;
   const amount = parseFloat(formData.get("amount") as string);
@@ -81,12 +85,18 @@ export async function clientAction({
     });
   }
 
+  const updatedGroup = getGroup(params.groupId);
+  if (updatedGroup?.isShared && updatedGroup.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
+  }
+
   return redirect(`/${params.groupId}`);
 }
 
 export default function EditExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
+  const isReadOnly = group.isReadOnly ?? false;
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());
@@ -188,6 +198,7 @@ export default function EditExpense() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
+                disabled={isReadOnly}
               />
             </Field>
 
@@ -202,6 +213,7 @@ export default function EditExpense() {
                 step="0.01"
                 min="0"
                 required
+                disabled={isReadOnly}
               />
             </Field>
 
@@ -214,6 +226,7 @@ export default function EditExpense() {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
+                disabled={isReadOnly}
               />
             </Field>
 
@@ -225,6 +238,7 @@ export default function EditExpense() {
                 value={paidById}
                 onValueChange={(value) => setPaidById(value!)}
                 required
+                disabled={isReadOnly}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select person" />
@@ -283,29 +297,33 @@ export default function EditExpense() {
               <input type="hidden" name="shares" />
             </RadioGroup>
             <div className="flex flex-col sm:flex-row gap-2 justify-between">
-              <Button
-                type="submit"
-                form="edit-expense"
-                size="xl"
-                disabled={!isValid}
-                className="cursor-pointer"
-              >
-                Save
-              </Button>
-              <Button
-                render={
-                  <Link
-                    to={`/${group.id}/expenses/${expense.id}/delete`}
-                    prefetch="viewport"
-                    className="cursor-pointer"
-                  >
-                    Delete expense
-                  </Link>
-                }
-                variant="ghost"
-                size="xl"
-                className="cursor-pointer text-destructive"
-              />
+              {!isReadOnly && (
+                <Button
+                  type="submit"
+                  form="edit-expense"
+                  size="xl"
+                  disabled={!isValid}
+                  className="cursor-pointer"
+                >
+                  Save
+                </Button>
+              )}
+              {!isReadOnly && (
+                <Button
+                  render={
+                    <Link
+                      to={`/${group.id}/expenses/${expense.id}/delete`}
+                      prefetch="viewport"
+                      className="cursor-pointer"
+                    >
+                      Delete expense
+                    </Link>
+                  }
+                  variant="ghost"
+                  size="xl"
+                  className="cursor-pointer text-destructive"
+                />
+              )}
             </div>
           </FieldGroup>
         </FieldSet>
