@@ -57,18 +57,20 @@ export async function action({ params, request }: Route.ActionArgs) {
     return new Response(null, { status: 204 });
   }
 
-  // POST: create or update
+  // POST: update only (creation is handled by the server action in group.share.tsx)
   const existing = await store.getWithMetadata(shareId, { type: "json" }).catch(() => null);
 
-  if (existing) {
-    // Update: validate code matches and ETag matches
-    const storedCode = existing.metadata?.shareCode as string | undefined;
-    if (storedCode !== code) return new Response("Unauthorized", { status: 401 });
+  if (!existing) {
+    return new Response("Not found", { status: 404 });
+  }
 
-    const storedEtag = existing.metadata?.etag as string | undefined;
-    if (ifMatch && storedEtag && ifMatch !== storedEtag) {
-      return new Response("Precondition Failed", { status: 412 });
-    }
+  // Update: validate code matches and ETag matches
+  const storedCode = existing.metadata?.shareCode as string | undefined;
+  if (storedCode !== code) return new Response("Unauthorized", { status: 401 });
+
+  const storedEtag = existing.metadata?.etag as string | undefined;
+  if (ifMatch && storedEtag && ifMatch !== storedEtag) {
+    return new Response("Precondition Failed", { status: 412 });
   }
 
   const body = await request.json();
@@ -79,7 +81,7 @@ export async function action({ params, request }: Route.ActionArgs) {
   });
 
   return Response.json({ etag: newEtag }, {
-    status: existing ? 200 : 201,
+    status: 200,
     headers: { ETag: newEtag },
   });
 }

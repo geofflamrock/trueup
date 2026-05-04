@@ -56,7 +56,7 @@ export async function clientAction({
   params,
 }: Route.ClientActionArgs) {
   const group = getGroup(params.groupId);
-  if (group?.isReadOnly) return redirect(`/${params.groupId}`);
+  if (group?.shareMetadata?.isReadOnly) return redirect(`/${params.groupId}`);
 
   const formData = await request.formData();
   const name = formData.get("name") as string;
@@ -77,8 +77,8 @@ export async function clientAction({
   }
 
   const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.isShared && updatedGroup.shareCode) {
-    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
+  if (updatedGroup?.shareMetadata?.isShared && updatedGroup.shareMetadata.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
   }
 
   return redirect(`/${params.groupId}`);
@@ -86,7 +86,7 @@ export async function clientAction({
 
 export default function EditGroup({ loaderData }: Route.ComponentProps) {
   const { group } = loaderData;
-  const isReadOnly = group.isReadOnly ?? false;
+  const isReadOnly = group.shareMetadata?.isReadOnly ?? false;
   const [name, setName] = useState<string>(group.name);
   const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
     group.people,
@@ -237,7 +237,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                       </Link>
                     }
                   />
-                  {group.isShared && (
+                  {group.shareMetadata?.isShared && (
                     <Button
                       type="button"
                       size="xl"

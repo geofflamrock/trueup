@@ -53,7 +53,7 @@ export async function clientAction({
   params,
 }: Route.ClientActionArgs) {
   const group = getGroup(params.groupId);
-  if (group?.isReadOnly) return redirect(`/${params.groupId}`);
+  if (group?.shareMetadata?.isReadOnly) return redirect(`/${params.groupId}`);
 
   const formData = await request.formData();
   const amount = parseFloat(formData.get("amount") as string);
@@ -73,8 +73,8 @@ export async function clientAction({
   }
 
   const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.isShared && updatedGroup.shareCode) {
-    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
+  if (updatedGroup?.shareMetadata?.isShared && updatedGroup.shareMetadata.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
   }
 
   return redirect(`/${params.groupId}`);
@@ -83,7 +83,7 @@ export async function clientAction({
 export default function EditTransfer() {
   const { group, transfer } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const isReadOnly = group.isReadOnly ?? false;
+  const isReadOnly = group.shareMetadata?.isReadOnly ?? false;
   const [amount, setAmount] = useState(transfer.amount.toString());
   const [description, setDescription] = useState(transfer.description || "");
   const [date, setDate] = useState(parseDateToYYYYMMDD(transfer.date));

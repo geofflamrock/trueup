@@ -65,7 +65,7 @@ export async function clientAction({
   params,
 }: Route.ClientActionArgs) {
   const group = getGroup(params.groupId);
-  if (group?.isReadOnly) return redirect(`/${params.groupId}`);
+  if (group?.shareMetadata?.isReadOnly) return redirect(`/${params.groupId}`);
 
   const formData = await request.formData();
   const description = formData.get("description") as string;
@@ -86,8 +86,8 @@ export async function clientAction({
   }
 
   const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.isShared && updatedGroup.shareCode) {
-    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
+  if (updatedGroup?.shareMetadata?.isShared && updatedGroup.shareMetadata.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
   }
 
   return redirect(`/${params.groupId}`);
@@ -96,7 +96,7 @@ export async function clientAction({
 export default function EditExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const isReadOnly = group.isReadOnly ?? false;
+  const isReadOnly = group.shareMetadata?.isReadOnly ?? false;
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());

@@ -12,11 +12,11 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export async function clientAction({ params }: Route.ClientActionArgs) {
   const group = getGroup(params.groupId);
-  if (group?.shareCode) {
+  if (group?.shareMetadata?.shareCode) {
     // Delete from server
     await fetch(`/api/shares/${params.groupId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${group.shareCode}` },
+      headers: { Authorization: `Bearer ${group.shareMetadata.shareCode}` },
     }).catch(() => {}); // ignore errors - still mark as unshared
   }
   markGroupUnshared(params.groupId);

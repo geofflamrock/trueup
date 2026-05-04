@@ -33,13 +33,13 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export async function clientAction({ params }: Route.ClientActionArgs) {
   const group = getGroup(params.groupId);
-  if (group?.isReadOnly) return redirect(`/${params.groupId}`);
+  if (group?.shareMetadata?.isReadOnly) return redirect(`/${params.groupId}`);
   deleteTransfer(params.groupId, params.transferId);
 
   const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.isShared && updatedGroup.shareCode) {
+  if (updatedGroup?.shareMetadata?.isShared && updatedGroup.shareMetadata.shareCode) {
     const { syncSharedGroup } = await import("~/lib/share-sync");
-    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
   }
 
   return redirect(`/${params.groupId}`);
@@ -54,7 +54,7 @@ export default function DeleteTransfer() {
     <DialogOrDrawer
       title="Delete transfer"
       description={
-        group.isReadOnly ? (
+        group.shareMetadata?.isReadOnly ? (
           <span>This group is read-only.</span>
         ) : (
           <span>
@@ -68,7 +68,7 @@ export default function DeleteTransfer() {
       open={true}
       onClose={() => navigate(-1)}
     >
-      {group.isReadOnly ? (
+      {group.shareMetadata?.isReadOnly ? (
         <div className="flex flex-col gap-2">
           <Button size="xl" variant="muted" className="flex-1 cursor-pointer" onClick={() => navigate(-1)}>
             Close

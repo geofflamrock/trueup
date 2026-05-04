@@ -69,8 +69,8 @@ export async function clientAction({
   }
 
   const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.isShared && updatedGroup.shareCode) {
-    await syncSharedGroup(updatedGroup.id, updatedGroup.shareCode, updatedGroup.lastETag);
+  if (updatedGroup?.shareMetadata?.isShared && updatedGroup.shareMetadata.shareCode) {
+    await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
   }
 
   return redirect(`/${params.groupId}`);

@@ -22,21 +22,25 @@ export function useReadOnlySync(group: Group) {
 
   /** Check whether the server has a newer version (uses If-None-Match). */
   const checkForUpdates = useCallback(async () => {
-    const { isReadOnly, shareCode, id, lastETag } = groupRef.current;
+    const { shareMetadata, id } = groupRef.current;
+    const { isReadOnly, shareCode, lastETag } = shareMetadata ?? {};
     if (!isReadOnly || !shareCode) return;
 
-    try {
-      const headers: Record<string, string> = {
-        Authorization: `Bearer ${shareCode}`,
-      };
-      if (lastETag) headers["If-None-Match"] = lastETag;
+    // Without a known ETag we can't distinguish "new version" from "first fetch",
+    // so skip silently rather than showing a false-positive update banner.
+    if (!lastETag) return;
 
-      const res = await fetch(`/api/shares/${id}`, { headers });
-      // 200 → new data available; 304 → already up to date; anything else → ignore
+    try {
+      const res = await fetch(`/api/shares/${id}`, {
+        headers: {
+          Authorization: `Bearer ${shareCode}`,
+          "If-None-Match": lastETag,
+        },
+      });
+      // 200 → server has a different version; 304 → already up to date
       if (res.status === 200) {
         setHasUpdates(true);
       }
-      // 304 Not Modified or non-2xx – no update flagged
     } catch {
       // Network error – silently ignore
     }
@@ -47,7 +51,8 @@ export function useReadOnlySync(group: Group) {
    * Returns the updated Group on success, or null on failure.
    */
   const syncNow = useCallback(async (): Promise<Group | null> => {
-    const { isReadOnly, shareCode, id } = groupRef.current;
+    const { shareMetadata, id } = groupRef.current;
+    const { isReadOnly, shareCode } = shareMetadata ?? {};
     if (!isReadOnly || !shareCode) return null;
 
     setIsSyncing(true);
@@ -61,9 +66,11 @@ export function useReadOnlySync(group: Group) {
         const groupData: Group = await res.json();
         const updated: Group = {
           ...groupData,
-          isReadOnly: true,
-          shareCode,
-          lastETag: newEtag ?? undefined,
+          shareMetadata: {
+            isReadOnly: true,
+            shareCode,
+            lastETag: newEtag ?? undefined,
+          },
         };
         saveGroup(updated);
         setHasUpdates(false);

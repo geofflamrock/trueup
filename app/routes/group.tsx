@@ -133,7 +133,7 @@ export default function GroupPage() {
         </Tabs>
       }
     >
-      {group.isReadOnly && (hasUpdates || syncError) && (
+      {group.shareMetadata?.isReadOnly && (hasUpdates || syncError) && (
         <SyncBanner onSync={handleSync} isSyncing={isSyncing} error={syncError} />
       )}
       <Outlet />
@@ -274,7 +274,7 @@ function GroupHeader({ group }: GroupHeaderProps) {
             </Link>
           }
         />
-        {group.isReadOnly ? (
+        {group.shareMetadata?.isReadOnly ? (
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
             {group.name}
           </h1>
@@ -291,7 +291,7 @@ function GroupHeader({ group }: GroupHeaderProps) {
         )}
       </div>
 
-      {group.isReadOnly ? (
+      {group.shareMetadata?.isReadOnly ? (
         <Button variant="muted" size="icon-lg" disabled aria-label="Read-only group">
           <Eye className="size-6 text-muted-foreground" />
         </Button>

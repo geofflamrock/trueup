@@ -26,17 +26,21 @@ export interface Transfer {
   description?: string;
 }
 
+export interface GroupShareMetadata {
+  isShared?: boolean;    // true when the owner has shared this group
+  shareCode?: string;    // 6-digit access code (owner and receiver)
+  lastETag?: string;     // ETag from last blob upload/download
+  isReadOnly?: boolean;  // true for receiver (joined) groups
+  shareId?: string;      // matches group id for now, seam for future change
+}
+
 export interface Group {
   id: string; // 8 character hexadecimal string
   name: string;
   people: Person[];
   expenses: Expense[];
   transfers: Transfer[];
-  isShared?: boolean;
-  shareCode?: string; // 6-digit code owner sees
-  lastETag?: string; // ETag from last blob upload
-  isReadOnly?: boolean; // true for receiver groups
-  shareId?: string; // the groupId of the original group (for read-only groups, same as id)
+  shareMetadata?: GroupShareMetadata;
 }
 
 export interface Balance {

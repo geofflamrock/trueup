@@ -53,7 +53,14 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
       const etag = res.headers.get("ETag");
       const groupData: Group = await res.json();
       // Save as read-only group, preserving the ETag for future sync
-      saveGroup({ ...groupData, isReadOnly: true, shareCode: trimmedCode, lastETag: etag ?? undefined });
+      saveGroup({
+        ...groupData,
+        shareMetadata: {
+          isReadOnly: true,
+          shareCode: trimmedCode,
+          lastETag: etag ?? undefined,
+        },
+      });
       navigate(`/${groupData.id}`);
     } catch {
       setError("Failed to join group. Please try again.");

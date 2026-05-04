@@ -106,7 +106,7 @@ function BalanceCard({ group, person, balances }: BalanceCardProps) {
         </CardTitle>
       </CardHeader>
       <CardFooter className="pt-2 flex gap-2 flex-wrap">
-        {!group.isReadOnly && creditors.map(({ balance, person: creditor }) => (
+        {!group.shareMetadata?.isReadOnly && creditors.map(({ balance, person: creditor }) => (
           <Button
             key={creditor.id}
             render={
@@ -142,7 +142,7 @@ function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
         <EmptyDescription>Everything is settled up. Yay!</EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex flex-row gap-2 justify-center">
-        {!group.isReadOnly && (
+        {!group.shareMetadata?.isReadOnly && (
           <>
             <Button
               variant="default"

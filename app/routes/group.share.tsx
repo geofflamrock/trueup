@@ -1,11 +1,59 @@
-import { useLoaderData, useNavigate } from "react-router";
+import { Form, useActionData, useLoaderData, useNavigation, useNavigate } from "react-router";
 import type { Route } from "./+types/group.share";
+import { getStore } from "@netlify/blobs";
 import { getGroup, markGroupShared } from "../storage";
-import { useState } from "react";
+import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { QRCodeSVG } from "qrcode.react";
 import { Copy, Share2 } from "lucide-react";
+
+export async function action({ params, request }: Route.ActionArgs) {
+  const { groupId } = params;
+  const formData = await request.formData();
+  const groupJson = formData.get("groupData") as string;
+
+  if (!groupJson) {
+    return { error: "Missing group data" };
+  }
+
+  let groupData: Record<string, unknown>;
+  try {
+    groupData = JSON.parse(groupJson);
+  } catch {
+    return { error: "Invalid group data" };
+  }
+
+  // Strip client-side share metadata before storing
+  const { shareMetadata: _stripped, ...groupToStore } = groupData as { shareMetadata?: unknown; [key: string]: unknown };
+
+  // Generate unbiased 6-digit code using rejection sampling
+  const digits: number[] = [];
+  const buffer = new Uint8Array(32);
+  while (digits.length < 6) {
+    crypto.getRandomValues(buffer);
+    for (const byte of buffer) {
+      if (byte < 250 && digits.length < 6) digits.push(byte % 10);
+    }
+  }
+  const shareCode = digits.join("");
+  const newEtag = crypto.randomUUID();
+
+  try {
+    const store = getStore("shares");
+    await store.setJSON(groupId, groupToStore, {
+      metadata: { shareCode, etag: newEtag },
+    });
+  } catch {
+    return { error: "Failed to upload share data. Please try again." };
+  }
+
+  const url = new URL(request.url);
+  const groupName = (groupData.name as string) ?? "";
+  const joinUrl = `${url.origin}/join/${groupId}?name=${encodeURIComponent(groupName)}`;
+
+  return { shareId: groupId, shareCode, etag: newEtag, joinUrl };
+}
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
   const group = getGroup(params.groupId);
@@ -15,53 +63,34 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
   const { group } = loaderData;
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
   const navigate = useNavigate();
-  const [step, setStep] = useState<"confirm" | "shared">(group.isShared ? "shared" : "confirm");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentCode, setCurrentCode] = useState(group.shareCode ?? "");
+  const isLoading = navigation.state === "submitting";
+
+  // When action succeeds, persist share state to localStorage
+  useEffect(() => {
+    if (actionData && "shareCode" in actionData && actionData.shareCode && actionData.etag) {
+      markGroupShared(group.id, actionData.shareCode, actionData.etag);
+    }
+  }, [actionData, group.id]);
+
+  // Derive step: show shared view if we just created a share or already have one
+  const isSharedNow = !!(actionData && "shareCode" in actionData && actionData.shareCode);
+  const isAlreadyShared = group.shareMetadata?.isShared ?? false;
+  const showSharedStep = isSharedNow || isAlreadyShared;
+
+  const currentCode = (isSharedNow && "shareCode" in actionData! ? actionData!.shareCode : null)
+    ?? group.shareMetadata?.shareCode
+    ?? "";
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const joinUrl = `${origin}/join/${group.id}?name=${encodeURIComponent(group.name)}`;
+  const joinUrl = (isSharedNow && "joinUrl" in actionData! ? actionData!.joinUrl : null)
+    ?? `${origin}/join/${group.id}?name=${encodeURIComponent(group.name)}`;
 
   const formattedCode = currentCode.length === 6
     ? `${currentCode.slice(0, 3)} ${currentCode.slice(3)}`
     : currentCode;
-
-  const handleStartSharing = async () => {
-    setIsLoading(true);
-    setError(null);
-    // Generate 6 unbiased random digits using rejection sampling.
-    // Only bytes 0–249 are used (250 = 25×10), giving uniform distribution over 0–9.
-    const digits: number[] = [];
-    while (digits.length < 6) {
-      const arr = crypto.getRandomValues(new Uint8Array(6 - digits.length));
-      for (const byte of arr) {
-        if (byte < 250 && digits.length < 6) digits.push(byte % 10);
-      }
-    }
-    const code = digits.join("").padStart(6, "0");
-    try {
-      const res = await fetch(`/api/shares/${group.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${code}`,
-        },
-        body: JSON.stringify(group),
-      });
-      if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
-      const data = await res.json();
-      markGroupShared(group.id, code, data.etag);
-      setCurrentCode(code);
-      setStep("shared");
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to start sharing";
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const copyLink = () => navigator.clipboard.writeText(joinUrl);
   const copyCode = () => navigator.clipboard.writeText(currentCode);
@@ -70,13 +99,15 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
       `Join my TrueUp group '${group.name}': ${joinUrl}\nCode: ${currentCode}`
     );
 
+  const errorMsg = actionData && "error" in actionData ? actionData.error : null;
+
   return (
     <DialogOrDrawer
       title={`Share ${group.name}`}
       open={true}
       onClose={() => navigate(-1)}
     >
-      {step === "confirm" ? (
+      {!showSharedStep ? (
         <div className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
             Sharing this group will upload it to the cloud. Anyone with the link
@@ -89,21 +120,23 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
             <li>{group.expenses.length} expenses</li>
             <li>{group.transfers.length} transfers</li>
           </ul>
-          {error && (
+          {errorMsg && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-              {error}
+              {errorMsg}
             </div>
           )}
-          <div className="flex flex-col gap-2">
+          <Form method="post" className="flex flex-col gap-2">
+            <input type="hidden" name="groupData" value={JSON.stringify(group)} />
             <Button
+              type="submit"
               size="xl"
               className="cursor-pointer"
-              onClick={handleStartSharing}
               disabled={isLoading}
             >
               {isLoading ? "Starting..." : "Start sharing"}
             </Button>
             <Button
+              type="button"
               size="xl"
               variant="muted"
               className="cursor-pointer"
@@ -111,7 +144,7 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
             >
               Cancel
             </Button>
-          </div>
+          </Form>
         </div>
       ) : (
         <div className="flex flex-col gap-4 items-center">

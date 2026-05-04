@@ -271,23 +271,28 @@ export function deleteTransfer(groupId: string, transferId: string): boolean {
 export function markGroupShared(groupId: string, shareCode: string, etag: string): void {
   const group = getGroup(groupId);
   if (!group) return;
-  group.isShared = true;
-  group.shareCode = shareCode;
-  group.lastETag = etag;
+  group.shareMetadata = {
+    ...group.shareMetadata,
+    isShared: true,
+    shareCode,
+    lastETag: etag,
+  };
   saveGroup(group);
 }
 
 export function markGroupUnshared(groupId: string): void {
   const group = getGroup(groupId);
   if (!group) return;
-  group.isShared = false;
-  group.shareCode = undefined;
-  group.lastETag = undefined;
+  group.shareMetadata = undefined;
   saveGroup(group);
 }
 
-export function saveReadOnlyGroup(group: Group): void {
-  saveGroup({ ...group, isReadOnly: true });
+export function saveReadOnlyGroup(groupData: Group, shareCode: string, lastETag?: string): void {
+  const { shareMetadata: _stripped, ...cleanGroup } = groupData;
+  saveGroup({
+    ...cleanGroup,
+    shareMetadata: { isReadOnly: true, shareCode, lastETag },
+  });
 }
 
 export function disconnectGroup(groupId: string): void {
