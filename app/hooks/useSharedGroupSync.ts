@@ -1,19 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { saveGroup } from "~/storage";
 import type { Group } from "~/types";
+import { onSyncStateChange } from "~/lib/share-sync";
 
 /**
- * Polls the share API for a read-only group and automatically applies updates.
- * Also checks on page-focus (visibilitychange).
- *
- * Automatically downloads and saves the latest group data whenever the server
- * reports a newer version, then calls `revalidate` to refresh the UI.
+ * Combined hook for shared group sync (both upload and download).
+ * Polls every 60s and checks on page-focus (visibilitychange).
+ * Also tracks upload state from syncSharedGroup calls.
  *
  * Returns:
- *   isSyncing – true while a full download is in progress
+ *   isSyncing – true while an upload or download is in progress
  */
-export function useReadOnlySync(group: Group, revalidate: () => void) {
-  const [isSyncing, setIsSyncing] = useState(false);
+export function useSharedGroupSync(group: Group, revalidate: () => void) {
+  const [isUploadSyncing, setIsUploadSyncing] = useState(false);
+  const [isDownloadSyncing, setIsDownloadSyncing] = useState(false);
+
+  // Subscribe to upload sync state
+  useEffect(() => {
+    return onSyncStateChange(setIsUploadSyncing);
+  }, []);
 
   // Always reference the freshest group/revalidate without recreating callbacks
   const groupRef = useRef(group);
@@ -21,16 +26,16 @@ export function useReadOnlySync(group: Group, revalidate: () => void) {
   const revalidateRef = useRef(revalidate);
   revalidateRef.current = revalidate;
 
-  /** Downloads the latest group, saves to localStorage, and revalidates.
+  /**
+   * Downloads the latest group, saves to localStorage, and revalidates.
    * Only called when the server confirms a newer version is available (HTTP 200).
-   * A 304 Not Modified response means no new data and revalidation is skipped.
    */
   const syncNow = useCallback(async () => {
     const { shareMetadata, id } = groupRef.current;
-    const { isReadOnly, shareCode } = shareMetadata ?? {};
-    if (!isReadOnly || !shareCode) return;
+    const { shareCode } = shareMetadata ?? {};
+    if (!shareCode) return;
 
-    setIsSyncing(true);
+    setIsDownloadSyncing(true);
     try {
       const res = await fetch(`/api/shares/${id}`, {
         headers: { Authorization: `Bearer ${shareCode}` },
@@ -42,7 +47,7 @@ export function useReadOnlySync(group: Group, revalidate: () => void) {
         const updated: Group = {
           ...groupData,
           shareMetadata: {
-            isReadOnly: true,
+            isShared: true,
             shareCode,
             lastETag: newEtag ?? undefined,
           },
@@ -53,15 +58,15 @@ export function useReadOnlySync(group: Group, revalidate: () => void) {
     } catch {
       // Network error – silently ignore
     } finally {
-      setIsSyncing(false);
+      setIsDownloadSyncing(false);
     }
   }, []);
 
   /** Checks for updates via If-None-Match; auto-syncs if a newer version exists. */
   const checkForUpdates = useCallback(async () => {
     const { shareMetadata, id } = groupRef.current;
-    const { isReadOnly, shareCode, lastETag } = shareMetadata ?? {};
-    if (!isReadOnly || !shareCode) return;
+    const { shareCode, lastETag } = shareMetadata ?? {};
+    if (!shareCode) return;
 
     // Without a known ETag we can't distinguish "new version" from "first fetch"
     if (!lastETag) return;
@@ -82,14 +87,16 @@ export function useReadOnlySync(group: Group, revalidate: () => void) {
     }
   }, [syncNow]);
 
-  // 60-second polling interval
+  // 60-second polling interval (only for shared groups)
   useEffect(() => {
+    if (!group.shareMetadata?.shareCode) return;
     const interval = setInterval(checkForUpdates, 60_000);
     return () => clearInterval(interval);
-  }, [checkForUpdates]);
+  }, [checkForUpdates, group.shareMetadata?.shareCode]);
 
   // Check for updates whenever the page becomes visible again
   useEffect(() => {
+    if (!group.shareMetadata?.shareCode) return;
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         checkForUpdates();
@@ -98,7 +105,7 @@ export function useReadOnlySync(group: Group, revalidate: () => void) {
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () =>
       document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, [checkForUpdates]);
+  }, [checkForUpdates, group.shareMetadata?.shareCode]);
 
-  return { isSyncing };
+  return { isSyncing: isUploadSyncing || isDownloadSyncing };
 }

@@ -53,7 +53,6 @@ export async function clientAction({
   params,
 }: Route.ClientActionArgs) {
   const group = getGroup(params.groupId);
-  if (group?.shareMetadata?.isReadOnly) return redirect(`/${params.groupId}`);
 
   const formData = await request.formData();
   const amount = parseFloat(formData.get("amount") as string);
@@ -73,7 +72,7 @@ export async function clientAction({
   }
 
   const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.shareMetadata?.isShared && updatedGroup.shareMetadata.shareCode) {
+  if (updatedGroup?.shareMetadata?.shareCode) {
     await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
   }
 
@@ -83,7 +82,6 @@ export async function clientAction({
 export default function EditTransfer() {
   const { group, transfer } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const isReadOnly = group.shareMetadata?.isReadOnly ?? false;
   const [amount, setAmount] = useState(transfer.amount.toString());
   const [description, setDescription] = useState(transfer.description || "");
   const [date, setDate] = useState(parseDateToYYYYMMDD(transfer.date));
@@ -128,7 +126,6 @@ export default function EditTransfer() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g., Payment for dinner"
-                disabled={isReadOnly}
               />
             </Field>
 
@@ -143,7 +140,6 @@ export default function EditTransfer() {
                 step="0.01"
                 min="0"
                 required
-                disabled={isReadOnly}
               />
             </Field>
 
@@ -156,7 +152,6 @@ export default function EditTransfer() {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                disabled={isReadOnly}
               />
             </Field>
 
@@ -168,7 +163,6 @@ export default function EditTransfer() {
                 value={paidById}
                 onValueChange={(value) => setPaidById(value!)}
                 required
-                disabled={isReadOnly}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select person" />
@@ -191,7 +185,6 @@ export default function EditTransfer() {
                 value={paidToId}
                 onValueChange={(value) => setPaidToId(value!)}
                 required
-                disabled={isReadOnly}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select person" />
@@ -213,33 +206,29 @@ export default function EditTransfer() {
             )}
 
             <div className="flex flex-col sm:flex-row gap-2 justify-between">
-              {!isReadOnly && (
-                <Button
-                  type="submit"
-                  form="edit-transfer"
-                  size="xl"
-                  disabled={!isValid}
-                  className="cursor-pointer"
-                >
-                  Save
-                </Button>
-              )}
-              {!isReadOnly && (
-                <Button
-                  variant="ghost"
-                  size="xl"
-                  className="text-destructive cursor-pointer"
-                  render={
-                    <Link
-                      to={`/${group.id}/transfers/${transfer.id}/delete`}
-                      prefetch="viewport"
-                      className="cursor-pointer"
-                    >
-                      Delete transfer
-                    </Link>
-                  }
-                />
-              )}
+              <Button
+                type="submit"
+                form="edit-transfer"
+                size="xl"
+                disabled={!isValid}
+                className="cursor-pointer"
+              >
+                Save
+              </Button>
+              <Button
+                variant="ghost"
+                size="xl"
+                className="text-destructive cursor-pointer"
+                render={
+                  <Link
+                    to={`/${group.id}/transfers/${transfer.id}/delete`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    Delete transfer
+                  </Link>
+                }
+              />
             </div>
           </FieldGroup>
         </FieldSet>

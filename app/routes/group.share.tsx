@@ -6,7 +6,13 @@ import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { QRCodeSVG } from "qrcode.react";
-import { Copy, Share2 } from "lucide-react";
+import { Copy } from "lucide-react";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "~/components/ui/input-group";
 
 export async function action({ params, request }: Route.ActionArgs) {
   const { groupId } = params;
@@ -88,7 +94,7 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
     ? { shareCode: actionData.shareCode, joinUrl: actionData.joinUrl }
     : null;
 
-  const showSharedStep = !!(newShareData ?? group.shareMetadata?.isShared);
+  const showSharedStep = !!(newShareData ?? group.shareMetadata?.shareCode);
 
   const currentCode = newShareData?.shareCode ?? group.shareMetadata?.shareCode ?? "";
 
@@ -96,16 +102,8 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
   const joinUrl = newShareData?.joinUrl
     ?? `${origin}/join/${group.id}?name=${encodeURIComponent(group.name)}`;
 
-  const formattedCode = currentCode.length === 6
-    ? `${currentCode.slice(0, 3)} ${currentCode.slice(3)}`
-    : currentCode;
-
   const copyLink = () => navigator.clipboard.writeText(joinUrl);
   const copyCode = () => navigator.clipboard.writeText(currentCode);
-  const copyBoth = () =>
-    navigator.clipboard.writeText(
-      `Join my TrueUp group '${group.name}': ${joinUrl}\nCode: ${currentCode}`
-    );
 
   const errorMsg = actionData && "error" in actionData ? actionData.error : null;
 
@@ -119,9 +117,7 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
         <div className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
             Sharing <strong>{group.name}</strong> will upload it to the cloud.
-            Anyone with the link and 6-digit access code you create will be able
-            to view this group on their own device and receive updates when you
-            make changes.
+            Anyone with the link and code can view and edit this group on their own device.
           </p>
           {errorMsg && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
@@ -152,32 +148,37 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
       ) : (
         <div className="flex flex-col gap-4 items-center">
           <p className="text-sm text-muted-foreground text-center">
-            Anyone with this link and the 6-digit code can view this group on
+            Anyone with this link and the 6-digit code can view and edit this group on
             their device.
           </p>
           <div className="bg-white p-3 rounded-lg">
             <QRCodeSVG value={joinUrl} size={180} bgColor="#ffffff" fgColor="#000000" />
           </div>
-          <div className="flex w-full gap-2 items-center">
-            <input
+          <InputGroup>
+            <InputGroupInput
               readOnly
               value={joinUrl}
-              className="flex-1 text-sm border rounded px-3 py-2 bg-muted text-muted-foreground overflow-hidden text-ellipsis"
+              className="text-sm text-muted-foreground"
             />
-            <Button size="icon-lg" variant="muted" className="cursor-pointer shrink-0" onClick={copyLink}>
-              <Copy className="size-4" />
-            </Button>
-          </div>
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                className="cursor-pointer"
+                onClick={copyLink}
+              >
+                <Copy />
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
           <div className="flex w-full items-center justify-between gap-4 bg-muted rounded-lg px-4 py-3">
-            <span className="text-3xl font-mono font-bold tracking-widest">{formattedCode}</span>
+            <span className="text-3xl font-mono font-bold tracking-widest">{currentCode}</span>
             <Button size="icon-lg" variant="muted" className="cursor-pointer" onClick={copyCode}>
               <Copy className="size-4" />
             </Button>
           </div>
           <div className="flex flex-col w-full gap-2">
-            <Button size="xl" variant="muted" className="cursor-pointer" onClick={copyBoth}>
-              <Share2 className="size-4" /> Re-share
-            </Button>
             <Button size="xl" className="cursor-pointer" onClick={() => navigate(-1)}>
               Done
             </Button>
@@ -187,7 +188,7 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
               className="text-destructive cursor-pointer"
               onClick={() => navigate(`/${group.id}/share/stop`)}
             >
-              Stop sharing
+              Disconnect from share
             </Button>
           </div>
         </div>

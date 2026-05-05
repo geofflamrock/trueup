@@ -1,18 +1,21 @@
 import { getGroup, markGroupShared } from "~/storage";
 
 // ---------------------------------------------------------------------------
-// Owner sync state broadcasting
+// Sync state broadcasting
 // ---------------------------------------------------------------------------
 type SyncStateListener = (syncing: boolean) => void;
 const _syncListeners = new Set<SyncStateListener>();
 
-/** Subscribe to owner sync state changes. Returns an unsubscribe function. */
-export function onOwnerSyncStateChange(cb: SyncStateListener): () => void {
+/** Subscribe to share sync state changes. Returns an unsubscribe function. */
+export function onSyncStateChange(cb: SyncStateListener): () => void {
   _syncListeners.add(cb);
   return () => _syncListeners.delete(cb);
 }
 
-function notifyOwnerSyncState(syncing: boolean) {
+// Backward-compat alias
+export const onOwnerSyncStateChange = onSyncStateChange;
+
+function notifySyncState(syncing: boolean) {
   _syncListeners.forEach((cb) => cb(syncing));
 }
 
@@ -27,9 +30,6 @@ export async function syncSharedGroup(groupId: string, shareCode: string, lastET
   const group = getGroup(groupId);
   if (!group) return null;
 
-  // Don't sync read-only groups
-  if (group.shareMetadata?.isReadOnly) return null;
-
   // Strip client-side metadata before uploading
   const { shareMetadata: _stripped, ...groupToUpload } = group;
 
@@ -41,7 +41,7 @@ export async function syncSharedGroup(groupId: string, shareCode: string, lastET
     headers["If-Match"] = lastETag;
   }
 
-  notifyOwnerSyncState(true);
+  notifySyncState(true);
   try {
     const res = await fetch(`/api/shares/${groupId}`, {
       method: "POST",
@@ -55,7 +55,7 @@ export async function syncSharedGroup(groupId: string, shareCode: string, lastET
       return data.etag;
     }
   } finally {
-    notifyOwnerSyncState(false);
+    notifySyncState(false);
   }
 
   return null;

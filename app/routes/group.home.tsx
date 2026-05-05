@@ -106,7 +106,7 @@ function BalanceCard({ group, person, balances }: BalanceCardProps) {
         </CardTitle>
       </CardHeader>
       <CardFooter className="pt-2 flex gap-2 flex-wrap">
-        {!group.shareMetadata?.isReadOnly && creditors.map(({ balance, person: creditor }) => (
+        {creditors.map(({ balance, person: creditor }) => (
           <Button
             key={creditor.id}
             render={
@@ -142,36 +142,34 @@ function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
         <EmptyDescription>Everything is settled up. Yay!</EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex flex-row gap-2 justify-center">
-        {!group.shareMetadata?.isReadOnly && (
-          <>
-            <Button
-              variant="default"
-              size="lg"
-              render={
-                <Link
-                  to={`/${group.id}/expenses/new`}
-                  prefetch="viewport"
-                  className="cursor-pointer"
-                >
-                  <Banknote /> New expense
-                </Link>
-              }
-            />
-            <Button
-              variant="muted"
-              size="lg"
-              render={
-                <Link
-                  to={`/${group.id}/transfers/new`}
-                  prefetch="viewport"
-                  className="cursor-pointer"
-                >
-                  <HandCoins /> New transfer
-                </Link>
-              }
-            />
-          </>
-        )}
+        <>
+          <Button
+            variant="default"
+            size="lg"
+            render={
+              <Link
+                to={`/${group.id}/expenses/new`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <Banknote /> New expense
+              </Link>
+            }
+          />
+          <Button
+            variant="muted"
+            size="lg"
+            render={
+              <Link
+                to={`/${group.id}/transfers/new`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <HandCoins /> New transfer
+              </Link>
+            }
+          />
+        </>
       </EmptyContent>
     </Empty>
   );

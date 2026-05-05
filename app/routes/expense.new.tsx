@@ -69,7 +69,7 @@ export async function clientAction({
   }
 
   const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.shareMetadata?.isShared && updatedGroup.shareMetadata.shareCode) {
+  if (updatedGroup?.shareMetadata?.shareCode) {
     await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
   }
 

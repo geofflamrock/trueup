@@ -30,7 +30,6 @@ export interface GroupShareMetadata {
   isShared?: boolean;    // true when the owner has shared this group
   shareCode?: string;    // 6-digit access code (owner and receiver)
   lastETag?: string;     // ETag from last blob upload/download
-  isReadOnly?: boolean;  // true for receiver (joined) groups
   shareId?: string;      // matches group id for now, seam for future change
 }
 

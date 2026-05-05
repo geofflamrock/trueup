@@ -1,13 +1,18 @@
 import { useLoaderData, useNavigate, Link } from "react-router";
 import type { Route } from "./+types/join.$shareId";
-import { saveGroup } from "../storage";
+import { saveJoinedGroup } from "../storage";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { Input } from "~/components/ui/input";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
 import type { Group } from "~/types";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "~/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -29,10 +34,8 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleJoin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedCode = code.replace(/\s/g, "");
-    if (!/^\d{6}$/.test(trimmedCode)) {
+  const handleJoin = async () => {
+    if (!/^\d{6}$/.test(code)) {
       setError("Please enter a valid 6-digit code");
       return;
     }
@@ -40,7 +43,7 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
     setError(null);
     try {
       const res = await fetch(`/api/shares/${shareId}`, {
-        headers: { Authorization: `Bearer ${trimmedCode}` },
+        headers: { Authorization: `Bearer ${code}` },
       });
       if (res.status === 401) {
         setError("Invalid code. Please check and try again.");
@@ -52,15 +55,7 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
       }
       const etag = res.headers.get("ETag");
       const groupData: Group = await res.json();
-      // Save as read-only group, preserving the ETag for future sync
-      saveGroup({
-        ...groupData,
-        shareMetadata: {
-          isReadOnly: true,
-          shareCode: trimmedCode,
-          lastETag: etag ?? undefined,
-        },
-      });
+      saveJoinedGroup(groupData, code, etag ?? undefined);
       navigate(`/${groupData.id}`);
     } catch {
       setError("Failed to join group. Please try again.");
@@ -83,43 +78,46 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
       }
     >
       <div className="p-4">
-        <form onSubmit={handleJoin}>
-          <FieldSet>
-            <FieldGroup>
-              <p className="text-muted-foreground">
-                You've been invited to join <strong>{name}</strong>. Enter the
-                6-digit code from the person who shared it with you.
-              </p>
-              <Field>
-                <FieldLabel htmlFor="code">Access Code</FieldLabel>
-                <Input
-                  type="text"
-                  id="code"
-                  name="code"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="123 456"
-                  maxLength={7}
-                  inputMode="numeric"
-                  required
-                />
-              </Field>
-              {error && (
-                <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-                  {error}
-                </div>
-              )}
-              <Button
-                type="submit"
-                size="xl"
-                className="cursor-pointer"
-                disabled={isLoading}
+        <FieldSet>
+          <FieldGroup>
+            <p className="text-muted-foreground">
+              You've been invited to join <strong>{name}</strong>. Enter the
+              6-digit code from the person who shared it with you.
+            </p>
+            <Field>
+              <FieldLabel>Access Code</FieldLabel>
+              <InputOTP
+                maxLength={6}
+                value={code}
+                onChange={setCode}
+                pattern={REGEXP_ONLY_DIGITS}
               >
-                {isLoading ? "Joining..." : "Join group"}
-              </Button>
-            </FieldGroup>
-          </FieldSet>
-        </form>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+            </Field>
+            {error && (
+              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
+                {error}
+              </div>
+            )}
+            <Button
+              type="button"
+              size="xl"
+              className="cursor-pointer"
+              disabled={isLoading || code.length !== 6}
+              onClick={handleJoin}
+            >
+              {isLoading ? "Joining..." : "Join group"}
+            </Button>
+          </FieldGroup>
+        </FieldSet>
       </div>
     </PageLayout>
   );

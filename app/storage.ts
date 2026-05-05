@@ -287,16 +287,19 @@ export function markGroupUnshared(groupId: string): void {
   saveGroup(group);
 }
 
-export function saveReadOnlyGroup(groupData: Group, shareCode: string, lastETag?: string): void {
+export function saveJoinedGroup(groupData: Group, shareCode: string, lastETag?: string): void {
   const { shareMetadata: _stripped, ...cleanGroup } = groupData;
   saveGroup({
     ...cleanGroup,
-    shareMetadata: { isReadOnly: true, shareCode, lastETag },
+    shareMetadata: { isShared: true, shareCode, lastETag },
   });
 }
 
 export function disconnectGroup(groupId: string): void {
-  deleteGroup(groupId);
+  const group = getGroup(groupId);
+  if (!group) return;
+  group.shareMetadata = undefined;
+  saveGroup(group);
 }
 
 

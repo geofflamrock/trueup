@@ -9,7 +9,6 @@ import {
   ChartNoAxesCombined,
   CoinsIcon,
   EllipsisVerticalIcon,
-  Eye,
   HandCoins,
   RefreshCwIcon,
   SettingsIcon,
@@ -27,8 +26,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Drawer, DrawerContent, DrawerFooter } from "~/components/ui/drawer";
 import { useState } from "react";
 import { PageLayout } from "../components/app/PageLayout";
-import { useReadOnlySync } from "~/hooks/useReadOnlySync";
-import { useOwnerSync } from "~/hooks/useOwnerSync";
+import { useSharedGroupSync } from "~/hooks/useSharedGroupSync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -56,12 +54,7 @@ export default function GroupPage() {
   const subPage = match?.params["*"] || "";
   const tab = subPage === "" ? "group" : subPage;
 
-  // Receiver: auto-sync polls and applies updates silently
-  const { isSyncing: isReceiverSyncing } = useReadOnlySync(group, revalidate);
-  // Owner: tracks upload state from syncSharedGroup calls in child routes
-  const { isSyncing: isOwnerSyncing } = useOwnerSync();
-
-  const isSyncing = group.shareMetadata?.isReadOnly ? isReceiverSyncing : isOwnerSyncing;
+  const { isSyncing } = useSharedGroupSync(group, revalidate);
 
   return (
     <PageLayout
@@ -257,7 +250,7 @@ type GroupHeaderProps = {
 };
 
 function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
-  const isReadOnly = group.shareMetadata?.isReadOnly;
+  const isShared = !!(group.shareMetadata?.shareCode);
 
   return (
     <div className="flex justify-between items-center p-4">
@@ -271,35 +264,20 @@ function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
             </Link>
           }
         />
-        {isReadOnly ? (
+        <Link
+          to={`/${group.id}/edit`}
+          prefetch="viewport"
+          className="cursor-pointer"
+        >
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
             {group.name}
           </h1>
-        ) : (
-          <Link
-            to={`/${group.id}/edit`}
-            prefetch="viewport"
-            className="cursor-pointer"
-          >
-            <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-              {group.name}
-            </h1>
-          </Link>
-        )}
+        </Link>
       </div>
 
-      {isReadOnly ? (
-        // Receiver: show spinner while syncing, eye icon otherwise
-        <Button variant="ghost" size="icon-lg" disabled aria-label={isSyncing ? "Syncing" : "Read-only group"}>
-          {isSyncing
-            ? <RefreshCwIcon className="size-6 text-muted-foreground animate-spin" />
-            : <Eye className="size-6 text-muted-foreground" />
-          }
-        </Button>
-      ) : (
-        // Owner: show share/sync icon + action menu
-        <div className="flex items-center gap-1">
-          {isSyncing ? (
+      <div className="flex items-center gap-1">
+        {isShared && (
+          isSyncing ? (
             <Button variant="ghost" size="icon-lg" disabled aria-label="Syncing">
               <RefreshCwIcon className="size-6 text-muted-foreground animate-spin" />
             </Button>
@@ -314,10 +292,10 @@ function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
                 </Link>
               }
             />
-          )}
-          <GroupHeaderMenu group={group} />
-        </div>
-      )}
+          )
+        )}
+        <GroupHeaderMenu group={group} />
+      </div>
     </div>
   );
 }

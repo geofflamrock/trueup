@@ -65,7 +65,6 @@ export async function clientAction({
   params,
 }: Route.ClientActionArgs) {
   const group = getGroup(params.groupId);
-  if (group?.shareMetadata?.isReadOnly) return redirect(`/${params.groupId}`);
 
   const formData = await request.formData();
   const description = formData.get("description") as string;
@@ -86,7 +85,7 @@ export async function clientAction({
   }
 
   const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.shareMetadata?.isShared && updatedGroup.shareMetadata.shareCode) {
+  if (updatedGroup?.shareMetadata?.shareCode) {
     await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
   }
 
@@ -96,7 +95,6 @@ export async function clientAction({
 export default function EditExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const isReadOnly = group.shareMetadata?.isReadOnly ?? false;
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());
@@ -198,7 +196,6 @@ export default function EditExpense() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 required
-                disabled={isReadOnly}
               />
             </Field>
 
@@ -213,7 +210,6 @@ export default function EditExpense() {
                 step="0.01"
                 min="0"
                 required
-                disabled={isReadOnly}
               />
             </Field>
 
@@ -226,7 +222,6 @@ export default function EditExpense() {
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                disabled={isReadOnly}
               />
             </Field>
 
@@ -238,7 +233,6 @@ export default function EditExpense() {
                 value={paidById}
                 onValueChange={(value) => setPaidById(value!)}
                 required
-                disabled={isReadOnly}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select person" />
@@ -297,33 +291,29 @@ export default function EditExpense() {
               <input type="hidden" name="shares" />
             </RadioGroup>
             <div className="flex flex-col sm:flex-row gap-2 justify-between">
-              {!isReadOnly && (
-                <Button
-                  type="submit"
-                  form="edit-expense"
-                  size="xl"
-                  disabled={!isValid}
-                  className="cursor-pointer"
-                >
-                  Save
-                </Button>
-              )}
-              {!isReadOnly && (
-                <Button
-                  render={
-                    <Link
-                      to={`/${group.id}/expenses/${expense.id}/delete`}
-                      prefetch="viewport"
-                      className="cursor-pointer"
-                    >
-                      Delete expense
-                    </Link>
-                  }
-                  variant="ghost"
-                  size="xl"
-                  className="cursor-pointer text-destructive"
-                />
-              )}
+              <Button
+                type="submit"
+                form="edit-expense"
+                size="xl"
+                disabled={!isValid}
+                className="cursor-pointer"
+              >
+                Save
+              </Button>
+              <Button
+                render={
+                  <Link
+                    to={`/${group.id}/expenses/${expense.id}/delete`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    Delete expense
+                  </Link>
+                }
+                variant="ghost"
+                size="xl"
+                className="cursor-pointer text-destructive"
+              />
             </div>
           </FieldGroup>
         </FieldSet>
