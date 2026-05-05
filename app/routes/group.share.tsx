@@ -118,16 +118,11 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
       {!showSharedStep ? (
         <div className="flex flex-col gap-4">
           <p className="text-sm text-muted-foreground">
-            Sharing this group will upload it to the cloud. Anyone with the link
-            and 6-digit access code you create will be able to view this group
-            on their own device and receive updates when you make changes.
+            Sharing <strong>{group.name}</strong> will upload it to the cloud.
+            Anyone with the link and 6-digit access code you create will be able
+            to view this group on their own device and receive updates when you
+            make changes.
           </p>
-          <ul className="text-sm list-disc list-inside text-muted-foreground space-y-1">
-            <li>Group name: <strong>{group.name}</strong></li>
-            <li>{group.people.length} people</li>
-            <li>{group.expenses.length} expenses</li>
-            <li>{group.transfers.length} transfers</li>
-          </ul>
           {errorMsg && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
               {errorMsg}
@@ -160,7 +155,9 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
             Anyone with this link and the 6-digit code can view this group on
             their device.
           </p>
-          <QRCodeSVG value={joinUrl} size={180} />
+          <div className="bg-white p-3 rounded-lg">
+            <QRCodeSVG value={joinUrl} size={180} bgColor="#ffffff" fgColor="#000000" />
+          </div>
           <div className="flex w-full gap-2 items-center">
             <input
               readOnly

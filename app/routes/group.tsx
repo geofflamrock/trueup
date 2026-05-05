@@ -290,7 +290,7 @@ function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
 
       {isReadOnly ? (
         // Receiver: show spinner while syncing, eye icon otherwise
-        <Button variant="muted" size="icon-lg" disabled aria-label={isSyncing ? "Syncing" : "Read-only group"}>
+        <Button variant="ghost" size="icon-lg" disabled aria-label={isSyncing ? "Syncing" : "Read-only group"}>
           {isSyncing
             ? <RefreshCwIcon className="size-6 text-muted-foreground animate-spin" />
             : <Eye className="size-6 text-muted-foreground" />
@@ -300,12 +300,12 @@ function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
         // Owner: show share/sync icon + action menu
         <div className="flex items-center gap-1">
           {isSyncing ? (
-            <Button variant="muted" size="icon-lg" disabled aria-label="Syncing">
+            <Button variant="ghost" size="icon-lg" disabled aria-label="Syncing">
               <RefreshCwIcon className="size-6 text-muted-foreground animate-spin" />
             </Button>
           ) : (
             <Button
-              variant="muted"
+              variant="ghost"
               size="icon-lg"
               aria-label="Share group"
               render={
