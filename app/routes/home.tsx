@@ -59,7 +59,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                         <span>{group.name}</span>
                         <div className="flex items-center gap-1">
                           {group.shareMetadata?.isReadOnly && <Eye size={18} className="text-muted-foreground" />}
-                          {group.shareMetadata?.isShared && !group.shareMetadata?.isReadOnly && <Share2 size={18} className="text-primary" />}
+                          {group.shareMetadata?.isShared && !group.shareMetadata?.isReadOnly && <Share2 size={18} className="text-muted-foreground" />}
                           {isBalanced ? (
                             <BadgeCheckIcon size={20} className="text-primary" />
                           ) : (

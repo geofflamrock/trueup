@@ -28,6 +28,7 @@ import { Drawer, DrawerContent, DrawerFooter } from "~/components/ui/drawer";
 import { useState } from "react";
 import { PageLayout } from "../components/app/PageLayout";
 import { useReadOnlySync } from "~/hooks/useReadOnlySync";
+import { useOwnerSync } from "~/hooks/useOwnerSync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -50,26 +51,21 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 export default function GroupPage() {
   const { group } = useLoaderData<typeof clientLoader>();
   const { revalidate } = useRevalidator();
+
   const match = useMatch("/:groupId/*");
   const subPage = match?.params["*"] || "";
   const tab = subPage === "" ? "group" : subPage;
 
-  const { hasUpdates, isSyncing, syncNow } = useReadOnlySync(group);
-  const [syncError, setSyncError] = useState(false);
+  // Receiver: auto-sync polls and applies updates silently
+  const { isSyncing: isReceiverSyncing } = useReadOnlySync(group, revalidate);
+  // Owner: tracks upload state from syncSharedGroup calls in child routes
+  const { isSyncing: isOwnerSyncing } = useOwnerSync();
 
-  const handleSync = async () => {
-    setSyncError(false);
-    const result = await syncNow();
-    if (result) {
-      revalidate();
-    } else {
-      setSyncError(true);
-    }
-  };
+  const isSyncing = group.shareMetadata?.isReadOnly ? isReceiverSyncing : isOwnerSyncing;
 
   return (
     <PageLayout
-      header={<GroupHeader group={group} />}
+      header={<GroupHeader group={group} isSyncing={isSyncing} />}
       footer={
         <Tabs value={tab} className="flex items-center justify-center p-4">
           <TabsList className="group-data-horizontal/tabs:h-14 sm:group-data-horizontal/tabs:h-12 rounded-full p-1">
@@ -133,9 +129,6 @@ export default function GroupPage() {
         </Tabs>
       }
     >
-      {group.shareMetadata?.isReadOnly && (hasUpdates || syncError) && (
-        <SyncBanner onSync={handleSync} isSyncing={isSyncing} error={syncError} />
-      )}
       <Outlet />
     </PageLayout>
   );
@@ -257,11 +250,15 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
     </Drawer>
   );
 }
+
 type GroupHeaderProps = {
   group: Group;
+  isSyncing: boolean;
 };
 
-function GroupHeader({ group }: GroupHeaderProps) {
+function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
+  const isReadOnly = group.shareMetadata?.isReadOnly;
+
   return (
     <div className="flex justify-between items-center p-4">
       <div className="flex gap-4 items-center">
@@ -274,7 +271,7 @@ function GroupHeader({ group }: GroupHeaderProps) {
             </Link>
           }
         />
-        {group.shareMetadata?.isReadOnly ? (
+        {isReadOnly ? (
           <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
             {group.name}
           </h1>
@@ -291,41 +288,36 @@ function GroupHeader({ group }: GroupHeaderProps) {
         )}
       </div>
 
-      {group.shareMetadata?.isReadOnly ? (
-        <Button variant="muted" size="icon-lg" disabled aria-label="Read-only group">
-          <Eye className="size-6 text-muted-foreground" />
+      {isReadOnly ? (
+        // Receiver: show spinner while syncing, eye icon otherwise
+        <Button variant="muted" size="icon-lg" disabled aria-label={isSyncing ? "Syncing" : "Read-only group"}>
+          {isSyncing
+            ? <RefreshCwIcon className="size-6 text-muted-foreground animate-spin" />
+            : <Eye className="size-6 text-muted-foreground" />
+          }
         </Button>
       ) : (
-        <GroupHeaderMenu group={group} />
+        // Owner: show share/sync icon + action menu
+        <div className="flex items-center gap-1">
+          {isSyncing ? (
+            <Button variant="muted" size="icon-lg" disabled aria-label="Syncing">
+              <RefreshCwIcon className="size-6 text-muted-foreground animate-spin" />
+            </Button>
+          ) : (
+            <Button
+              variant="muted"
+              size="icon-lg"
+              aria-label="Share group"
+              render={
+                <Link to={`/${group.id}/share`} prefetch="viewport" className="cursor-pointer">
+                  <Share2 className="size-6" />
+                </Link>
+              }
+            />
+          )}
+          <GroupHeaderMenu group={group} />
+        </div>
       )}
-    </div>
-  );
-}
-
-type SyncBannerProps = {
-  onSync: () => void;
-  isSyncing: boolean;
-  error?: boolean;
-};
-
-function SyncBanner({ onSync, isSyncing, error }: SyncBannerProps) {
-  return (
-    <div className={`mx-4 mt-4 flex items-center justify-between gap-3 rounded-lg px-4 py-3 text-sm ${error ? "bg-destructive/10" : "bg-primary/10"}`}>
-      <span className="text-foreground">
-        {error
-          ? "Failed to update. Check your connection and try again."
-          : "Updates are available for this group."}
-      </span>
-      <Button
-        size="sm"
-        variant={error ? "destructive" : "default"}
-        className="shrink-0 cursor-pointer"
-        onClick={onSync}
-        disabled={isSyncing}
-      >
-        <RefreshCwIcon className={isSyncing ? "animate-spin" : ""} />
-        {isSyncing ? "Updating..." : "Update"}
-      </Button>
     </div>
   );
 }
