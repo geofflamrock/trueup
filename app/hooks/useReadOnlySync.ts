@@ -21,7 +21,10 @@ export function useReadOnlySync(group: Group, revalidate: () => void) {
   const revalidateRef = useRef(revalidate);
   revalidateRef.current = revalidate;
 
-  /** Downloads the latest group, saves to localStorage, and revalidates. */
+  /** Downloads the latest group, saves to localStorage, and revalidates.
+   * Only called when the server confirms a newer version is available (HTTP 200).
+   * A 304 Not Modified response means no new data and revalidation is skipped.
+   */
   const syncNow = useCallback(async () => {
     const { shareMetadata, id } = groupRef.current;
     const { isReadOnly, shareCode } = shareMetadata ?? {};
