@@ -106,9 +106,12 @@ export function useSharedGroupSync(group: Group, revalidate: () => void) {
     return () => clearInterval(interval);
   }, [checkForUpdates, group.shareMetadata?.shareCode]);
 
-  // Check for updates whenever the page becomes visible again
+  // Check for updates whenever the page becomes visible again,
+  // and immediately on mount.
   useEffect(() => {
     if (!group.shareMetadata?.shareCode) return;
+    // Sync immediately when entering the group
+    checkForUpdates();
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         checkForUpdates();

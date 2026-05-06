@@ -19,6 +19,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import type { Group } from "~/types";
@@ -182,6 +183,22 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
               </Link>
             }
           />
+          {!group.shareMetadata?.shareCode && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                render={
+                  <Link
+                    to={`/${group.id}/share`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    <Share2 /> Share group
+                  </Link>
+                }
+              />
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -227,6 +244,25 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
               </Link>
             }
           />
+          {!group.shareMetadata?.shareCode && (
+            <>
+              <div className="h-px bg-border -mx-4" />
+              <Button
+                variant="ghost"
+                size="xl"
+                onClick={() => setDrawerOpen(false)}
+                render={
+                  <Link
+                    to={`/${group.id}/share`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    <Share2 /> Share group
+                  </Link>
+                }
+              />
+            </>
+          )}
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

@@ -91,14 +91,15 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
                 value={code}
                 onChange={setCode}
                 pattern={REGEXP_ONLY_DIGITS}
+                containerClassName="w-full"
               >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
+                <InputOTPGroup className="w-full">
+                  <InputOTPSlot index={0} className="flex-1" />
+                  <InputOTPSlot index={1} className="flex-1" />
+                  <InputOTPSlot index={2} className="flex-1" />
+                  <InputOTPSlot index={3} className="flex-1" />
+                  <InputOTPSlot index={4} className="flex-1" />
+                  <InputOTPSlot index={5} className="flex-1" />
                 </InputOTPGroup>
               </InputOTP>
             </Field>
