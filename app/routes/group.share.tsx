@@ -193,9 +193,9 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
               </InputGroupButton>
             </InputGroupAddon>
           </InputGroup>
-          <div className="flex w-full items-center justify-between bg-muted rounded-lg px-4 py-3">
+          <div className="flex w-full items-center justify-between gap-4 bg-muted rounded-lg px-4 py-3">
             <span className="text-3xl font-mono font-bold tracking-widest">{currentCode}</span>
-            <Button size="icon-xs" variant="ghost" className="cursor-pointer -mr-1" onClick={copyCode}>
+            <Button size="icon-xs" variant="muted" className="cursor-pointer -mr-1" onClick={copyCode}>
               <Copy />
             </Button>
           </div>
