@@ -193,23 +193,6 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
               </Button>
               <div className="flex flex-col gap-2">
                 {!group.shareMetadata?.shareCode && (
-                  <Button
-                    type="button"
-                    size="xl"
-                    variant="ghost"
-                    className="text-destructive cursor-pointer"
-                    render={
-                      <Link
-                        to={`/${group.id}/settings/delete`}
-                        prefetch="viewport"
-                        className="cursor-pointer"
-                      >
-                        Delete group
-                      </Link>
-                    }
-                  />
-                )}
-                {group.shareMetadata?.shareCode && (
                   <>
                     <Button
                       type="button"
@@ -226,6 +209,25 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                         </Link>
                       }
                     />
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="text-destructive cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/settings/delete`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          Delete group
+                        </Link>
+                      }
+                    />
+                  </>
+                )}
+                {group.shareMetadata?.shareCode && (
+                  <>
                     <Button
                       type="button"
                       size="xl"

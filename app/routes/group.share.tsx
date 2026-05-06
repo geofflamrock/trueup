@@ -203,14 +203,6 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
             <Button size="xl" className="cursor-pointer" onClick={() => navigate(-1)}>
               Done
             </Button>
-            <Button
-              size="xl"
-              variant="ghost"
-              className="text-destructive cursor-pointer"
-              onClick={() => navigate(`/${group.id}/share/stop`)}
-            >
-              Disconnect from share
-            </Button>
           </div>
         </div>
       )}
