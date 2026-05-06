@@ -183,7 +183,7 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
                 <Globe className="size-4" />
               </ItemMedia>
               <ItemContent>
-                <ItemTitle className="text-sm font-normal text-muted-foreground truncate max-w-[180px]">
+                <ItemTitle className="text-sm font-normal text-muted-foreground truncate min-w-0 w-full">
                   {joinUrl}
                 </ItemTitle>
               </ItemContent>
