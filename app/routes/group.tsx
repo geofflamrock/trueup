@@ -248,7 +248,7 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
             <>
               <div className="h-px bg-border -mx-4" />
               <Button
-                variant="ghost"
+                variant="muted"
                 size="xl"
                 onClick={() => setDrawerOpen(false)}
                 render={

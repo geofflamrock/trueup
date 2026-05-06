@@ -6,13 +6,15 @@ import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 import { QRCodeSVG } from "qrcode.react";
-import { Copy } from "lucide-react";
+import { Copy, Globe, KeyRound } from "lucide-react";
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "~/components/ui/input-group";
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemGroup,
+  ItemMedia,
+  ItemTitle,
+} from "~/components/ui/item";
 
 export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
@@ -175,30 +177,50 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
           <div className="bg-white p-3 rounded-lg">
             <QRCodeSVG value={joinUrl} size={180} bgColor="#ffffff" fgColor="#000000" />
           </div>
-          <InputGroup>
-            <InputGroupInput
-              readOnly
-              value={joinUrl}
-              className="text-sm text-muted-foreground"
-            />
-            <InputGroupAddon align="inline-end">
-              <InputGroupButton
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                className="cursor-pointer"
-                onClick={copyLink}
-              >
-                <Copy />
-              </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-          <div className="flex w-full items-center justify-between gap-4 bg-muted rounded-lg px-4 py-3">
-            <span className="text-3xl font-mono font-bold tracking-widest">{currentCode}</span>
-            <Button size="icon-xs" variant="muted" className="cursor-pointer -mr-1" onClick={copyCode}>
-              <Copy />
-            </Button>
-          </div>
+          <ItemGroup className="w-full">
+            <Item variant="muted">
+              <ItemMedia variant="icon">
+                <Globe className="size-4" />
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle className="text-sm font-normal text-muted-foreground truncate max-w-[180px]">
+                  {joinUrl}
+                </ItemTitle>
+              </ItemContent>
+              <ItemActions>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="cursor-pointer"
+                  onClick={copyLink}
+                >
+                  <Copy />
+                </Button>
+              </ItemActions>
+            </Item>
+            <Item variant="muted">
+              <ItemMedia variant="icon">
+                <KeyRound className="size-4" />
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle className="text-2xl font-mono font-bold tracking-widest">
+                  {currentCode}
+                </ItemTitle>
+              </ItemContent>
+              <ItemActions>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="cursor-pointer"
+                  onClick={copyCode}
+                >
+                  <Copy />
+                </Button>
+              </ItemActions>
+            </Item>
+          </ItemGroup>
           <div className="flex flex-col w-full gap-2">
             <Button
               size="xl"
