@@ -55,7 +55,7 @@ export default function DeleteSharePage({ loaderData }: Route.ComponentProps) {
       <Form method="post" className="flex flex-col gap-4">
         <FieldGroup>
           <Field>
-            <FieldLabel>Type &ldquo;{group.name}&rdquo; to confirm</FieldLabel>
+            <FieldLabel>Type &quot;{group.name}&quot; to confirm</FieldLabel>
             <Input
               type="text"
               value={confirmName}

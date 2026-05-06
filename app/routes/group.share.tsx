@@ -34,7 +34,8 @@ export async function action({ request }: Route.ActionArgs) {
 
   // Generate a new unique group/share ID for every share creation so that
   // disconnecting and re-sharing always creates a fresh, independent share.
-  const idBytes = new Uint8Array(4);
+  // Using 8 bytes (64 bits) for adequate collision resistance.
+  const idBytes = new Uint8Array(8);
   crypto.getRandomValues(idBytes);
   const newGroupId = Array.from(idBytes, (b) => b.toString(16).padStart(2, "0")).join("");
 
