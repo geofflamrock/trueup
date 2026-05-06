@@ -54,7 +54,7 @@ export default function GroupPage() {
   const subPage = match?.params["*"] || "";
   const tab = subPage === "" ? "group" : subPage;
 
-  const { isSyncing } = useSharedGroupSync(group, revalidate);
+  const { isSyncing, shareDeletedNotice, dismissShareDeletedNotice } = useSharedGroupSync(group, revalidate);
 
   return (
     <PageLayout
@@ -122,6 +122,20 @@ export default function GroupPage() {
         </Tabs>
       }
     >
+      {shareDeletedNotice && (
+        <div className="mx-4 mt-4 flex items-start justify-between gap-3 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <span>This share has been deleted. This group is no longer synced.</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            className="shrink-0 cursor-pointer text-destructive"
+            onClick={dismissShareDeletedNotice}
+          >
+            ✕
+          </Button>
+        </div>
+      )}
       <Outlet />
     </PageLayout>
   );
@@ -146,17 +160,6 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
           }
         />
         <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            render={
-              <Link
-                to={`/${group.id}/share`}
-                prefetch="viewport"
-                className="cursor-pointer"
-              >
-                <Share2 /> Share group
-              </Link>
-            }
-          />
           <DropdownMenuItem
             render={
               <Link
@@ -196,20 +199,6 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
       </Button>
       <DrawerContent>
         <DrawerFooter className="flex flex-col gap-2">
-          <Button
-            variant="muted"
-            size="xl"
-            onClick={() => setDrawerOpen(false)}
-            render={
-              <Link
-                to={`/${group.id}/share`}
-                prefetch="viewport"
-                className="cursor-pointer"
-              >
-                <Share2 /> Share group
-              </Link>
-            }
-          />
           <Button
             variant="muted"
             size="xl"
@@ -279,7 +268,7 @@ function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
         {isShared && (
           isSyncing ? (
             <Button variant="ghost" size="icon-lg" disabled aria-label="Syncing">
-              <RefreshCwIcon className="size-6 text-muted-foreground animate-spin" />
+              <RefreshCwIcon className="size-4 text-muted-foreground animate-spin" />
             </Button>
           ) : (
             <Button
@@ -288,7 +277,7 @@ function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
               aria-label="Share group"
               render={
                 <Link to={`/${group.id}/share`} prefetch="viewport" className="cursor-pointer">
-                  <Share2 className="size-6" />
+                  <Share2 className="size-4 text-muted-foreground" />
                 </Link>
               }
             />

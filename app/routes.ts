@@ -12,6 +12,7 @@ export default [
     ]),
     route("share", "routes/group.share.tsx"),
     route("share/stop", "routes/group.share.stop.tsx"),
+    route("share/delete", "routes/group.share.delete.tsx"),
     route("disconnect", "routes/group.disconnect.tsx"),
   ]),
   route(":groupId/expenses/new", "routes/expense.new.tsx"),

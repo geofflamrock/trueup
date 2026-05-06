@@ -17,7 +17,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "~/components/ui/input-group";
-import { Trash2, UserPlus } from "lucide-react";
+import { Share2, Trash2, UserPlus } from "lucide-react";
 import { syncSharedGroup } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
@@ -210,21 +210,53 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
                   />
                 )}
                 {group.shareMetadata?.shareCode && (
-                  <Button
-                    type="button"
-                    size="xl"
-                    variant="ghost"
-                    className="text-destructive cursor-pointer"
-                    render={
-                      <Link
-                        to={`/${group.id}/share/stop`}
-                        prefetch="viewport"
-                        className="cursor-pointer"
-                      >
-                        Disconnect from share
-                      </Link>
-                    }
-                  />
+                  <>
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/share`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          <Share2 /> Share group
+                        </Link>
+                      }
+                    />
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="text-destructive cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/share/stop`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          Disconnect from share
+                        </Link>
+                      }
+                    />
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="text-destructive cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/share/delete`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          Delete share
+                        </Link>
+                      }
+                    />
+                  </>
                 )}
               </div>
             </div>

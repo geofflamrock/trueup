@@ -1,7 +1,7 @@
 import { Form, useActionData, useLoaderData, useNavigation, useNavigate } from "react-router";
 import type { Route } from "./+types/group.share";
 import { getStore } from "@netlify/blobs";
-import { getGroup, markGroupShared } from "../storage";
+import { getGroup, markGroupShared, saveGroup, deleteGroup } from "../storage";
 import { useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
@@ -14,8 +14,7 @@ import {
   InputGroupInput,
 } from "~/components/ui/input-group";
 
-export async function action({ params, request }: Route.ActionArgs) {
-  const { groupId } = params;
+export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const groupJson = formData.get("groupData") as string;
 
@@ -31,7 +30,16 @@ export async function action({ params, request }: Route.ActionArgs) {
   }
 
   // Strip client-side share metadata before storing
-  const { shareMetadata: _stripped, ...groupToStore } = groupData as { shareMetadata?: unknown; [key: string]: unknown };
+  const { shareMetadata: _stripped, ...groupWithoutMeta } = groupData as { shareMetadata?: unknown; [key: string]: unknown };
+
+  // Generate a new unique group/share ID for every share creation so that
+  // disconnecting and re-sharing always creates a fresh, independent share.
+  const idBytes = new Uint8Array(4);
+  crypto.getRandomValues(idBytes);
+  const newGroupId = Array.from(idBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+
+  // Embed the new ID in the stored data so joining devices get the correct group ID
+  const groupToStore = { ...groupWithoutMeta, id: newGroupId };
 
   // Generate unbiased 6-digit code using rejection sampling
   const digits: number[] = [];
@@ -47,12 +55,12 @@ export async function action({ params, request }: Route.ActionArgs) {
   let etag: string;
   try {
     const store = getStore("shares");
-    const result = await store.setJSON(groupId, groupToStore, {
+    const result = await store.setJSON(newGroupId, groupToStore, {
       onlyIfNew: true,
       metadata: { shareCode },
     });
     if (!result.modified) {
-      return { error: "A share for this group already exists. Stop sharing first and try again." };
+      return { error: "Failed to create share. Please try again." };
     }
     if (!result.etag) {
       return { error: "Failed to retrieve share token. Please try again." };
@@ -64,9 +72,9 @@ export async function action({ params, request }: Route.ActionArgs) {
 
   const url = new URL(request.url);
   const groupName = (groupData.name as string) ?? "";
-  const joinUrl = `${url.origin}/join/${groupId}?name=${encodeURIComponent(groupName)}`;
+  const joinUrl = `${url.origin}/join/${newGroupId}?name=${encodeURIComponent(groupName)}`;
 
-  return { shareId: groupId, shareCode, etag, joinUrl };
+  return { shareId: newGroupId, shareCode, etag, joinUrl };
 }
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
@@ -82,12 +90,24 @@ export default function GroupSharePage({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const isLoading = navigation.state === "submitting";
 
-  // When action succeeds, persist share state to localStorage
+  // When action succeeds, persist share state to localStorage.
+  // The action always generates a new group ID, so we need to migrate the group
+  // from the old ID to the new one and navigate to the new URL.
   useEffect(() => {
     if (actionData && "shareCode" in actionData && actionData.shareCode && actionData.etag) {
-      markGroupShared(group.id, actionData.shareCode, actionData.etag);
+      const newId = actionData.shareId as string;
+      if (newId && newId !== group.id) {
+        // New group ID — copy group data under new ID, mark as shared, delete old
+        const { shareMetadata: _sm, ...groupWithoutMeta } = group;
+        saveGroup({ ...groupWithoutMeta, id: newId });
+        markGroupShared(newId, actionData.shareCode, actionData.etag);
+        deleteGroup(group.id);
+        navigate(`/${newId}/share`, { replace: true });
+      } else {
+        markGroupShared(group.id, actionData.shareCode, actionData.etag);
+      }
     }
-  }, [actionData, group.id]);
+  }, [actionData, group.id, navigate]);
 
   // Extract values from the action result (if it was a successful share creation)
   const newShareData = actionData && "shareCode" in actionData && actionData.shareCode

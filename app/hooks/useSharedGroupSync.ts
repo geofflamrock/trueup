@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { saveGroup } from "~/storage";
+import { saveGroup, disconnectGroup } from "~/storage";
 import type { Group } from "~/types";
 import { onSyncStateChange } from "~/lib/share-sync";
 
@@ -9,11 +9,14 @@ import { onSyncStateChange } from "~/lib/share-sync";
  * Also tracks upload state from syncSharedGroup calls.
  *
  * Returns:
- *   isSyncing – true while an upload or download is in progress
+ *   isSyncing          – true while an upload or download is in progress
+ *   shareDeletedNotice – true when a 404 was received (share deleted remotely)
+ *   dismissShareDeletedNotice – clears the notice
  */
 export function useSharedGroupSync(group: Group, revalidate: () => void) {
   const [isUploadSyncing, setIsUploadSyncing] = useState(false);
   const [isDownloadSyncing, setIsDownloadSyncing] = useState(false);
+  const [shareDeletedNotice, setShareDeletedNotice] = useState(false);
 
   // Subscribe to upload sync state
   useEffect(() => {
@@ -78,6 +81,15 @@ export function useSharedGroupSync(group: Group, revalidate: () => void) {
           "If-None-Match": lastETag,
         },
       });
+
+      if (res.status === 404) {
+        // Share was deleted by another device — disconnect and notify
+        disconnectGroup(id);
+        setShareDeletedNotice(true);
+        revalidateRef.current();
+        return;
+      }
+
       // 200 → server has a newer version; automatically apply it
       if (res.status === 200) {
         await syncNow();
@@ -107,5 +119,9 @@ export function useSharedGroupSync(group: Group, revalidate: () => void) {
       document.removeEventListener("visibilitychange", onVisibilityChange);
   }, [checkForUpdates, group.shareMetadata?.shareCode]);
 
-  return { isSyncing: isUploadSyncing || isDownloadSyncing };
+  return {
+    isSyncing: isUploadSyncing || isDownloadSyncing,
+    shareDeletedNotice,
+    dismissShareDeletedNotice: () => setShareDeletedNotice(false),
+  };
 }
