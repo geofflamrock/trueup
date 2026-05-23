@@ -1,5 +1,3 @@
-import { getGroup, markGroupShared } from "~/storage";
-
 // ---------------------------------------------------------------------------
 // Sync state broadcasting
 // ---------------------------------------------------------------------------
@@ -15,48 +13,30 @@ export function onSyncStateChange(cb: SyncStateListener): () => void {
 // Backward-compat alias
 export const onOwnerSyncStateChange = onSyncStateChange;
 
-function notifySyncState(syncing: boolean) {
+export function notifySyncState(syncing: boolean) {
   _syncListeners.forEach((cb) => cb(syncing));
 }
 
 // ---------------------------------------------------------------------------
+// Group modification broadcasting
+// ---------------------------------------------------------------------------
+type ModifiedListener = (groupId: string) => void;
+const _modifiedListeners = new Set<ModifiedListener>();
 
 /**
- * Uploads the current group data to the share blob.
- * Called after mutations when the group is shared.
- * Strips shareMetadata before uploading so internal client state is not stored.
+ * Subscribe to local group modification events.
+ * The hook calls this to know when to upload after a mutation.
  */
-export async function syncSharedGroup(groupId: string, shareCode: string, lastETag?: string): Promise<string | null> {
-  const group = getGroup(groupId);
-  if (!group) return null;
+export function onGroupModified(cb: ModifiedListener): () => void {
+  _modifiedListeners.add(cb);
+  return () => _modifiedListeners.delete(cb);
+}
 
-  // Strip client-side metadata before uploading
-  const { shareMetadata: _stripped, ...groupToUpload } = group;
-
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${shareCode}`,
-  };
-  if (lastETag) {
-    headers["If-Match"] = lastETag;
-  }
-
-  notifySyncState(true);
-  try {
-    const res = await fetch(`/api/shares/${groupId}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(groupToUpload),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      markGroupShared(groupId, shareCode, data.etag);
-      return data.etag;
-    }
-  } finally {
-    notifySyncState(false);
-  }
-
-  return null;
+/**
+ * Signal that the local group has been modified and needs to be uploaded.
+ * Call this from route actions after any mutation (add/edit/delete expense or
+ * transfer, settings save) instead of calling syncSharedGroup directly.
+ */
+export function notifyGroupModified(groupId: string) {
+  _modifiedListeners.forEach((cb) => cb(groupId));
 }

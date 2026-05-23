@@ -1,6 +1,7 @@
 import { redirect, useLoaderData, Form, useNavigate } from "react-router";
 import type { Route } from "./+types/transfer.delete";
 import { getGroup, getTransfer, deleteTransfer } from "../storage";
+import { notifyGroupModified } from "~/lib/share-sync";
 import { Button } from "~/components/ui/button";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
 
@@ -36,8 +37,7 @@ export async function clientAction({ params }: Route.ClientActionArgs) {
 
   const updatedGroup = getGroup(params.groupId);
   if (updatedGroup?.shareMetadata?.shareCode) {
-    const { syncSharedGroup } = await import("~/lib/share-sync");
-    await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
+    notifyGroupModified(updatedGroup.id);
   }
 
   return redirect(`/${params.groupId}`);

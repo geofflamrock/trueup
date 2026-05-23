@@ -22,7 +22,7 @@ import {
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
-import { syncSharedGroup } from "~/lib/share-sync";
+import { notifyGroupModified } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -73,7 +73,7 @@ export async function clientAction({
 
   const updatedGroup = getGroup(params.groupId);
   if (updatedGroup?.shareMetadata?.shareCode) {
-    await syncSharedGroup(updatedGroup.id, updatedGroup.shareMetadata.shareCode, updatedGroup.shareMetadata.lastETag);
+    notifyGroupModified(updatedGroup.id);
   }
 
   return redirect(`/${params.groupId}`);

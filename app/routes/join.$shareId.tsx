@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigate, Link } from "react-router";
+import { redirect, useActionData, useNavigation, Link, Form } from "react-router";
 import type { Route } from "./+types/join.$shareId";
 import { saveJoinedGroup } from "../storage";
 import { useState } from "react";
@@ -21,48 +21,44 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export async function clientLoader({ params, request }: Route.ClientLoaderArgs) {
+export async function clientLoader({ request }: Route.ClientLoaderArgs) {
   const url = new URL(request.url);
   const name = url.searchParams.get("name") ?? "Shared Group";
-  return { shareId: params.shareId, name };
+  return { name };
+}
+
+export async function clientAction({ params, request }: Route.ClientActionArgs) {
+  const formData = await request.formData();
+  const code = formData.get("code") as string;
+
+  if (!/^\d{6}$/.test(code)) {
+    return { error: "Please enter a valid 6-digit code" };
+  }
+
+  const res = await fetch(`/api/shares/${params.shareId}`, {
+    headers: { Authorization: `Bearer ${code}` },
+  });
+
+  if (res.status === 401) {
+    return { error: "Invalid code. Please check and try again." };
+  }
+  if (!res.ok) {
+    return { error: "This share link is no longer active." };
+  }
+
+  const etag = res.headers.get("ETag");
+  const groupData: Group = await res.json();
+  saveJoinedGroup(groupData, code, etag ?? undefined);
+  return redirect(`/${groupData.id}`);
 }
 
 export default function JoinPage({ loaderData }: Route.ComponentProps) {
-  const { shareId, name } = loaderData;
-  const navigate = useNavigate();
+  const { name } = loaderData;
+  const actionData = useActionData<typeof clientAction>();
+  const navigation = useNavigation();
   const [code, setCode] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleJoin = async () => {
-    if (!/^\d{6}$/.test(code)) {
-      setError("Please enter a valid 6-digit code");
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/shares/${shareId}`, {
-        headers: { Authorization: `Bearer ${code}` },
-      });
-      if (res.status === 401) {
-        setError("Invalid code. Please check and try again.");
-        return;
-      }
-      if (!res.ok) {
-        setError("This share link is no longer active.");
-        return;
-      }
-      const etag = res.headers.get("ETag");
-      const groupData: Group = await res.json();
-      saveJoinedGroup(groupData, code, etag ?? undefined);
-      navigate(`/${groupData.id}`);
-    } catch {
-      setError("Failed to join group. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const isLoading = navigation.state === "submitting";
 
   return (
     <PageLayout
@@ -86,37 +82,39 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
             </p>
             <Field>
               <FieldLabel>Access Code</FieldLabel>
-              <InputOTP
-                maxLength={6}
-                value={code}
-                onChange={setCode}
-                pattern={REGEXP_ONLY_DIGITS}
-                containerClassName="w-full"
-              >
-                <InputOTPGroup className="w-full">
-                  <InputOTPSlot index={0} className="flex-1" />
-                  <InputOTPSlot index={1} className="flex-1" />
-                  <InputOTPSlot index={2} className="flex-1" />
-                  <InputOTPSlot index={3} className="flex-1" />
-                  <InputOTPSlot index={4} className="flex-1" />
-                  <InputOTPSlot index={5} className="flex-1" />
-                </InputOTPGroup>
-              </InputOTP>
+              <Form method="post">
+                <input type="hidden" name="code" value={code} />
+                <InputOTP
+                  maxLength={6}
+                  value={code}
+                  onChange={setCode}
+                  pattern={REGEXP_ONLY_DIGITS}
+                  containerClassName="w-full"
+                >
+                  <InputOTPGroup className="w-full">
+                    <InputOTPSlot index={0} className="flex-1" />
+                    <InputOTPSlot index={1} className="flex-1" />
+                    <InputOTPSlot index={2} className="flex-1" />
+                    <InputOTPSlot index={3} className="flex-1" />
+                    <InputOTPSlot index={4} className="flex-1" />
+                    <InputOTPSlot index={5} className="flex-1" />
+                  </InputOTPGroup>
+                </InputOTP>
+                {actionData?.error && (
+                  <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg mt-2">
+                    {actionData.error}
+                  </div>
+                )}
+                <Button
+                  type="submit"
+                  size="xl"
+                  className="cursor-pointer mt-4 w-full"
+                  disabled={isLoading || code.length !== 6}
+                >
+                  {isLoading ? "Joining..." : "Join group"}
+                </Button>
+              </Form>
             </Field>
-            {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg">
-                {error}
-              </div>
-            )}
-            <Button
-              type="button"
-              size="xl"
-              className="cursor-pointer"
-              disabled={isLoading || code.length !== 6}
-              onClick={handleJoin}
-            >
-              {isLoading ? "Joining..." : "Join group"}
-            </Button>
           </FieldGroup>
         </FieldSet>
       </div>
