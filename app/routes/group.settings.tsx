@@ -18,7 +18,6 @@ import {
   InputGroupInput,
 } from "~/components/ui/input-group";
 import { Share2, Trash2, UserPlus } from "lucide-react";
-import { notifyGroupModified } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -55,8 +54,6 @@ export async function clientAction({
   request,
   params,
 }: Route.ClientActionArgs) {
-  const group = getGroup(params.groupId);
-
   const formData = await request.formData();
   const name = formData.get("name") as string;
   const peopleJson = formData.get("people") as string;
@@ -73,11 +70,6 @@ export async function clientAction({
 
   if (!peopleUpdateResult.success) {
     throw data(peopleUpdateResult.error, { status: 400 });
-  }
-
-  const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.shareMetadata?.shareCode) {
-    notifyGroupModified(updatedGroup.id);
   }
 
   return redirect(`/${params.groupId}`);

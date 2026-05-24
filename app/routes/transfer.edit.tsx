@@ -22,7 +22,6 @@ import {
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
-import { notifyGroupModified } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -52,8 +51,6 @@ export async function clientAction({
   request,
   params,
 }: Route.ClientActionArgs) {
-  const group = getGroup(params.groupId);
-
   const formData = await request.formData();
   const amount = parseFloat(formData.get("amount") as string);
   const paidById = parseInt(formData.get("paidById") as string);
@@ -69,11 +66,6 @@ export async function clientAction({
       date,
       description: description || undefined,
     });
-  }
-
-  const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.shareMetadata?.shareCode) {
-    notifyGroupModified(updatedGroup.id);
   }
 
   return redirect(`/${params.groupId}`);

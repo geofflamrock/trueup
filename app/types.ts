@@ -39,6 +39,7 @@ export interface Group {
   people: Person[];
   expenses: Expense[];
   transfers: Transfer[];
+  lastModified?: string; // ISO timestamp, updated on every local save; stripped before cloud upload
   shareMetadata?: GroupShareMetadata;
 }
 

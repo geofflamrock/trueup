@@ -1,120 +1,94 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getGroup, saveGroup, disconnectGroup, markGroupShared } from "~/storage";
 import type { Group } from "~/types";
-import { onSyncStateChange, onGroupModified, notifySyncState } from "~/lib/share-sync";
 
 /**
- * Combined hook for shared group sync (both upload and download).
- * - Polls every 60s and re-checks on visibilitychange / mount.
- * - Tracks upload state and uploads whenever a local mutation is signalled via
- *   `notifyGroupModified`.
- * - Combines the former checkForUpdates + syncNow into a single `checkAndSync`
- *   that uses If-None-Match and handles 200 / 304 / 404 in one pass.
+ * Unified hook for shared group sync (upload and download).
  *
- * Returns:
- *   isSyncing                  – true while an upload or download is in progress
- *   shareDeletedNotice         – true when a 404 was received (share deleted remotely)
- *   dismissShareDeletedNotice  – clears the notice
+ * Uses group.lastModified to detect local changes:
+ * - saveGroup() stamps every write with a new ISO timestamp.
+ * - The hook tracks lastSyncedModified (the lastModified at the time of the
+ *   last successful sync).  When group.lastModified differs, a local mutation
+ *   occurred and the group is uploaded.
+ * - Polling (60 s) and visibilitychange triggers check the cloud for newer
+ *   versions using If-None-Match.
+ * - A single sync() function handles both directions so there is no need for
+ *   module-level listeners or complex ref/callback chains.
  */
 export function useSharedGroupSync(group: Group, revalidate: () => void) {
-  const [isUploadSyncing, setIsUploadSyncing] = useState(false);
-  const [isDownloadSyncing, setIsDownloadSyncing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [shareDeletedNotice, setShareDeletedNotice] = useState(false);
 
-  // Subscribe to upload sync state (for spinner feedback)
-  useEffect(() => {
-    return onSyncStateChange(setIsUploadSyncing);
-  }, []);
+  // The lastModified value at the time of the last successful sync.
+  // Initialised to the group's current value so that loading an already-saved
+  // group does not trigger an immediate spurious upload.
+  const lastSyncedModified = useRef<string | undefined>(group.lastModified);
 
-  // Always reference the freshest group/revalidate without recreating callbacks
-  const groupRef = useRef(group);
-  groupRef.current = group;
+  // Keep a fresh reference to revalidate without triggering effect re-runs.
   const revalidateRef = useRef(revalidate);
   revalidateRef.current = revalidate;
 
-  // Guards against concurrent uploads: if an upload is in progress when another
-  // mutation arrives, we re-run once after the current one finishes.
-  const isUploadingRef = useRef(false);
-  const needsReuploadRef = useRef(false);
-
   /**
-   * Uploads the current group data (read fresh from localStorage) to the share
-   * blob. Strips shareMetadata before uploading. Serialises concurrent calls so
-   * rapid mutations don't race each other.
+   * Single sync function: uploads local changes if detected, then checks the
+   * cloud for newer versions.  All state transitions happen here.
    */
-  const uploadGroup = useCallback(async () => {
-    if (isUploadingRef.current) {
-      // An upload is already in-flight; schedule a re-run after it finishes
-      needsReuploadRef.current = true;
-      return;
-    }
-
-    // Always read the freshest copy from localStorage so we capture the latest mutation
-    const currentGroup = getGroup(groupRef.current.id);
+  const sync = useCallback(async () => {
+    const currentGroup = getGroup(group.id);
     if (!currentGroup) return;
 
-    const { shareMetadata, id } = currentGroup;
-    const { shareCode, lastETag } = shareMetadata ?? {};
+    const { shareCode, lastETag } = currentGroup.shareMetadata ?? {};
     if (!shareCode) return;
 
-    const { shareMetadata: _stripped, ...groupToUpload } = currentGroup;
-
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${shareCode}`,
-    };
-    if (lastETag) headers["If-Match"] = lastETag;
-
-    isUploadingRef.current = true;
-    notifySyncState(true);
+    setIsSyncing(true);
     try {
-      const res = await fetch(`/api/shares/${id}`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(groupToUpload),
-      });
+      // ── 1. Upload local changes if lastModified advanced ─────────────────
+      const hasLocalChange =
+        currentGroup.lastModified !== undefined &&
+        currentGroup.lastModified !== lastSyncedModified.current;
 
-      if (res.ok) {
-        const data = await res.json();
-        markGroupShared(id, shareCode, data.etag);
+      if (hasLocalChange) {
+        // Strip client-only fields before uploading
+        const {
+          shareMetadata: _sm,
+          lastModified: _lm,
+          ...groupToUpload
+        } = currentGroup;
+
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${shareCode}`,
+        };
+        if (lastETag) headers["If-Match"] = lastETag;
+
+        try {
+          const res = await fetch(`/api/shares/${currentGroup.id}`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify(groupToUpload),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            // markGroupShared saves shareMetadata (incl. new ETag) and updates
+            // lastModified again; read it fresh so our ref stays in sync.
+            markGroupShared(currentGroup.id, shareCode, data.etag);
+            const fresh = getGroup(currentGroup.id);
+            // Fall back to current value so we don't re-trigger an upload if
+            // getGroup() unexpectedly returns null.
+            lastSyncedModified.current = fresh?.lastModified ?? lastSyncedModified.current;
+          }
+        } catch {
+          // Network error — leave lastSyncedModified unchanged so we retry
+        }
+
+        // We just uploaded our version; skip the download check this cycle.
+        return;
       }
-    } finally {
-      isUploadingRef.current = false;
-      notifySyncState(false);
-      // If another mutation arrived while we were uploading, send the latest state
-      if (needsReuploadRef.current) {
-        needsReuploadRef.current = false;
-        uploadGroup();
-      }
-    }
-  }, []);
 
-  // Upload whenever a local mutation is signalled for this group
-  useEffect(() => {
-    return onGroupModified((modifiedId) => {
-      if (modifiedId === groupRef.current.id) {
-        uploadGroup();
-      }
-    });
-  }, [uploadGroup]);
+      // ── 2. Check cloud for a newer version ───────────────────────────────
+      if (!lastETag) return;
 
-  /**
-   * Polls the share API with If-None-Match; auto-syncs when the server has a
-   * newer version (HTTP 200), or auto-disconnects when the share is gone (HTTP 404).
-   * Uses a single fetch for both the "any update?" check and the data download,
-   * avoiding a redundant round-trip.
-   */
-  const checkAndSync = useCallback(async () => {
-    const { shareMetadata, id } = groupRef.current;
-    const { shareCode, lastETag } = shareMetadata ?? {};
-    if (!shareCode) return;
-
-    // Without a known ETag we can't distinguish "new version" from "first fetch"
-    if (!lastETag) return;
-
-    setIsDownloadSyncing(true);
-    try {
-      const res = await fetch(`/api/shares/${id}`, {
+      const res = await fetch(`/api/shares/${currentGroup.id}`, {
         headers: {
           Authorization: `Bearer ${shareCode}`,
           "If-None-Match": lastETag,
@@ -122,15 +96,16 @@ export function useSharedGroupSync(group: Group, revalidate: () => void) {
       });
 
       if (res.status === 404) {
-        // Share was deleted by another device — disconnect and notify
-        disconnectGroup(id);
+        // Share deleted remotely — disconnect locally and surface a notice
+        disconnectGroup(currentGroup.id);
         setShareDeletedNotice(true);
         revalidateRef.current();
         return;
       }
 
-      // 200 → server has a newer version; apply it immediately
       if (res.status === 200) {
+        // Newer version available — save it and update our sync marker so
+        // the subsequent revalidation does not trigger an upload.
         const newEtag = res.headers.get("ETag");
         const groupData: Group = await res.json();
         const updated: Group = {
@@ -142,41 +117,48 @@ export function useSharedGroupSync(group: Group, revalidate: () => void) {
           },
         };
         saveGroup(updated);
+        const saved = getGroup(currentGroup.id);
+        // Fall back to current value so we don't re-trigger an upload if
+        // getGroup() unexpectedly returns null after the save.
+        lastSyncedModified.current = saved?.lastModified ?? lastSyncedModified.current;
         revalidateRef.current();
       }
       // 304 → nothing to do
     } catch {
-      // Network error – silently ignore
+      // Silently ignore unexpected errors
     } finally {
-      setIsDownloadSyncing(false);
+      setIsSyncing(false);
     }
-  }, []);
+  }, [group.id]);
 
-  // 60-second polling interval (only for shared groups)
+  // ── Trigger: local group changed ──────────────────────────────────────────
+  // Fires on mount (performs the initial cloud check) and whenever the group
+  // is saved locally (new lastModified means a mutation occurred).
   useEffect(() => {
     if (!group.shareMetadata?.shareCode) return;
-    const interval = setInterval(checkAndSync, 60_000);
+    sync();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [group.lastModified, group.shareMetadata?.shareCode]);
+
+  // ── Trigger: periodic poll every 60 seconds ───────────────────────────────
+  useEffect(() => {
+    if (!group.shareMetadata?.shareCode) return;
+    const interval = setInterval(sync, 60_000);
     return () => clearInterval(interval);
-  }, [checkAndSync, group.shareMetadata?.shareCode]);
+  }, [group.shareMetadata?.shareCode, sync]);
 
-  // Check for updates whenever the page becomes visible again,
-  // and immediately on mount.
+  // ── Trigger: page regains focus ───────────────────────────────────────────
   useEffect(() => {
     if (!group.shareMetadata?.shareCode) return;
-    // Sync immediately when entering the group
-    checkAndSync();
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        checkAndSync();
-      }
+    const handler = () => {
+      if (document.visibilityState === "visible") sync();
     };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-  }, [checkAndSync, group.shareMetadata?.shareCode]);
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, [group.shareMetadata?.shareCode, sync]);
 
   return {
-    isSyncing: isUploadSyncing || isDownloadSyncing,
+    isSyncing,
     shareDeletedNotice,
     dismissShareDeletedNotice: () => setShareDeletedNotice(false),
   };

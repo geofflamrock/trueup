@@ -21,7 +21,6 @@ import {
 import { getTodayYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
-import { notifyGroupModified } from "~/lib/share-sync";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -60,11 +59,6 @@ export async function clientAction({
       date,
       description: description || undefined,
     });
-  }
-
-  const updatedGroup = getGroup(params.groupId);
-  if (updatedGroup?.shareMetadata?.shareCode) {
-    notifyGroupModified(updatedGroup.id);
   }
 
   return redirect(`/${params.groupId}`);

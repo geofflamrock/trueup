@@ -16,10 +16,11 @@ export function getGroup(id: string): Group | null {
 export function saveGroup(group: Group): void {
   const groups = getAllGroups();
   const index = groups.findIndex((g) => g.id === group.id);
+  const groupWithTimestamp: Group = { ...group, lastModified: new Date().toISOString() };
   if (index >= 0) {
-    groups[index] = group;
+    groups[index] = groupWithTimestamp;
   } else {
-    groups.push(group);
+    groups.push(groupWithTimestamp);
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
 }
