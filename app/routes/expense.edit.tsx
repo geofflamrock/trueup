@@ -4,7 +4,6 @@ import {
   Outlet,
   redirect,
   useLoaderData,
-  useNavigate,
 } from "react-router";
 import type { Route } from "./+types/expense.edit";
 import { getGroup, getExpense, updateExpense } from "../storage";
@@ -31,7 +30,7 @@ import {
 import type { SplitType } from "./expense.new";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "~/components/app/PageHeader";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
 
@@ -86,7 +85,6 @@ export async function clientAction({
 
 export default function EditExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
-  const navigate = useNavigate();
   const [description, setDescription] = useState(expense.description);
   const [amount, setAmount] = useState(expense.amount.toString());
   const [paidById, setPaidById] = useState(expense.paidById.toString());
@@ -155,21 +153,7 @@ export default function EditExpense() {
 
   return (
     <PageLayout
-      header={
-        <div className="flex gap-4 items-center p-4">
-          <Button
-            variant="muted"
-            size="icon-lg"
-            className="cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="size-6" />
-          </Button>
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            Edit expense
-          </h1>
-        </div>
-      }
+      header={<PageHeader backTo={`/${group.id}`} title="Edit expense" />}
     >
       <Form
         id="edit-expense"

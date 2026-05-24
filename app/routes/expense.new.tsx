@@ -1,4 +1,4 @@
-import { Form, Link, redirect, useLoaderData } from "react-router";
+import { Form, redirect, useLoaderData } from "react-router";
 import type { Route } from "./+types/expense.new";
 import { getGroup, addExpense } from "../storage";
 import { useState } from "react";
@@ -23,7 +23,7 @@ import {
 } from "~/components/ui/select";
 import { getTodayYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "~/components/app/PageHeader";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { CustomSplitEditor } from "~/components/app/CustomSplitEditor";
 
@@ -139,26 +139,7 @@ export default function NewExpense() {
 
   return (
     <PageLayout
-      header={
-        <div className="flex gap-4 items-center p-4">
-          <Button
-            variant="muted"
-            size="icon-lg"
-            render={
-              <Link
-                to={`/${group.id}`}
-                prefetch="viewport"
-                className="cursor-pointer"
-              >
-                <ArrowLeft className="size-6" />
-              </Link>
-            }
-          />
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            New expense
-          </h1>
-        </div>
-      }
+      header={<PageHeader backTo={`/${group.id}`} title="New expense" />}
     >
       <Form
         id="new-expense"

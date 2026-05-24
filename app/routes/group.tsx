@@ -1,16 +1,14 @@
-import { Link, Outlet, useLoaderData, useMatch, useRevalidator } from "react-router";
+import { Link, Outlet, useLoaderData, useMatch } from "react-router";
 import type { Route } from "./+types/group";
 import { getGroup } from "../storage";
 import { Button } from "~/components/ui/button";
 import {
   ActivitySquareIcon,
-  ArrowLeft,
   Banknote,
   ChartNoAxesCombined,
   CoinsIcon,
   EllipsisVerticalIcon,
   HandCoins,
-  RefreshCwIcon,
   SettingsIcon,
   Share2,
 } from "lucide-react";
@@ -27,7 +25,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Drawer, DrawerContent, DrawerFooter } from "~/components/ui/drawer";
 import { useState } from "react";
 import { PageLayout } from "../components/app/PageLayout";
-import { useSharedGroupSync } from "~/hooks/useSharedGroupSync";
+import { PageHeader } from "~/components/app/PageHeader";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -49,17 +47,14 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export default function GroupPage() {
   const { group } = useLoaderData<typeof clientLoader>();
-  const { revalidate } = useRevalidator();
 
   const match = useMatch("/:groupId/*");
   const subPage = match?.params["*"] || "";
   const tab = subPage === "" ? "group" : subPage;
 
-  const { isSyncing, shareDeletedNotice, dismissShareDeletedNotice } = useSharedGroupSync(group, revalidate);
-
   return (
     <PageLayout
-      header={<GroupHeader group={group} isSyncing={isSyncing} />}
+      header={<GroupHeader group={group} />}
       footer={
         <Tabs value={tab} className="flex items-center justify-center p-4">
           <TabsList className="group-data-horizontal/tabs:h-14 sm:group-data-horizontal/tabs:h-12 rounded-full p-1">
@@ -123,20 +118,6 @@ export default function GroupPage() {
         </Tabs>
       }
     >
-      {shareDeletedNotice && (
-        <div className="mx-4 mt-4 flex items-start justify-between gap-3 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-          <span>This share has been deleted. This group is no longer synced.</span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            className="shrink-0 cursor-pointer text-destructive"
-            onClick={dismissShareDeletedNotice}
-          >
-            ✕
-          </Button>
-        </div>
-      )}
       <Outlet />
     </PageLayout>
   );
@@ -271,24 +252,15 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
 
 type GroupHeaderProps = {
   group: Group;
-  isSyncing: boolean;
 };
 
-function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
+function GroupHeader({ group }: GroupHeaderProps) {
   const isShared = !!(group.shareMetadata?.shareCode);
 
   return (
-    <div className="flex justify-between items-center p-4">
-      <div className="flex gap-4 items-center">
-        <Button
-          variant="muted"
-          size="icon-lg"
-          render={
-            <Link to={`/`} prefetch="viewport" className="cursor-pointer">
-              <ArrowLeft className="size-6" />
-            </Link>
-          }
-        />
+    <PageHeader
+      backTo="/"
+      title={
         <Link
           to={`/${group.id}/edit`}
           prefetch="viewport"
@@ -298,15 +270,10 @@ function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
             {group.name}
           </h1>
         </Link>
-      </div>
-
-      <div className="flex items-center gap-1">
-        {isShared && (
-          isSyncing ? (
-            <Button variant="ghost" size="icon-lg" disabled aria-label="Syncing">
-              <RefreshCwIcon className="size-4 text-muted-foreground animate-spin" />
-            </Button>
-          ) : (
+      }
+      actions={
+        <div className="flex items-center gap-1">
+          {isShared && (
             <Button
               variant="ghost"
               size="icon-lg"
@@ -317,10 +284,10 @@ function GroupHeader({ group, isSyncing }: GroupHeaderProps) {
                 </Link>
               }
             />
-          )
-        )}
-        <GroupHeaderMenu group={group} />
-      </div>
-    </div>
+          )}
+          <GroupHeaderMenu group={group} />
+        </div>
+      }
+    />
   );
 }

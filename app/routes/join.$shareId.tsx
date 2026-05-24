@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
 import { PageLayout } from "~/components/app/PageLayout";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "~/components/app/PageHeader";
 import type { Group } from "~/types";
 import {
   InputOTP,
@@ -62,16 +62,7 @@ export default function JoinPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <PageLayout
-      header={
-        <div className="flex gap-4 items-center p-4">
-          <Button
-            variant="muted"
-            size="icon-lg"
-            render={<Link to="/" prefetch="viewport" className="cursor-pointer"><ArrowLeft className="size-6" /></Link>}
-          />
-          <h1 className="text-2xl font-title text-foreground">Join Group</h1>
-        </div>
-      }
+      header={<PageHeader backTo="/" title="Join Group" />}
     >
       <div className="p-4">
         <FieldSet>

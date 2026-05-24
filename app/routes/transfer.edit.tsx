@@ -4,7 +4,6 @@ import {
   Outlet,
   redirect,
   useLoaderData,
-  useNavigate,
 } from "react-router";
 import type { Route } from "./+types/transfer.edit";
 import { getGroup, getTransfer, updateTransfer } from "../storage";
@@ -21,7 +20,7 @@ import {
 } from "~/components/ui/select";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "~/components/app/PageHeader";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -73,7 +72,6 @@ export async function clientAction({
 
 export default function EditTransfer() {
   const { group, transfer } = useLoaderData<typeof clientLoader>();
-  const navigate = useNavigate();
   const [amount, setAmount] = useState(transfer.amount.toString());
   const [description, setDescription] = useState(transfer.description || "");
   const [date, setDate] = useState(parseDateToYYYYMMDD(transfer.date));
@@ -88,21 +86,7 @@ export default function EditTransfer() {
 
   return (
     <PageLayout
-      header={
-        <div className="flex gap-4 items-center p-4">
-          <Button
-            variant="muted"
-            size="icon-lg"
-            className="cursor-pointer"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="size-6" />
-          </Button>
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            Edit transfer
-          </h1>
-        </div>
-      }
+      header={<PageHeader backTo={`/${group.id}`} title="Edit transfer" />}
     >
       <Form id="edit-transfer" method="post" className="p-4">
         <FieldSet>
