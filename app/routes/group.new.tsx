@@ -1,19 +1,19 @@
-import { Link, data, redirect, useFetcher, useNavigate } from "react-router";
+import { data, redirect, useFetcher } from "react-router";
 import type { Route } from "./+types/group.new";
 import { createGroup, addPerson } from "../storage";
 import { useState } from "react";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Field, FieldGroup, FieldLabel, FieldSet } from "~/components/ui/field";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
 } from "~/components/ui/input-group";
-import { ArrowLeft, Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 import { PageLayout } from "~/components/app/PageLayout";
+import { PageHeader } from "~/components/app/PageHeader";
 
 export function meta() {
   return [
@@ -55,7 +55,6 @@ export async function clientAction({ request }: Route.ClientActionArgs) {
 export default function NewGroup() {
   const [people, setPeople] = useState<string[]>([""]);
   const fetcher = useFetcher();
-  const isDesktop = useIsDesktop();
 
   const addPerson = () => {
     setPeople((prev) => [...prev, ""]);
@@ -71,22 +70,7 @@ export default function NewGroup() {
 
   return (
     <PageLayout
-      header={
-        <div className="flex gap-4 items-center p-4">
-          <Button
-            variant="muted"
-            size="icon-lg"
-            render={
-              <Link to={`/`} prefetch="viewport" className="cursor-pointer">
-                <ArrowLeft className="size-6" />
-              </Link>
-            }
-          />
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            New Group
-          </h1>
-        </div>
-      }
+      header={<PageHeader backTo="/" title="New Group" />}
     >
       <fetcher.Form id="new-group" method="post" className="p-4">
         <FieldSet>

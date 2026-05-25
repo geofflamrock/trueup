@@ -20,7 +20,7 @@ import {
 } from "~/components/ui/select";
 import { getTodayYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
-import { ArrowLeft } from "lucide-react";
+import { PageHeader } from "~/components/app/PageHeader";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -89,22 +89,7 @@ export default function NewTransfer() {
   if (group.people.length < 2) {
     return (
       <PageLayout
-        header={
-          <div className="flex gap-4 items-center p-4">
-            <Button
-              variant="muted"
-              size="icon-lg"
-              render={
-                <Link to={`/`} prefetch="viewport" className="cursor-pointer">
-                  <ArrowLeft className="size-6" />
-                </Link>
-              }
-            />
-            <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-              New transfer
-            </h1>
-          </div>
-        }
+        header={<PageHeader backTo={`/${group.id}`} title="New transfer" />}
       >
         <div className="space-y-4 p-4">
           <p className="text-foreground">
@@ -129,26 +114,7 @@ export default function NewTransfer() {
 
   return (
     <PageLayout
-      header={
-        <div className="flex gap-4 items-center p-4">
-          <Button
-            variant="muted"
-            size="icon-lg"
-            render={
-              <Link
-                to={`/${group.id}`}
-                prefetch="viewport"
-                className="cursor-pointer"
-              >
-                <ArrowLeft className="size-6" />
-              </Link>
-            }
-          />
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
-            New transfer
-          </h1>
-        </div>
-      }
+      header={<PageHeader backTo={`/${group.id}`} title="New transfer" />}
     >
       <Form id="new-transfer" method="post" className="p-4">
         <FieldSet>

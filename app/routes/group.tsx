@@ -4,19 +4,20 @@ import { getGroup } from "../storage";
 import { Button } from "~/components/ui/button";
 import {
   ActivitySquareIcon,
-  ArrowLeft,
   Banknote,
   ChartNoAxesCombined,
   CoinsIcon,
   EllipsisVerticalIcon,
   HandCoins,
   SettingsIcon,
+  Share2,
 } from "lucide-react";
 import { useIsDesktop } from "~/hooks/useIsDesktop";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import type { Group } from "~/types";
@@ -24,6 +25,7 @@ import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Drawer, DrawerContent, DrawerFooter } from "~/components/ui/drawer";
 import { useState } from "react";
 import { PageLayout } from "../components/app/PageLayout";
+import { PageHeader } from "~/components/app/PageHeader";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -45,6 +47,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export default function GroupPage() {
   const { group } = useLoaderData<typeof clientLoader>();
+
   const match = useMatch("/:groupId/*");
   const subPage = match?.params["*"] || "";
   const tab = subPage === "" ? "group" : subPage;
@@ -161,6 +164,22 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
               </Link>
             }
           />
+          {!group.shareMetadata?.shareCode && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                render={
+                  <Link
+                    to={`/${group.id}/share`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    <Share2 /> Share group
+                  </Link>
+                }
+              />
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -206,28 +225,42 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
               </Link>
             }
           />
+          {!group.shareMetadata?.shareCode && (
+            <>
+              <div className="h-px bg-border -mx-4" />
+              <Button
+                variant="muted"
+                size="xl"
+                onClick={() => setDrawerOpen(false)}
+                render={
+                  <Link
+                    to={`/${group.id}/share`}
+                    prefetch="viewport"
+                    className="cursor-pointer"
+                  >
+                    <Share2 /> Share group
+                  </Link>
+                }
+              />
+            </>
+          )}
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );
 }
+
 type GroupHeaderProps = {
   group: Group;
 };
 
 function GroupHeader({ group }: GroupHeaderProps) {
+  const isShared = !!(group.shareMetadata?.shareCode);
+
   return (
-    <div className="flex justify-between items-center p-4">
-      <div className="flex gap-4 items-center">
-        <Button
-          variant="muted"
-          size="icon-lg"
-          render={
-            <Link to={`/`} prefetch="viewport" className="cursor-pointer">
-              <ArrowLeft className="size-6" />
-            </Link>
-          }
-        />
+    <PageHeader
+      backTo="/"
+      title={
         <Link
           to={`/${group.id}/edit`}
           prefetch="viewport"
@@ -237,9 +270,24 @@ function GroupHeader({ group }: GroupHeaderProps) {
             {group.name}
           </h1>
         </Link>
-      </div>
-
-      <GroupHeaderMenu group={group} />
-    </div>
+      }
+      actions={
+        <div className="flex items-center gap-1">
+          {isShared && (
+            <Button
+              variant="ghost"
+              size="icon-lg"
+              aria-label="Share group"
+              render={
+                <Link to={`/${group.id}/share`} prefetch="viewport" className="cursor-pointer">
+                  <Share2 className="size-4 text-muted-foreground" />
+                </Link>
+              }
+            />
+          )}
+          <GroupHeaderMenu group={group} />
+        </div>
+      }
+    />
   );
 }

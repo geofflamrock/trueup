@@ -3,7 +3,6 @@ import type { Route } from "./+types/expense.delete";
 import { getGroup, getExpense, deleteExpense } from "../storage";
 import { Button } from "~/components/ui/button";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -31,13 +30,13 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export async function clientAction({ params }: Route.ClientActionArgs) {
   deleteExpense(params.groupId, params.expenseId);
+
   return redirect(`/${params.groupId}`);
 }
 
 export default function DeleteExpense() {
   const { group, expense } = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop();
 
   return (
     <DialogOrDrawer

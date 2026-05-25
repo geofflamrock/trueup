@@ -3,31 +3,36 @@ import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import { PageHeader } from "~/components/app/PageHeader";
 
 export function Header() {
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <div className="p-4 flex justify-between items-center">
-      <Link to="/" prefetch="viewport" className="cursor-pointer">
+    <PageHeader
+      title={
+        <Link to="/" prefetch="viewport" className="cursor-pointer">
+          <div className="flex gap-2 items-center">
+            <Coins className="text-primary" size={24} />
+            <h1 className="text-2xl text-primary font-title">True Up</h1>
+          </div>
+        </Link>
+      }
+      actions={
         <div className="flex gap-2 items-center">
-          <Coins className="text-primary" size={24} />
-          <h1 className="text-2xl text-primary font-title">True Up</h1>
+          <InstallAppButton />
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            aria-label="Toggle theme"
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="cursor-pointer"
+          >
+            {resolvedTheme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
+          </Button>
         </div>
-      </Link>
-      <div className="flex gap-2 items-center">
-        <InstallAppButton />
-        <Button
-          variant="ghost"
-          size="icon-lg"
-          aria-label="Toggle theme"
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          className="cursor-pointer"
-        >
-          {resolvedTheme === "dark" ? <Sun size={24} /> : <Moon size={24} />}
-        </Button>
-      </div>
-    </div>
+      }
+    />
   );
 }
 

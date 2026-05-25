@@ -16,10 +16,11 @@ export function getGroup(id: string): Group | null {
 export function saveGroup(group: Group): void {
   const groups = getAllGroups();
   const index = groups.findIndex((g) => g.id === group.id);
+  const groupWithTimestamp: Group = { ...group, lastModified: new Date().toISOString() };
   if (index >= 0) {
-    groups[index] = group;
+    groups[index] = groupWithTimestamp;
   } else {
-    groups.push(group);
+    groups.push(groupWithTimestamp);
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(groups));
 }
@@ -267,6 +268,41 @@ export function deleteTransfer(groupId: string, transferId: string): boolean {
   saveGroup(group);
   return true;
 }
+
+export function markGroupShared(groupId: string, shareCode: string, etag: string): void {
+  const group = getGroup(groupId);
+  if (!group) return;
+  group.shareMetadata = {
+    ...group.shareMetadata,
+    isShared: true,
+    shareCode,
+    lastETag: etag,
+  };
+  saveGroup(group);
+}
+
+export function markGroupUnshared(groupId: string): void {
+  const group = getGroup(groupId);
+  if (!group) return;
+  group.shareMetadata = undefined;
+  saveGroup(group);
+}
+
+export function saveJoinedGroup(groupData: Group, shareCode: string, lastETag?: string): void {
+  const { shareMetadata: _stripped, ...cleanGroup } = groupData;
+  saveGroup({
+    ...cleanGroup,
+    shareMetadata: { isShared: true, shareCode, lastETag },
+  });
+}
+
+export function disconnectGroup(groupId: string): void {
+  const group = getGroup(groupId);
+  if (!group) return;
+  group.shareMetadata = undefined;
+  saveGroup(group);
+}
+
 
 export function getExpense(groupId: string, expenseId: string): Expense | null {
   const group = getGroup(groupId);

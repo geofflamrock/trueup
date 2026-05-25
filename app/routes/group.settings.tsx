@@ -2,7 +2,6 @@ import {
   redirect,
   data,
   useFetcher,
-  useNavigate,
   Link,
   Outlet,
 } from "react-router";
@@ -18,8 +17,7 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "~/components/ui/input-group";
-import { Trash2, UserPlus } from "lucide-react";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
+import { Share2, Trash2, UserPlus } from "lucide-react";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -79,13 +77,11 @@ export async function clientAction({
 
 export default function EditGroup({ loaderData }: Route.ComponentProps) {
   const { group } = loaderData;
-  const navigate = useNavigate();
   const [name, setName] = useState<string>(group.name);
   const [people, setPeople] = useState<Array<{ id?: number; name: string }>>(
     group.people,
   );
   const fetcher = useFetcher();
-  const isDesktop = useIsDesktop();
 
   const addPerson = () => {
     setPeople([...people, { name: "" }]);
@@ -139,7 +135,7 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
               <FieldLabel htmlFor="people">People</FieldLabel>
               <div className="flex flex-col gap-2">
                 {people.map((person, index) => (
-                  <InputGroup>
+                  <InputGroup key={person.id ?? `new-${index}`}>
                     <InputGroupInput
                       type="text"
                       value={person.name}
@@ -187,21 +183,76 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
               >
                 {fetcher.state !== "idle" ? "Saving..." : "Save"}
               </Button>
-              <Button
-                type="button"
-                size="xl"
-                variant="ghost"
-                className="text-destructive cursor-pointer"
-                render={
-                  <Link
-                    to={`/${group.id}/settings/delete`}
-                    prefetch="viewport"
-                    className="cursor-pointer"
-                  >
-                    Delete group
-                  </Link>
-                }
-              />
+              <div className="flex flex-col gap-2">
+                {!group.shareMetadata?.shareCode && (
+                  <>
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/share`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          <Share2 /> Share group
+                        </Link>
+                      }
+                    />
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="text-destructive cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/settings/delete`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          Delete group
+                        </Link>
+                      }
+                    />
+                  </>
+                )}
+                {group.shareMetadata?.shareCode && (
+                  <>
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="text-destructive cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/share/stop`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          Disconnect from share
+                        </Link>
+                      }
+                    />
+                    <Button
+                      type="button"
+                      size="xl"
+                      variant="ghost"
+                      className="text-destructive cursor-pointer"
+                      render={
+                        <Link
+                          to={`/${group.id}/share/delete`}
+                          prefetch="viewport"
+                          className="cursor-pointer"
+                        >
+                          Delete share
+                        </Link>
+                      }
+                    />
+                  </>
+                )}
+              </div>
             </div>
           </FieldGroup>
         </FieldSet>

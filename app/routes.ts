@@ -10,6 +10,10 @@ export default [
     route("settings", "routes/group.settings.tsx", [
       route("delete", "routes/group.delete.tsx"),
     ]),
+    route("share", "routes/group.share.tsx"),
+    route("share/stop", "routes/group.share.stop.tsx"),
+    route("share/delete", "routes/group.share.delete.tsx"),
+    route("disconnect", "routes/group.disconnect.tsx"),
   ]),
   route(":groupId/expenses/new", "routes/expense.new.tsx"),
   route(":groupId/expenses/:expenseId", "routes/expense.edit.tsx", [
@@ -19,4 +23,6 @@ export default [
   route(":groupId/transfers/:transferId", "routes/transfer.edit.tsx", [
     route("delete", "routes/transfer.delete.tsx"),
   ]),
+  route("join/:shareId", "routes/join.$shareId.tsx"),
+  route("api/shares/:shareId", "routes/api.shares.$shareId.tsx"),
 ] satisfies RouteConfig;

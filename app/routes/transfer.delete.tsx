@@ -3,7 +3,6 @@ import type { Route } from "./+types/transfer.delete";
 import { getGroup, getTransfer, deleteTransfer } from "../storage";
 import { Button } from "~/components/ui/button";
 import { DialogOrDrawer } from "~/components/app/DialogOrDrawer";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -34,6 +33,7 @@ export async function clientLoader({ params }: Route.ClientLoaderArgs) {
 
 export async function clientAction({ params }: Route.ClientActionArgs) {
   deleteTransfer(params.groupId, params.transferId);
+
   return redirect(`/${params.groupId}`);
 }
 
@@ -41,7 +41,6 @@ export default function DeleteTransfer() {
   const { group, transfer, getPersonName } =
     useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
-  const isDesktop = useIsDesktop();
 
   return (
     <DialogOrDrawer
