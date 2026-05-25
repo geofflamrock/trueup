@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useRevalidator } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   disconnectGroup,
@@ -52,6 +53,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 function SyncProviderClient({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncErrors, setSyncErrors] = useState<SyncError[]>([]);
+  const { revalidate } = useRevalidator();
 
   // Tracks the lastModified value at the time of each group's last successful sync.
   // Keyed by group ID.
@@ -151,6 +153,7 @@ function SyncProviderClient({ children }: { children: React.ReactNode }) {
           const entry: SyncError = { groupId: group.id, groupName: group.name, type: "deleted" };
           if (idx >= 0) newErrors[idx] = entry;
           else newErrors.push(entry);
+          revalidate();
         } else if (res.status === 200) {
           const newEtag = res.headers.get("ETag");
           const groupData: Group = await res.json();
@@ -166,6 +169,7 @@ function SyncProviderClient({ children }: { children: React.ReactNode }) {
           const saved = getGroup(group.id);
           lastSyncedModifiedRef.current[group.id] =
             saved?.lastModified ?? lastSyncedModifiedRef.current[group.id];
+          revalidate();
         }
         // 304 → nothing to do
       } catch {
@@ -188,7 +192,7 @@ function SyncProviderClient({ children }: { children: React.ReactNode }) {
 
     isSyncingRef.current = false;
     setIsSyncing(false);
-  }, []);
+  }, [revalidate]);
 
   // ── Periodic interval ─────────────────────────────────────────────────────
   useEffect(() => {
