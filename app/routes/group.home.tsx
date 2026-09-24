@@ -15,6 +15,7 @@ import {
 } from "~/components/ui/empty";
 import { Card, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { useMemo } from "react";
+import { NewExpenseOrTransferButtonGroup } from "~/components/app/NewExpenseOrTransferButtonGroup";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -55,15 +56,18 @@ export default function GroupHomePage() {
       {balances.length === 0 ? (
         <GroupBalancedEmptyState group={group} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {personBalances.map(({ person, balances: pBalances }) => (
-            <BalanceCard
-              key={person.id}
-              group={group}
-              person={person}
-              balances={pBalances}
-            />
-          ))}
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {personBalances.map(({ person, balances: pBalances }) => (
+              <BalanceCard
+                key={person.id}
+                group={group}
+                person={person}
+                balances={pBalances}
+              />
+            ))}
+          </div>
+          <NewExpenseOrTransferButtonGroup group={group} />
         </div>
       )}
     </div>
@@ -141,33 +145,8 @@ function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
         <EmptyTitle className="text-2xl">All balanced!</EmptyTitle>
         <EmptyDescription>Everything is settled up. Yay!</EmptyDescription>
       </EmptyHeader>
-      <EmptyContent className="flex flex-row gap-2 justify-center">
-        <Button
-          variant="default"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/expenses/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <Banknote /> New expense
-            </Link>
-          }
-        />
-        <Button
-          variant="muted"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/transfers/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <HandCoins /> New transfer
-            </Link>
-          }
-        />
+      <EmptyContent>
+        <NewExpenseOrTransferButtonGroup group={group} />
       </EmptyContent>
     </Empty>
   );

@@ -34,6 +34,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "~/components/ui/empty";
+import { NewExpenseOrTransferButtonGroup } from "~/components/app/NewExpenseOrTransferButtonGroup";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -83,33 +84,8 @@ function GroupNoActivityEmptyState({ group }: GroupNoActivityEmptyStateProps) {
           Add an expense or transfer to get started.
         </EmptyDescription>
       </EmptyHeader>
-      <EmptyContent className="flex flex-row gap-2 justify-center">
-        <Button
-          variant="default"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/expenses/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <Banknote /> New expense
-            </Link>
-          }
-        />
-        <Button
-          variant="muted"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/transfers/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <HandCoins /> New transfer
-            </Link>
-          }
-        />
+      <EmptyContent>
+        <NewExpenseOrTransferButtonGroup group={group} />
       </EmptyContent>
     </Empty>
   );

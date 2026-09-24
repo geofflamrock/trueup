@@ -12,6 +12,7 @@ import {
 } from "~/components/ui/input-group";
 import type { ExpenseShare, Person } from "~/types";
 import { cn } from "~/lib/utils";
+import type { EditExpenseShare } from "~/routes/expense.new";
 
 const numberRows = [
   ["7", "8", "9"],
@@ -32,7 +33,7 @@ const operatorPrecedence: Record<string, number> = {
 type CustomSplitEditorProps = {
   amount: string;
   people: Person[];
-  shares: ExpenseShare[];
+  shares: EditExpenseShare[];
   onUpdateShare: (personId: number, value: string) => void;
 };
 
@@ -284,7 +285,7 @@ function evaluateExpression(expression: string) {
       operators.length > 0 &&
       operators[operators.length - 1] !== "(" &&
       operatorPrecedence[operators[operators.length - 1]!] >=
-        operatorPrecedence[token]
+      operatorPrecedence[token]
     ) {
       if (!applyOperator()) {
         return null;
@@ -568,7 +569,7 @@ export function CustomSplitEditor({
       ? null
       : (shares.find((share) => share.personId === activePerson.id) ?? null);
 
-  const totalShares = shares.reduce((sum, share) => sum + share.amount, 0);
+  const totalShares = shares.reduce((sum, share) => sum + (share.amount ?? 0), 0);
   const parsedAmount = Number.parseFloat(amount);
   const hasAmount = amount.length > 0 && !Number.isNaN(parsedAmount);
   const isValid = hasAmount && Math.abs(totalShares - parsedAmount) < 0.01;
@@ -595,7 +596,6 @@ export function CustomSplitEditor({
                     onUpdateShare(person.id, event.target.value)
                   }
                   step="0.01"
-                  min="0"
                 />
                 <InputGroupAddon align="inline-end">
                   <InputGroupButton

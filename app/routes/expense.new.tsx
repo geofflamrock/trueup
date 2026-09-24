@@ -72,6 +72,8 @@ export async function clientAction({
 
 export type SplitType = "equal" | "custom";
 
+export type EditExpenseShare = Pick<ExpenseShare, "personId"> & Partial<Pick<ExpenseShare, "amount">>;
+
 export default function NewExpense() {
   const { group } = useLoaderData<typeof clientLoader>();
   const [description, setDescription] = useState("");
@@ -81,7 +83,7 @@ export default function NewExpense() {
   );
   const [date, setDate] = useState(getTodayYYYYMMDD());
   const [splitType, setSplitType] = useState<SplitType>("equal");
-  const [shares, setShares] = useState<ExpenseShare[]>(
+  const [shares, setShares] = useState<EditExpenseShare[]>(
     group.people.map((p) => ({ personId: p.id, amount: 0 })),
   );
 
@@ -109,10 +111,18 @@ export default function NewExpense() {
         );
       }
     }
+    else if (type === "custom") {
+      setShares(
+        group.people.map((p) => ({ personId: p.id, amount: undefined })),
+      );
+    }
   };
 
   const updateShare = (personId: number, value: string) => {
-    const shareAmount = parseFloat(value) || 0;
+    let shareAmount: number | undefined = parseFloat(value);
+    if (isNaN(shareAmount)) {
+      shareAmount = undefined;
+    }
     setShares(
       shares.map((s) =>
         s.personId === personId ? { ...s, amount: shareAmount } : s,
@@ -120,7 +130,7 @@ export default function NewExpense() {
     );
   };
 
-  const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
+  const totalShares = shares.reduce((sum, s) => sum + (s.amount ?? 0), 0);
   const isValid = amount && Math.abs(totalShares - parseFloat(amount)) < 0.01;
   const peopleItems = group.people.map((person) => ({
     label: person.name,

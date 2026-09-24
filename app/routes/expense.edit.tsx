@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import type { SplitType } from "./expense.new";
+import type { EditExpenseShare, SplitType } from "./expense.new";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import { PageLayout } from "~/components/app/PageLayout";
 import { ArrowLeft } from "lucide-react";
@@ -99,7 +99,7 @@ export default function EditExpense() {
     );
     return allEqual ? "equal" : "custom";
   });
-  const [shares, setShares] = useState<ExpenseShare[]>(expense.shares);
+  const [shares, setShares] = useState<EditExpenseShare[]>(expense.shares);
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
@@ -125,10 +125,18 @@ export default function EditExpense() {
         );
       }
     }
+    else if (type === "custom") {
+      setShares(
+        group.people.map((p) => ({ personId: p.id, amount: undefined })),
+      );
+    }
   };
 
   const updateShare = (personId: number, value: string) => {
-    const shareAmount = parseFloat(value) || 0;
+    let shareAmount: number | undefined = parseFloat(value);
+    if (isNaN(shareAmount)) {
+      shareAmount = undefined;
+    }
     setShares(
       shares.map((s) =>
         s.personId === personId ? { ...s, amount: shareAmount } : s,
@@ -136,7 +144,7 @@ export default function EditExpense() {
     );
   };
 
-  const totalShares = shares.reduce((sum, s) => sum + s.amount, 0);
+  const totalShares = shares.reduce((sum, s) => sum + (s.amount ?? 0), 0);
   const isValid = amount && Math.abs(totalShares - parseFloat(amount)) < 0.01;
   const peopleItems = group.people.map((person) => ({
     label: person.name,
