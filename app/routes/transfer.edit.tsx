@@ -98,7 +98,7 @@ export default function EditTransfer() {
           >
             <ArrowLeft className="size-6" />
           </Button>
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+          <h1 className="text-2xl font-sans text-foreground text-ellipsis overflow-hidden">
             Edit transfer
           </h1>
         </div>

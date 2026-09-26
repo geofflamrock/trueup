@@ -7,6 +7,7 @@ import { BadgeCheckIcon, Banknote, Coins, HandCoins } from "lucide-react";
 import type { Balance, Group, Person } from "~/types";
 import { Card, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { useMemo } from "react";
+import { NewExpenseOrTransferButtons } from "~/components/app/NewExpenseOrTransferButtons";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -58,6 +59,7 @@ export default function GroupHomePage() {
           ))}
         </div>
       )}
+      <NewExpenseOrTransferButtons group={group} />
     </div>
   );
 }
@@ -132,34 +134,6 @@ function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
           <span className="text-2xl font-semibold">All balanced!</span>
         </div>
         <p className="text-muted-foreground">Everything is settled up. Yay!</p>
-        <div className="mt-4 flex flex-row gap-2 justify-center">
-          <Button
-            variant="default"
-            size="lg"
-            render={
-              <Link
-                to={`/${group.id}/expenses/new`}
-                prefetch="viewport"
-                className="cursor-pointer"
-              >
-                <Banknote /> New expense
-              </Link>
-            }
-          />
-          <Button
-            variant="secondary"
-            size="lg"
-            render={
-              <Link
-                to={`/${group.id}/transfers/new`}
-                prefetch="viewport"
-                className="cursor-pointer"
-              >
-                <HandCoins /> New transfer
-              </Link>
-            }
-          />
-        </div>
       </div>
     </Card>
   );

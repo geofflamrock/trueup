@@ -144,7 +144,7 @@ export default function NewTransfer() {
               </Link>
             }
           />
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+          <h1 className="text-2xl font-sans text-foreground text-ellipsis overflow-hidden">
             New transfer
           </h1>
         </div>

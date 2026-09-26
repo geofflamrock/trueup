@@ -154,7 +154,7 @@ export default function NewExpense() {
               </Link>
             }
           />
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+          <h1 className="text-2xl font-sans text-foreground text-ellipsis overflow-hidden">
             New expense
           </h1>
         </div>
