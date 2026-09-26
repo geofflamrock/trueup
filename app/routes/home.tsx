@@ -9,7 +9,7 @@ import { BadgeCheckIcon, Coins } from "lucide-react";
 import { PageLayout } from "~/components/app/PageLayout";
 import { calculateBalances } from "~/balances";
 
-export function meta({}: Route.MetaArgs) {
+export function meta({ }: Route.MetaArgs) {
   return [
     { title: "True Up" },
     {
@@ -33,11 +33,11 @@ export default function Home({ loaderData }: Route.ComponentProps) {
           <div className="flex flex-col gap-8 text-foreground text-3xl">
             <p>
               Track who paid for what on your{" "}
-              <span className="text-primary">family holiday to Europe.</span>
+              <span className="font-semibold">family holiday to Europe.</span>
             </p>
             <p>
               Work out who owes what and{" "}
-              <span className="text-primary">true up.</span>
+              <span className="font-semibold">true up.</span>
             </p>
             <p>All data stays on your device. No account required. Free.</p>
           </div>

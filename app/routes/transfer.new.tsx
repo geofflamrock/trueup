@@ -75,9 +75,9 @@ export default function NewTransfer() {
   );
   const [paidToId, setPaidToId] = useState(
     searchParams.get("to") ||
-      group.people[1]?.id.toString() ||
-      group.people[0]?.id.toString() ||
-      "",
+    group.people[1]?.id.toString() ||
+    group.people[0]?.id.toString() ||
+    "",
   );
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;
@@ -144,7 +144,7 @@ export default function NewTransfer() {
               </Link>
             }
           />
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+          <h1 className="text-2xl font-sans text-foreground text-ellipsis overflow-hidden">
             New transfer
           </h1>
         </div>

@@ -26,14 +26,8 @@ import {
 import { format } from "date-fns";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import type { Group } from "~/types";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "~/components/ui/empty";
+import { Card } from "~/components/ui/card";
+import { NewExpenseOrTransferButtons } from "~/components/app/NewExpenseOrTransferButtons";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -61,7 +55,12 @@ export default function GroupActivityPage() {
 
   return (
     <div className="p-4">
-      {!hasExpensesOrTransfers && <GroupNoActivityEmptyState group={group} />}
+      {!hasExpensesOrTransfers && (
+        <>
+          <GroupNoActivityEmptyState group={group} />
+          <NewExpenseOrTransferButtons group={group} />
+        </>
+      )}
       {hasExpensesOrTransfers && <Timeline group={group} />}
     </div>
   );
@@ -73,45 +72,17 @@ type GroupNoActivityEmptyStateProps = {
 
 function GroupNoActivityEmptyState({ group }: GroupNoActivityEmptyStateProps) {
   return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyMedia>
-          <ActivitySquareIcon size={48} />
-        </EmptyMedia>
-        <EmptyTitle className="text-2xl">No activity yet</EmptyTitle>
-        <EmptyDescription>
+    <Card className="mx-auto w-full max-w-md py-10 text-center">
+      <div className="flex flex-col items-center justify-center gap-3">
+        <span className="flex items-center gap-3">
+          <ActivitySquareIcon size={40} />
+          <span className="text-2xl font-semibold">No activity yet</span>
+        </span>
+        <p className="text-muted-foreground">
           Add an expense or transfer to get started.
-        </EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent className="flex flex-row gap-2 justify-center">
-        <Button
-          variant="default"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/expenses/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <Banknote /> New expense
-            </Link>
-          }
-        />
-        <Button
-          variant="muted"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/transfers/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <HandCoins /> New transfer
-            </Link>
-          }
-        />
-      </EmptyContent>
-    </Empty>
+        </p>
+      </div>
+    </Card>
   );
 }
 
@@ -162,110 +133,112 @@ function Timeline({ group }: TimelineProps) {
   const getPersonName = (id: number) =>
     group.people.find((p) => p.id === id)?.name || "Unknown";
 
+  const renderItem = (item: (typeof timeline)[number]) =>
+    item.type === "expense" ? (
+      <Item
+        size="default"
+        key={item.id}
+        className="px-0"
+        render={
+          <Link
+            to={`/${group.id}/expenses/${item.id}`}
+            prefetch="viewport"
+            className="cursor-pointer"
+          >
+            <ItemMedia variant="icon">
+              <Banknote className="size-5" />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle className="text-base">
+                {getPersonName(item.paidById)} paid $
+                {item.amount.toFixed(2)}
+              </ItemTitle>
+              <ItemDescription className="text-base">
+                {item.description}
+              </ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <Popover>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon-lg"
+                      className="cursor-pointer text-muted-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                      }}
+                    >
+                      <ChartPie />
+                    </Button>
+                  }
+                ></PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  side="top"
+                  className="w-auto min-w-48"
+                >
+                  <PopoverHeader>
+                    <PopoverTitle>Split</PopoverTitle>
+                  </PopoverHeader>
+                  <div className="flex flex-col gap-2">
+                    {item.shares.map((share) => (
+                      <div
+                        key={share.personId}
+                        className="flex justify-between gap-4"
+                      >
+                        <span>{getPersonName(share.personId)}</span>
+                        <span>${share.amount.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </ItemActions>
+          </Link>
+        }
+      />
+    ) : (
+      <Item
+        size="default"
+        key={item.id}
+        className="px-0"
+        render={
+          <Link
+            to={`/${group.id}/transfers/${item.id}`}
+            prefetch="viewport"
+            className="cursor-pointer"
+          >
+            <ItemMedia variant="icon">
+              <HandCoins className="size-5" />
+            </ItemMedia>
+            <ItemContent>
+              <ItemTitle className="text-base">
+                {getPersonName(item.paidById)} sent $
+                {item.amount.toFixed(2)} to{" "}
+                {getPersonName(item.paidToId)}
+              </ItemTitle>
+              {item.description && (
+                <ItemDescription className="text-base">
+                  {item.description}
+                </ItemDescription>
+              )}
+            </ItemContent>
+          </Link>
+        }
+      />
+    );
+
   return (
     <div className="flex flex-col gap-6">
       {Object.entries(timelineGroupedByDate).map(([date, items]) => (
-        <div key={date} className="flex flex-col gap-2">
-          <h3 className="text-muted-foreground ml-1">{date}</h3>
-          <div className="flex flex-col -ml-3">
-            {items.map((item) =>
-              item.type === "expense" ? (
-                <Item
-                  size="default"
-                  key={item.id}
-                  className="pr-0"
-                  render={
-                    <Link
-                      to={`/${group.id}/expenses/${item.id}`}
-                      prefetch="viewport"
-                      className="cursor-pointer"
-                    >
-                      <ItemMedia variant="icon">
-                        <Banknote className="size-5" />
-                      </ItemMedia>
-                      <ItemContent>
-                        <ItemTitle className="text-base">
-                          {getPersonName(item.paidById)} paid $
-                          {item.amount.toFixed(2)}
-                        </ItemTitle>
-                        <ItemDescription className="text-base">
-                          {item.description}
-                        </ItemDescription>
-                      </ItemContent>
-                      <ItemActions>
-                        <Popover>
-                          <PopoverTrigger
-                            render={
-                              <Button
-                                variant="ghost"
-                                size="icon-lg"
-                                className="cursor-pointer text-muted-foreground"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                }}
-                              >
-                                <ChartPie />
-                              </Button>
-                            }
-                          ></PopoverTrigger>
-                          <PopoverContent
-                            align="end"
-                            side="top"
-                            className="w-auto min-w-48"
-                          >
-                            <PopoverHeader>
-                              <PopoverTitle>Split</PopoverTitle>
-                            </PopoverHeader>
-                            <div className="flex flex-col gap-2">
-                              {item.shares.map((share) => (
-                                <div
-                                  key={share.personId}
-                                  className="flex justify-between gap-4"
-                                >
-                                  <span>{getPersonName(share.personId)}</span>
-                                  <span>${share.amount.toFixed(2)}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      </ItemActions>
-                    </Link>
-                  }
-                />
-              ) : (
-                <Item
-                  size="default"
-                  key={item.id}
-                  render={
-                    <Link
-                      to={`/${group.id}/transfers/${item.id}`}
-                      prefetch="viewport"
-                      className="cursor-pointer"
-                    >
-                      <ItemMedia variant="icon">
-                        <HandCoins className="size-5" />
-                      </ItemMedia>
-                      <ItemContent>
-                        <ItemTitle className="text-base">
-                          {getPersonName(item.paidById)} sent $
-                          {item.amount.toFixed(2)} to{" "}
-                          {getPersonName(item.paidToId)}
-                        </ItemTitle>
-                        {item.description && (
-                          <ItemDescription className="text-base">
-                            {item.description}
-                          </ItemDescription>
-                        )}
-                      </ItemContent>
-                    </Link>
-                  }
-                />
-              ),
-            )}
+        <Card key={date} size="sm" className="gap-4 py-5">
+          <h3 className="px-5 text-muted-foreground">{date}</h3>
+          <div className="flex flex-col gap-2 px-5 pb-1">
+            {items.map(renderItem)}
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   );

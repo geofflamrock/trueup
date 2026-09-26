@@ -98,7 +98,7 @@ export default function EditTransfer() {
           >
             <ArrowLeft className="size-6" />
           </Button>
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+          <h1 className="text-2xl font-sans text-foreground text-ellipsis overflow-hidden">
             Edit transfer
           </h1>
         </div>
@@ -208,9 +208,9 @@ export default function EditTransfer() {
                 Save
               </Button>
               <Button
-                variant="ghost"
+                variant="destructive-ghost"
                 size="xl"
-                className="text-destructive cursor-pointer"
+                className="cursor-pointer"
                 render={
                   <Link
                     to={`/${group.id}/transfers/${transfer.id}/delete`}

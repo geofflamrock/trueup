@@ -165,7 +165,7 @@ export default function EditExpense() {
           >
             <ArrowLeft className="size-6" />
           </Button>
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+          <h1 className="text-2xl font-sans text-foreground text-ellipsis overflow-hidden">
             Edit expense
           </h1>
         </div>
@@ -302,9 +302,9 @@ export default function EditExpense() {
                     Delete expense
                   </Link>
                 }
-                variant="ghost"
+                variant="destructive-ghost"
                 size="xl"
-                className="cursor-pointer text-destructive"
+                className="cursor-pointer"
               />
             </div>
           </FieldGroup>
