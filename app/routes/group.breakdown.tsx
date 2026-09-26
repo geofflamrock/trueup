@@ -99,14 +99,14 @@ type PersonBreakdownCardProps = {
 
 function PersonBreakdownCard({ row }: PersonBreakdownCardProps) {
   return (
-    <Card size="sm" className="gap-4 py-5">
-      <div className="flex items-baseline justify-between px-5">
+    <Card size="sm" className="gap-4 px-5 py-6">
+      <div className="flex items-baseline justify-between">
         <span className="text-lg font-medium">{row.person.name}</span>
       </div>
       <Table>
         <TableBody>
           {breakdownTypes.map(({ key, label, sign }) => (
-            <TableRow key={key} className="h-10 hover:bg-transparent">
+            <TableRow key={key} className="h-10 border-0 hover:bg-transparent">
               <TableCell className="p-0 pr-3 font-medium">
                 {sign && (
                   <span className="mr-2 text-muted-foreground">{sign}</span>
