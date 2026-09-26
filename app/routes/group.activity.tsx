@@ -26,15 +26,8 @@ import {
 import { format } from "date-fns";
 import { parseDateToYYYYMMDD } from "~/lib/date-utils";
 import type { Group } from "~/types";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "~/components/ui/empty";
 import { Card } from "~/components/ui/card";
+import { NewExpenseOrTransferButtons } from "~/components/app/NewExpenseOrTransferButtons";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -62,7 +55,12 @@ export default function GroupActivityPage() {
 
   return (
     <div className="p-4">
-      {!hasExpensesOrTransfers && <GroupNoActivityEmptyState group={group} />}
+      {!hasExpensesOrTransfers && (
+        <>
+          <GroupNoActivityEmptyState group={group} />
+          <NewExpenseOrTransferButtons group={group} />
+        </>
+      )}
       {hasExpensesOrTransfers && <Timeline group={group} />}
     </div>
   );
@@ -74,45 +72,17 @@ type GroupNoActivityEmptyStateProps = {
 
 function GroupNoActivityEmptyState({ group }: GroupNoActivityEmptyStateProps) {
   return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyMedia>
-          <ActivitySquareIcon size={48} />
-        </EmptyMedia>
-        <EmptyTitle className="text-2xl">No activity yet</EmptyTitle>
-        <EmptyDescription>
+    <Card className="mx-auto w-full max-w-md py-10 text-center">
+      <div className="flex flex-col items-center justify-center gap-3">
+        <span className="flex items-center gap-3">
+          <ActivitySquareIcon size={40} />
+          <span className="text-2xl font-semibold">No activity yet</span>
+        </span>
+        <p className="text-muted-foreground">
           Add an expense or transfer to get started.
-        </EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent className="flex flex-row gap-2 justify-center">
-        <Button
-          variant="default"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/expenses/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <Banknote /> New expense
-            </Link>
-          }
-        />
-        <Button
-          variant="secondary"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/transfers/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <HandCoins /> New transfer
-            </Link>
-          }
-        />
-      </EmptyContent>
-    </Empty>
+        </p>
+      </div>
+    </Card>
   );
 }
 
