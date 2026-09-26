@@ -27,12 +27,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta
           name="theme-color"
           media="(prefers-color-scheme: dark)"
-          content="#0c0a0b"
+          content="#1A1A1A"
         />
         <meta
           name="theme-color"
           media="(prefers-color-scheme: light)"
-          content="#ffffff"
+          content="#F5F5F0"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Pacifico:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300..700&display=swap"
+          rel="stylesheet"
         />
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml" />

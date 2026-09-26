@@ -97,7 +97,7 @@ function BalanceCard({ group, person, balances }: BalanceCardProps) {
               <span key={creditor.id}>
                 {i > 0 && (i === creditors.length - 1 ? " and " : ", ")}
                 {creditor.name}{" "}
-                <span className="text-primary">
+                <span className="font-semibold">
                   ${balance.amount.toFixed(2)}
                 </span>
               </span>
@@ -136,7 +136,7 @@ function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
     <Empty>
       <EmptyHeader className="text-primary">
         <EmptyMedia>
-          <BadgeCheckIcon size={48} />
+          <BadgeCheckIcon size={48} className="text-primary" />
         </EmptyMedia>
         <EmptyTitle className="text-2xl">All balanced!</EmptyTitle>
         <EmptyDescription>Everything is settled up. Yay!</EmptyDescription>

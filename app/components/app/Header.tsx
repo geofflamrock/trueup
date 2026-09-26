@@ -12,7 +12,7 @@ export function Header() {
       <Link to="/" prefetch="viewport" className="cursor-pointer">
         <div className="flex gap-2 items-center">
           <Coins className="text-primary" size={24} />
-          <h1 className="text-2xl text-primary font-title">True Up</h1>
+          <h1 className="text-2xl text-foreground font-title">True Up</h1>
         </div>
       </Link>
       <div className="flex gap-2 items-center">
