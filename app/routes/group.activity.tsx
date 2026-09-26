@@ -168,7 +168,7 @@ function Timeline({ group }: TimelineProps) {
       <Item
         size="default"
         key={item.id}
-        className="pr-0"
+        className="px-0"
         render={
           <Link
             to={`/${group.id}/expenses/${item.id}`}
@@ -233,6 +233,7 @@ function Timeline({ group }: TimelineProps) {
       <Item
         size="default"
         key={item.id}
+        className="px-0"
         render={
           <Link
             to={`/${group.id}/transfers/${item.id}`}
