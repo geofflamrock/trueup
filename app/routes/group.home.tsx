@@ -5,14 +5,6 @@ import { calculateBalances } from "../balances";
 import { Button } from "~/components/ui/button";
 import { BadgeCheckIcon, Banknote, Coins, HandCoins } from "lucide-react";
 import type { Balance, Group, Person } from "~/types";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "~/components/ui/empty";
 import { Card, CardFooter, CardHeader, CardTitle } from "~/components/ui/card";
 import { useMemo } from "react";
 
@@ -133,42 +125,42 @@ type GroupBalancedEmptyStateProps = {
 
 function GroupBalancedEmptyState({ group }: GroupBalancedEmptyStateProps) {
   return (
-    <Empty>
-      <EmptyHeader className="text-primary">
-        <EmptyMedia>
-          <BadgeCheckIcon size={48} className="text-primary" />
-        </EmptyMedia>
-        <EmptyTitle className="text-2xl">All balanced!</EmptyTitle>
-        <EmptyDescription>Everything is settled up. Yay!</EmptyDescription>
-      </EmptyHeader>
-      <EmptyContent className="flex flex-row gap-2 justify-center">
-        <Button
-          variant="default"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/expenses/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <Banknote /> New expense
-            </Link>
-          }
-        />
-        <Button
-          variant="muted"
-          size="lg"
-          render={
-            <Link
-              to={`/${group.id}/transfers/new`}
-              prefetch="viewport"
-              className="cursor-pointer"
-            >
-              <HandCoins /> New transfer
-            </Link>
-          }
-        />
-      </EmptyContent>
-    </Empty>
+    <Card className="mx-auto w-full max-w-md py-10 text-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex items-center gap-3">
+          <BadgeCheckIcon size={40} className="text-primary" />
+          <span className="text-2xl font-semibold">All balanced!</span>
+        </div>
+        <p className="text-muted-foreground">Everything is settled up. Yay!</p>
+        <div className="mt-4 flex flex-row gap-2 justify-center">
+          <Button
+            variant="default"
+            size="lg"
+            render={
+              <Link
+                to={`/${group.id}/expenses/new`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <Banknote /> New expense
+              </Link>
+            }
+          />
+          <Button
+            variant="secondary"
+            size="lg"
+            render={
+              <Link
+                to={`/${group.id}/transfers/new`}
+                prefetch="viewport"
+                className="cursor-pointer"
+              >
+                <HandCoins /> New transfer
+              </Link>
+            }
+          />
+        </div>
+      </div>
+    </Card>
   );
 }

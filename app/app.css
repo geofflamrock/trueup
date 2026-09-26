@@ -22,7 +22,7 @@
   --destructive: #E85D4E;
   --border: #1E1E1E;
   --input: #1E1E1E;
-  --ring: #1A1A1A;
+  --ring: #C4D94E;
   --chart-1: #8BB4F7;
   --chart-2: #C5B5E0;
   --chart-3: #A8E6CF;
@@ -36,7 +36,7 @@
   --sidebar-accent: #E9E9DF;
   --sidebar-accent-foreground: #1A1A1A;
   --sidebar-border: #1E1E1E;
-  --sidebar-ring: #1A1A1A;
+  --sidebar-ring: #C4D94E;
 }
 
 .dark {

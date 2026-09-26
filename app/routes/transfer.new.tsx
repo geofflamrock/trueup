@@ -75,9 +75,9 @@ export default function NewTransfer() {
   );
   const [paidToId, setPaidToId] = useState(
     searchParams.get("to") ||
-      group.people[1]?.id.toString() ||
-      group.people[0]?.id.toString() ||
-      "",
+    group.people[1]?.id.toString() ||
+    group.people[0]?.id.toString() ||
+    "",
   );
 
   const isValid = amount && paidById && paidToId && paidById !== paidToId;

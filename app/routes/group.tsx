@@ -193,9 +193,8 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
             }
           />
           <Button
-            variant="muted"
-            size="xl"
-            onClick={() => setDrawerOpen(false)}
+            variant="secondary"
+            size="lg"
             render={
               <Link
                 to={`/${group.id}/transfers/new`}

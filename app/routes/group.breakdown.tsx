@@ -1,19 +1,15 @@
-import { Fragment, useMemo } from "react";
+import { useMemo } from "react";
 import { useLoaderData } from "react-router";
-import { ChartNoAxesCombined } from "lucide-react";
 import type { Route } from "./+types/group.breakdown";
 import { getGroup } from "../storage";
 import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
   TableRow,
 } from "~/components/ui/table";
+import { Card } from "~/components/ui/card";
 import { cn } from "~/lib/utils";
-import { useIsDesktop } from "~/hooks/useIsDesktop";
 
 export function meta({ loaderData }: Route.MetaArgs) {
   return [
@@ -55,7 +51,6 @@ type RowType = (typeof breakdownTypes)[number]["key"];
 
 export default function GroupBreakdownPage() {
   const { group } = useLoaderData<typeof clientLoader>();
-  const isDesktop = useIsDesktop();
 
   const tableRows = useMemo(() => {
     return group.people.map((person) => {
@@ -80,110 +75,60 @@ export default function GroupBreakdownPage() {
     });
   }, [group.people, group.expenses, group.transfers]);
 
-  if (isDesktop) {
-    return (
-      <div className="p-4 flex flex-col gap-4">
-        <Table className="text-base">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Person</TableHead>
-              {breakdownTypes.map(({ key, shortLabel }, index) => (
-                <Fragment key={key}>
-                  {index > 0 && (
-                    <TableHead className="w-2 p-0" aria-hidden="true" />
-                  )}
-                  <TableHead className="text-right">{shortLabel}</TableHead>
-                </Fragment>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {tableRows.map((row) => (
-              <TableRow key={row.person.id}>
-                <TableCell>{row.person.name}</TableCell>
-                {breakdownTypes.map(({ key, sign }, index) => (
-                  <Fragment key={`${row.person.id}-${key}`}>
-                    {index > 0 && (
-                      <TableCell className="w-2 sm:pl-3 md:pl-8 lg:pl-12 text-right text-muted-foreground">
-                        {sign}
-                      </TableCell>
-                    )}
-                    <TableCell
-                      className={cn("text-right", {
-                        "text-primary": key === "balance" && row.balance > 0,
-                        "text-destructive":
-                          key === "balance" && row.balance < 0,
-                      })}
-                    >
-                      {key === "balance"
-                        ? formatBalance(row.balance)
-                        : `$${row[key as Exclude<RowType, "balance">].toFixed(2)}`}
-                    </TableCell>
-                  </Fragment>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    );
-  }
-
   return (
     <div className="p-4 flex flex-col gap-4">
-      <Table className="text-base">
-        <TableBody>
-          {tableRows.map((row, personIndex) =>
-            breakdownTypes.map(({ key, label, sign }, index) => (
-              <TableRow key={`${row.person.id}-${key}`} className="border-0">
-                {index === 0 && (
-                  <TableCell
-                    rowSpan={breakdownTypes.length}
-                    className={cn("align-top p-2", {
-                      "border-b": personIndex < tableRows.length - 1,
-                    })}
-                  >
-                    {row.person.name}
-                  </TableCell>
-                )}
-                <TableCell
-                  className={cn("w-2 text-center p-2", {
-                    "border-b":
-                      index === breakdownTypes.length - 1 &&
-                      personIndex < tableRows.length - 1,
-                  })}
-                >
-                  {sign}
-                </TableCell>
-                <TableCell
-                  className={cn("p-2", {
-                    "border-b":
-                      index === breakdownTypes.length - 1 &&
-                      personIndex < tableRows.length - 1,
-                  })}
-                >
-                  {label}:
-                </TableCell>
+      {tableRows.map((row) => (
+        <PersonBreakdownCard key={row.person.id} row={row} />
+      ))}
+    </div>
+  );
+}
 
-                <TableCell
-                  className={cn("text-right p-2", {
-                    "text-primary": key === "balance" && row.balance > 0,
-                    "text-destructive": key === "balance" && row.balance < 0,
-                    "border-b":
-                      index === breakdownTypes.length - 1 &&
-                      personIndex < tableRows.length - 1,
-                  })}
-                >
-                  {key === "balance"
-                    ? formatBalance(row.balance)
-                    : `$${row[key as Exclude<RowType, "balance">].toFixed(2)}`}
-                </TableCell>
-              </TableRow>
-            )),
-          )}
+type PersonRow = {
+  person: { id: number; name: string };
+  paid: number;
+  expenses: number;
+  sent: number;
+  received: number;
+  balance: number;
+};
+
+type PersonBreakdownCardProps = {
+  row: PersonRow;
+};
+
+function PersonBreakdownCard({ row }: PersonBreakdownCardProps) {
+  return (
+    <Card size="sm" className="gap-4 py-5">
+      <div className="flex items-baseline justify-between px-5">
+        <span className="text-lg font-medium">{row.person.name}</span>
+      </div>
+      <Table>
+        <TableBody>
+          {breakdownTypes.map(({ key, label, sign }) => (
+            <TableRow key={key} className="h-10 hover:bg-transparent">
+              <TableCell className="p-0 pr-3 font-medium">
+                {sign && (
+                  <span className="mr-2 text-muted-foreground">{sign}</span>
+                )}
+                {label}
+              </TableCell>
+              <TableCell
+                className={cn("p-0 text-right", {
+                  "font-semibold": key === "balance",
+                  "text-primary": key === "balance" && row.balance > 0,
+                  "text-destructive": key === "balance" && row.balance < 0,
+                })}
+              >
+                {key === "balance"
+                  ? formatBalance(row.balance)
+                  : `$${row[key as Exclude<RowType, "balance">].toFixed(2)}`}
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   );
 }
 

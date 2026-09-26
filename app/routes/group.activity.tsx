@@ -98,7 +98,7 @@ function GroupNoActivityEmptyState({ group }: GroupNoActivityEmptyStateProps) {
           }
         />
         <Button
-          variant="muted"
+          variant="secondary"
           size="lg"
           render={
             <Link
