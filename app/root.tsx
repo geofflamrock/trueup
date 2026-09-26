@@ -50,7 +50,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link
           rel="mask-icon"
           href="/maskable-icon-512x512.png"
-          color="#0c0a0b"
+          color="#C4D94E"
         />
         <Meta />
         <Links />
