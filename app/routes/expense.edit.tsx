@@ -302,9 +302,9 @@ export default function EditExpense() {
                     Delete expense
                   </Link>
                 }
-                variant="ghost"
+                variant="destructive-ghost"
                 size="xl"
-                className="cursor-pointer text-destructive"
+                className="cursor-pointer"
               />
             </div>
           </FieldGroup>

@@ -179,8 +179,7 @@ function GroupHeaderMenu({ group }: GroupHeaderMenuProps) {
       <DrawerContent>
         <DrawerFooter className="flex flex-col gap-2">
           <Button
-            variant="muted"
-            size="xl"
+            size="lg"
             onClick={() => setDrawerOpen(false)}
             render={
               <Link
@@ -232,7 +231,7 @@ function GroupHeader({ group }: GroupHeaderProps) {
           prefetch="viewport"
           className="cursor-pointer"
         >
-          <h1 className="text-2xl font-title text-foreground text-ellipsis overflow-hidden">
+          <h1 className="text-2xl font-sans text-foreground text-ellipsis overflow-hidden">
             {group.name}
           </h1>
         </Link>

@@ -190,8 +190,8 @@ export default function EditGroup({ loaderData }: Route.ComponentProps) {
               <Button
                 type="button"
                 size="xl"
-                variant="ghost"
-                className="text-destructive cursor-pointer"
+                variant="destructive-ghost"
+                className="cursor-pointer"
                 render={
                   <Link
                     to={`/${group.id}/settings/delete`}
