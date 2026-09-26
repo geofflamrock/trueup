@@ -108,7 +108,7 @@ function BalanceCard({ group, person, balances }: BalanceCardProps) {
                 className="cursor-pointer"
               />
             }
-            variant="muted"
+            variant="secondary"
             size="lg"
           >
             Pay {creditor.name}
